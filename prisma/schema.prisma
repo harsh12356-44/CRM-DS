@@ -1,0 +1,126 @@
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Employee {
+  id                              String          @id @default(uuid())
+  employeeId                      String          @unique
+  name                            String
+  email                           String          @unique
+  phone                           String?
+  avatarUrl                       String?
+  department                      String          @default("General")
+  designation                     String?
+  dateOfJoining                   String?
+  role                            String          @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
+  status                          String          @default("ACTIVE")   // ACTIVE, INACTIVE, UNUSED
+  monthlySalary                   Float           @default(50000)
+  dailyWorkingRequirementMinutes Int             @default(480)
+  weeklyOff                       String          @default("Sunday")
+  casualAllowance                 Int             @default(6)
+  plannedAllowance                Int             @default(6)
+  sickAllowance                   Int             @default(6)
+  reportingManager                String?
+  createdAt                       DateTime        @default(now())
+  updatedAt                       DateTime        @updatedAt
+
+  leaveRecords                    LeaveRecord[]
+  attendanceLogs                  AttendanceLog[]
+}
+
+model LeaveRecord {
+  id               String   @id @default(uuid())
+  employeeId       String
+  employee         Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  leaveType        String   // Casual Leave, Planned Leave, Sick Leave
+  dayType          String   @default("full") // full, first_half, second_half
+  startDate        String   // YYYY-MM-DD
+  endDate          String   // YYYY-MM-DD
+  daysCount        Float    @default(1)
+  quarter          String   // Q1, Q2, Q3, Q4
+  year             Int      @default(2026)
+  status           String   @default("APPROVED") // APPROVED, PENDING, REJECTED, CANCELLED
+  note             String?
+  handoverNote     String?
+  emergencyContact String?
+  createdAt        DateTime @default(now())
+}
+
+model AttendanceLog {
+  id                  String    @id @default(uuid())
+  employeeId          String
+  employee            Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date                String    // YYYY-MM-DD
+  attendanceCode      String    @default("P") // P, HD, A, PL, UL, WO-I, H, MP, SW
+  checkIn             String?   // HH:mm:ss
+  checkOut            String?   // HH:mm:ss
+  workedMinutes       Int       @default(480)
+  requiredMinutes     Int       @default(480)
+  shortMinutes        Int       @default(0)
+  extraMinutes        Int       @default(0)
+  sundayWorkedMinutes Int       @default(0)
+  isManual            Boolean   @default(false)
+  correctionReason    String?
+  location            String?   @default("Office Main Gate")
+  createdAt           DateTime  @default(now())
+}
+
+model CompanySettings {
+  id                        String   @id @default("default")
+  companyName               String   @default("HRM Pilot")
+  companyLogoUrl            String   @default("")
+  shiftStartTime            String   @default("09:00")
+  lunchBreakMinutes         Int      @default(60)
+  halfDayThresholdMinutes   Int      @default(240)
+  loginUrl                  String   @default("/login")
+  employeePortalUrl         String   @default("/employee")
+  managerPortalUrl          String   @default("/manager")
+  updatedAt                 DateTime @updatedAt
+}
+
+model Holiday {
+  id         String   @id @default(uuid())
+  name       String
+  date       String   // YYYY-MM-DD
+  isOptional Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Department {
+  id            String   @id @default(uuid())
+  code          String
+  name          String   @unique
+  managerName   String?  @default("Harshit Bhootra")
+  description   String?
+  employeeCount Int      @default(0)
+  createdAt     DateTime @default(now())
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  employeeId String
+  type       String
+  title      String
+  message    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @default("emp-1")
+  userName   String   @default("Harshit Bhootra")
+  action     String
+  objectType String
+  objectId   String
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  timestamp  DateTime @default(now())
+}

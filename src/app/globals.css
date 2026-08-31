@@ -1,0 +1,351 @@
+@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #3b82f6;
+  --primary-hover: #2563eb;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+  --info-color: #3b82f6;
+  --purple-color: #8b5cf6;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  background-color: #090d16;
+  color: #f8fafc;
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, .font-heading {
+  font-family: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ---------------------------------------------------
+   LIGHT THEME OVERRIDES (Full Coverage for White Cards, Tables, Sidebar & Buttons)
+--------------------------------------------------- */
+html.light body {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+html.light header {
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+}
+
+html.light main {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* 1. SIDEBAR LIGHT MODE STYLING */
+html.light aside {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light aside button {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light aside button:hover {
+  background-color: #e2e8f0 !important;
+  color: #2563eb !important;
+}
+
+html.light aside button svg {
+  color: #2563eb !important;
+}
+
+html.light aside a:not(.bg-blue-600) {
+  color: #334155 !important;
+}
+
+html.light aside a:not(.bg-blue-600) svg {
+  color: #475569 !important;
+}
+
+html.light aside a:not(.bg-blue-600):hover {
+  background-color: #f1f5f9 !important;
+  color: #2563eb !important;
+}
+
+html.light aside a:not(.bg-blue-600):hover svg {
+  color: #2563eb !important;
+}
+
+html.light aside a.bg-blue-600,
+html.light aside a.bg-blue-600 * {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.light aside .font-mono {
+  color: #0f172a !important;
+  font-weight: 900 !important;
+}
+
+html.light aside p {
+  color: #0f172a !important;
+}
+
+/* 2. CARD & CONTAINER PANELS IN LIGHT MODE */
+html.light .bg-slate-900:not([class*="bg-gradient-to"]):not(.hero-banner),
+html.light .bg-slate-950:not([class*="bg-gradient-to"]):not(.hero-banner),
+html.light .bg-slate-800:not([class*="bg-gradient-to"]):not(.hero-banner),
+html.light .bg-slate-700:not([class*="bg-gradient-to"]):not(.hero-banner) {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Sub-panels, stat boxes, & muted cards in Light Mode */
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/40,
+html.light .bg-slate-700\/60,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/60 {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* 3. TYPOGRAPHY IN LIGHT MODE (Turn text-white into dark navy on white backgrounds) */
+html.light main .bg-white .text-white,
+html.light main .bg-slate-900:not([class*="bg-gradient-to"]) .text-white,
+html.light main .bg-slate-950:not([class*="bg-gradient-to"]) .text-white,
+html.light main .bg-slate-800:not([class*="bg-gradient-to"]) .text-white,
+html.light main table .text-white,
+html.light main td.text-white,
+html.light main th.text-white,
+html.light main strong.text-white,
+html.light main p.text-white,
+html.light main span.text-white:not([class*="bg-gradient-to"] *):not(.bg-blue-600):not(.bg-indigo-600):not(.bg-emerald-600):not(.bg-purple-600):not(.bg-red-600),
+html.light main h1.text-white:not([class*="bg-gradient-to"] *),
+html.light main h2.text-white:not([class*="bg-gradient-to"] *),
+html.light main h3.text-white:not([class*="bg-gradient-to"] *) {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-100:not([class*="bg-gradient-to"] *),
+html.light .text-slate-200:not([class*="bg-gradient-to"] *),
+html.light .text-slate-300:not([class*="bg-gradient-to"] *) {
+  color: #1e293b !important;
+}
+
+html.light .text-slate-400:not([class*="bg-gradient-to"] *),
+html.light .text-slate-500:not([class*="bg-gradient-to"] *) {
+  color: #475569 !important;
+}
+
+html.light .border-slate-800,
+html.light .border-slate-800\/60,
+html.light .border-slate-800\/80,
+html.light .border-slate-700,
+html.light .border-slate-700\/60 {
+  border-color: #cbd5e1 !important;
+}
+
+/* 4. TABLE STYLING IN LIGHT MODE */
+html.light table thead tr {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+html.light table tbody tr {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light table tbody tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* 5. PRESERVE BRIGHT WHITE TEXT ON DARK HERO BANNERS & GRADIENTS */
+html.light [class*="bg-gradient-to"],
+html.light [class*="bg-gradient-to"] *,
+html.light .bg-gradient-to-r,
+html.light .bg-gradient-to-r *,
+html.light .bg-gradient-to-br,
+html.light .bg-gradient-to-br * {
+  color: #ffffff !important;
+}
+
+html.light [class*="bg-gradient-to"] p,
+html.light .bg-gradient-to-r p,
+html.light .bg-gradient-to-br p {
+  color: #e2e8f0 !important;
+}
+
+html.light [class*="bg-gradient-to"] span,
+html.light .bg-gradient-to-r span,
+html.light .bg-gradient-to-br span {
+  color: #f8fafc !important;
+}
+
+/* Buttons with white background inside dark banners */
+html.light [class*="bg-gradient-to"] a.bg-white,
+html.light [class*="bg-gradient-to"] a.bg-white *,
+html.light [class*="bg-gradient-to"] button.bg-white,
+html.light [class*="bg-gradient-to"] button.bg-white * {
+  background-color: #ffffff !important;
+  color: #1d4ed8 !important;
+  font-weight: 800 !important;
+}
+
+/* Action Buttons with Solid Fill */
+html.light .bg-blue-600,
+html.light .bg-blue-600 *,
+html.light .bg-blue-700,
+html.light .bg-blue-700 *,
+html.light .bg-indigo-600,
+html.light .bg-indigo-600 *,
+html.light .bg-purple-600,
+html.light .bg-purple-600 *,
+html.light .bg-emerald-600,
+html.light .bg-emerald-600 *,
+html.light .bg-red-600,
+html.light .bg-red-600 * {
+  color: #ffffff !important;
+}
+
+/* 6. HIGH CONTRAST STATUS BADGES IN LIGHT MODE */
+html.light [class*="bg-emerald-500"]:not(.bg-emerald-600),
+html.light .bg-emerald-500\/20,
+html.light .bg-emerald-500\/25,
+html.light .bg-emerald-500\/10 {
+  background-color: #d1fae5 !important;
+  border-color: #34d399 !important;
+  color: #065f46 !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-emerald-500"]:not(.bg-emerald-600) *,
+html.light .bg-emerald-500\/20 *,
+html.light .bg-emerald-500\/25 *,
+html.light .bg-emerald-500\/10 * {
+  color: #065f46 !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-purple-500"]:not(.bg-purple-600),
+html.light .bg-purple-500\/20,
+html.light .bg-purple-500\/25,
+html.light .bg-purple-500\/10 {
+  background-color: #f3e8ff !important;
+  border-color: #c084fc !important;
+  color: #581c87 !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-purple-500"]:not(.bg-purple-600) *,
+html.light .bg-purple-500\/20 *,
+html.light .bg-purple-500\/25 *,
+html.light .bg-purple-500\/10 * {
+  color: #581c87 !important;
+  font-weight: 800 !important;
+}
+
+html.light .text-purple-300:not([class*="bg-gradient-to"] *),
+html.light .text-purple-400:not([class*="bg-gradient-to"] *) {
+  color: #6b21a8 !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-amber-500"],
+html.light .bg-amber-500\/20,
+html.light .bg-amber-500\/25,
+html.light .bg-amber-500\/10,
+html.light .bg-amber-500\/5 {
+  background-color: #fef3c7 !important;
+  border-color: #fcd34d !important;
+  color: #78350f !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-amber-500"] *,
+html.light .bg-amber-500\/20 *,
+html.light .bg-amber-500\/25 *,
+html.light .bg-amber-500\/10 *,
+html.light .bg-amber-500\/5 * {
+  color: #78350f !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-red-500"]:not(.bg-red-600),
+html.light .bg-red-500\/20,
+html.light .bg-red-500\/25,
+html.light .bg-red-500\/10 {
+  background-color: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+  color: #7f1d1d !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-red-500"]:not(.bg-red-600) *,
+html.light .bg-red-500\/20 *,
+html.light .bg-red-500\/25 *,
+html.light .bg-red-500\/10 * {
+  color: #7f1d1d !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-blue-500"]:not(.bg-blue-600),
+html.light .bg-blue-500\/20,
+html.light .bg-blue-500\/10,
+html.light .bg-blue-600\/20 {
+  background-color: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+  font-weight: 800 !important;
+}
+
+html.light [class*="bg-blue-500"]:not(.bg-blue-600) *,
+html.light .bg-blue-500\/20 *,
+html.light .bg-blue-500\/10 *,
+html.light .bg-blue-600\/20 * {
+  color: #1e3a8a !important;
+  font-weight: 800 !important;
+}
+
+/* Custom Dual Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border-radius: 6px;
+  border: 2px solid #0f172a;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2563eb;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #e2e8f0;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: #3b82f6;
+  border: 2px solid #e2e8f0;
+}

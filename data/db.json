@@ -363,21 +363,39 @@
       "phone": "+91 98765 00018",
       "department": "Design",
       "designation": "Graphic Designer",
+      "dateOfJoining": "2024-08-01",
       "role": "EMPLOYEE",
       "status": "ACTIVE",
       "workMode": "WFH",
       "primaryManager": "Ravina Khimani",
-      "employeeType": "Full Time",
       "monthlySalary": 60000,
       "dailyWorkingRequirementMinutes": 480,
       "weeklyOff": "Sunday",
       "casualAllowance": 2,
       "plannedAllowance": 4,
-      "sickAllowance": 4,
-      "dateOfJoining": "2024-08-01"
+      "sickAllowance": 4
     }
   ],
-  "leaveRecords": [],
+  "leaveRecords": [
+    {
+      "id": "l-1788168844679",
+      "employeeId": "emp-18",
+      "leaveType": "Planned Leave",
+      "dayType": "full",
+      "startDate": "2026-09-01",
+      "endDate": "2026-09-01",
+      "daysCount": 1,
+      "quarter": "Q3",
+      "year": 2026,
+      "status": "APPROVED",
+      "managerStatus": "Approved",
+      "hrStatus": "Approved",
+      "note": "leave needed",
+      "handoverNote": "",
+      "emergencyContact": "",
+      "createdAt": "2026-08-31T09:34:04.679Z"
+    }
+  ],
   "attendanceLogs": [
     {
       "id": "att-emp-1-2026-07-01",
@@ -15211,6 +15229,37 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-1788168861762",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Leave Request APPROVED",
+      "objectType": "LeaveRecord",
+      "objectId": "l-1788168844679",
+      "oldValue": "{\"id\":\"l-1788168844679\",\"employeeId\":\"emp-18\",\"leaveType\":\"Planned Leave\",\"dayType\":\"full\",\"startDate\":\"2026-09-01\",\"endDate\":\"2026-09-01\",\"daysCount\":1,\"quarter\":\"Q3\",\"year\":2026,\"status\":\"PENDING\",\"managerStatus\":\"Pending\",\"hrStatus\":\"Pending\",\"note\":\"leave needed\",\"handoverNote\":\"\",\"emergencyContact\":\"\",\"createdAt\":\"2026-08-31T09:34:04.679Z\"}",
+      "newValue": "{\"id\":\"l-1788168844679\",\"employeeId\":\"emp-18\",\"leaveType\":\"Planned Leave\",\"dayType\":\"full\",\"startDate\":\"2026-09-01\",\"endDate\":\"2026-09-01\",\"daysCount\":1,\"quarter\":\"Q3\",\"year\":2026,\"status\":\"APPROVED\",\"managerStatus\":\"Approved\",\"hrStatus\":\"Approved\",\"note\":\"leave needed\",\"handoverNote\":\"\",\"emergencyContact\":\"\",\"createdAt\":\"2026-08-31T09:34:04.679Z\"}",
+      "timestamp": "2026-08-31T09:34:21.762Z"
+    },
+    {
+      "id": "aud-1788168845329",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Sync Client Backup Leaves",
+      "objectType": "LeaveRecord",
+      "objectId": "backup",
+      "newValue": "Synced 1 records from client backup",
+      "timestamp": "2026-08-31T09:34:05.329Z"
+    },
+    {
+      "id": "aud-1788168844679",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Submit Leave Request",
+      "objectType": "LeaveRecord",
+      "objectId": "l-1788168844679",
+      "newValue": "{\"id\":\"l-1788168844679\",\"employeeId\":\"emp-18\",\"leaveType\":\"Planned Leave\",\"dayType\":\"full\",\"startDate\":\"2026-09-01\",\"endDate\":\"2026-09-01\",\"daysCount\":1,\"quarter\":\"Q3\",\"year\":2026,\"status\":\"PENDING\",\"managerStatus\":\"Pending\",\"hrStatus\":\"Pending\",\"note\":\"leave needed\",\"handoverNote\":\"\",\"emergencyContact\":\"\",\"createdAt\":\"2026-08-31T09:34:04.679Z\"}",
+      "timestamp": "2026-08-31T09:34:04.679Z"
+    },
+    {
       "id": "aud-1788166534180",
       "userId": "emp-1",
       "userName": "Harshit Bhootra",
@@ -15497,6 +15546,24 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-1788168861770",
+      "employeeId": "emp-18",
+      "type": "leave_status_updated",
+      "title": "Leave Request APPROVED",
+      "message": "Your leave request #l-1788168844679 status is now APPROVED. Manager: Approved, HR: Approved.",
+      "isRead": false,
+      "createdAt": "2026-08-31T09:34:21.770Z"
+    },
+    {
+      "id": "notif-1788168844686",
+      "employeeId": "emp-18",
+      "type": "leave_submitted",
+      "title": "Leave Application Submitted",
+      "message": "Your request for Planned Leave (2026-09-01 to 2026-09-01) has been submitted for approval.",
+      "isRead": false,
+      "createdAt": "2026-08-31T09:34:04.686Z"
+    },
     {
       "id": "notif-1786535135408",
       "employeeId": "emp-12",

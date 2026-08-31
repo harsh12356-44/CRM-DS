@@ -724,109 +724,156 @@ function EmployeePortalContent() {
                 </div>
               </div>
 
-              {/* 4 Metric Cards Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Work Status</span>
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                      <CheckCircle className="w-4 h-4" />
+              {/* Metric Cards Grid */}
+              {employee?.workMode === 'WFH' ? (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Leave Balance</span>
+                      <div className="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                        <Plane className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-white font-heading">{leaveBalance} Days</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Days left in Q3 2026 (Leave Tracker)</p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-2xl md:text-3xl font-extrabold text-white font-heading">
-                      {employee?.workMode === 'WFH' ? 'Remote (WFH)' : `${presentDaysCount} Days`}
-                    </p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">
-                      {employee?.workMode === 'WFH' ? 'Attendance Punch Excluded' : 'Recorded in August 2026'}
-                    </p>
-                  </div>
-                </div>
 
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Total Hours</span>
-                    <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
-                      <Clock className="w-4 h-4" />
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Approved Leaves</span>
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-white font-heading">
+                        {safeLeaves.filter(l => l.status === 'APPROVED' || l.hrStatus === 'Approved').length}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Approved requests this year</p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-3xl font-extrabold text-white font-heading">{totalHoursDisplay}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{avgDailyHours}h avg daily</p>
-                  </div>
-                </div>
 
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Late Arrivals</span>
-                    <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
-                      <AlertCircle className="w-4 h-4" />
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Pending Approvals</span>
+                      <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-white font-heading">
+                        {safeLeaves.filter(l => l.status === 'PENDING' && l.hrStatus !== 'Approved' && l.hrStatus !== 'Rejected' && l.managerStatus !== 'Rejected').length}
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Awaiting Manager / HR review</p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-3xl font-extrabold text-white font-heading">{lateArrivalsCount}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Recorded in August 2026</p>
-                  </div>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Work Status</span>
+                      <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-2xl md:text-3xl font-extrabold text-white font-heading">
+                        {presentDaysCount} Days
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Recorded in August 2026</p>
+                    </div>
+                  </div>
 
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Leave Balance</span>
-                    <div className="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
-                      <Plane className="w-4 h-4" />
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Total Hours</span>
+                      <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-white font-heading">{totalHoursDisplay}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{avgDailyHours}h avg daily</p>
                     </div>
                   </div>
-                  <div>
-                    <p className="text-3xl font-extrabold text-white font-heading">{leaveBalance}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Days left in Q3 2026 (Leave Tracker)</p>
+
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Late Arrivals</span>
+                      <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <AlertCircle className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-white font-heading">{lateArrivalsCount}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Recorded in August 2026</p>
+                    </div>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">Leave Balance</span>
+                      <div className="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
+                        <Plane className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-3xl font-extrabold text-white font-heading">{leaveBalance}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Days left in Q3 2026 (Leave Tracker)</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Main Content Grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-base font-extrabold text-white font-heading">Monthly Attendance Analytics</h2>
-                      <p className="text-xs text-slate-400">Daily working hours for August 2026</p>
+                {employee?.workMode !== 'WFH' && (
+                  <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-base font-extrabold text-white font-heading">Monthly Attendance Analytics</h2>
+                        <p className="text-xs text-slate-400">Daily working hours for August 2026</p>
+                      </div>
+                      <Link
+                        href="/employee?tab=attendance"
+                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition"
+                      >
+                        View details
+                      </Link>
                     </div>
-                    <Link
-                      href="/employee?tab=attendance"
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition"
-                    >
-                      View details
-                    </Link>
-                  </div>
 
-                  <div className="pt-6 pb-2 border-t border-slate-800/80">
-                    <div className="h-48 flex items-end justify-between gap-1 overflow-x-auto">
-                      {augustDays.map(item => {
-                        const heightPct = Math.min(100, (item.workedHours / 9) * 100);
-                        return (
-                          <div key={item.day} className="flex-1 flex flex-col items-center gap-2 group min-w-[12px]">
-                            <span className="text-[9px] font-mono text-purple-300 opacity-0 group-hover:opacity-100 transition">
-                              {item.workedHours > 0 ? `${item.workedHours}h` : '0h'}
-                            </span>
-                            <div className="w-full bg-slate-800/60 rounded-t-md h-36 flex items-end overflow-hidden">
-                              <div
-                                style={{ height: `${heightPct}%` }}
-                                className={`w-full rounded-t-md transition-all duration-500 ${
-                                  item.workedHours > 0
-                                    ? 'bg-gradient-to-t from-blue-600 to-indigo-500 group-hover:from-blue-500 group-hover:to-indigo-400'
-                                    : 'bg-transparent'
-                                }`}
-                              ></div>
+                    <div className="pt-6 pb-2 border-t border-slate-800/80">
+                      <div className="h-48 flex items-end justify-between gap-1 overflow-x-auto">
+                        {augustDays.map(item => {
+                          const heightPct = Math.min(100, (item.workedHours / 9) * 100);
+                          return (
+                            <div key={item.day} className="flex-1 flex flex-col items-center gap-2 group min-w-[12px]">
+                              <span className="text-[9px] font-mono text-purple-300 opacity-0 group-hover:opacity-100 transition">
+                                {item.workedHours > 0 ? `${item.workedHours}h` : '0h'}
+                              </span>
+                              <div className="w-full bg-slate-800/60 rounded-t-md h-36 flex items-end overflow-hidden">
+                                <div
+                                  style={{ height: `${heightPct}%` }}
+                                  className={`w-full rounded-t-md transition-all duration-500 ${
+                                    item.workedHours > 0
+                                      ? 'bg-gradient-to-t from-blue-600 to-indigo-500 group-hover:from-blue-500 group-hover:to-indigo-400'
+                                      : 'bg-transparent'
+                                  }`}
+                                ></div>
+                              </div>
+                              <span className="text-[10px] text-slate-400 font-mono">{item.day}</span>
                             </div>
-                            <span className="text-[10px] text-slate-400 font-mono">{item.day}</span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="space-y-6">
+                <div className={employee?.workMode === 'WFH' ? 'lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6' : 'space-y-6'}>
                   <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                     <div>
                       <h2 className="text-base font-extrabold text-white font-heading">Quick Actions</h2>

@@ -218,8 +218,8 @@ export default function LoginPage() {
                   <UserCheck className="w-3.5 h-3.5 text-pink-400 light:text-pink-600" />
                   {email === 'sudeshna@hrmpilot.com' && <CheckCircle2 className="w-3 h-3 text-pink-400 light:text-pink-600" />}
                 </div>
-                <p className="font-extrabold text-[11px] text-white light:text-slate-900">WFH Designer</p>
-                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Sudeshna Pyne</p>
+                <p className="font-extrabold text-[11px] text-white light:text-slate-900">WFH Employee</p>
+                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Graphic Designer</p>
               </button>
             </div>
           </div>

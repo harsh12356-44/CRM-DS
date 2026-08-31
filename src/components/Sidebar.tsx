@@ -42,6 +42,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
 
   const [activeRole, setActiveRole] = useState<string>('ADMIN');
   const [isManager, setIsManager] = useState<boolean>(false);
+  const [isWfh, setIsWfh] = useState<boolean>(false);
   const [empCodeDisplay, setEmpCodeDisplay] = useState<string>('NB002');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
@@ -88,6 +89,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
           const data = await res.json();
           const employeesList: any[] = Array.isArray(data) ? data : data.employees || [];
           const emp = employeesList.find((e: any) => e.id === storedId || e.employeeId === storedId);
+          setIsWfh(emp?.workMode === 'WFH');
           const newCode = emp ? (emp.employeeId || emp.id) : (storedId || 'NB002');
           setEmpCodeDisplay(prev => prev === newCode ? prev : newCode);
         } catch (e) {}
@@ -160,11 +162,11 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
       title: '',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/employee?tab=dashboard' },
-        { id: 'attendance', label: 'Attendance', icon: Clock, href: '/employee?tab=attendance' },
+        ...(!isWfh ? [{ id: 'attendance', label: 'Attendance', icon: Clock, href: '/employee?tab=attendance' }] : []),
         { id: 'apply-leave', label: 'Apply Leave', icon: Plane, href: '/employee?tab=apply-leave' },
         { id: 'leave-history', label: 'Leave History', icon: FileText, href: '/employee?tab=leave-history' },
         ...(isManager ? [{ id: 'team-approvals', label: 'Team Approvals', icon: ClipboardCheck, href: '/employee?tab=team-approvals' }] : []),
-        { id: 'working-hours', label: 'Working Hours', icon: Clock, href: '/employee?tab=working-hours' },
+        ...(!isWfh ? [{ id: 'working-hours', label: 'Working Hours', icon: Clock, href: '/employee?tab=working-hours' }] : []),
         { id: 'holidays', label: 'Holidays List', icon: CalendarDays, href: '/employee?tab=holidays' },
         { id: 'notifications', label: 'Notifications', icon: Bell, href: '/employee?tab=notifications' },
         { id: 'profile', label: 'My Profile', icon: User, href: '/employee?tab=profile' },

@@ -40,7 +40,7 @@ export interface Department {
 export interface LeaveRecord {
   id: string;
   employeeId: string;
-  leaveType: 'Casual Leave' | 'Planned Leave' | 'Sick Leave';
+  leaveType: 'Casual Leave' | 'Planned Leave' | string;
   startDate: string;
   endDate: string;
   dayType?: 'full' | 'first_half' | 'second_half';

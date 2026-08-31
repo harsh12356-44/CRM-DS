@@ -126,7 +126,6 @@ export default function RecordLeaveModal({
               >
                 <option value="Casual Leave">Casual Leave</option>
                 <option value="Planned Leave">Planned Leave</option>
-                <option value="Sick Leave">Sick Leave</option>
               </select>
             </div>
 

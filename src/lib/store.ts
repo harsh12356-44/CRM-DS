@@ -380,6 +380,27 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     plannedAllowance: 4,
     sickAllowance: 4,
   },
+  {
+    id: 'emp-18',
+    employeeId: 'SP018',
+    name: 'Sudeshna Pyne',
+    email: 'sudeshna@hrmpilot.com',
+    password: 'Employee@123',
+    phone: '+91 98765 00018',
+    department: 'Design',
+    designation: 'Graphic Designer',
+    dateOfJoining: '2024-08-01',
+    role: 'EMPLOYEE',
+    status: 'ACTIVE',
+    workMode: 'WFH',
+    primaryManager: 'Ravina Khimani',
+    monthlySalary: 60000,
+    dailyWorkingRequirementMinutes: 480,
+    weeklyOff: 'Sunday',
+    casualAllowance: 2,
+    plannedAllowance: 4,
+    sickAllowance: 4,
+  },
 ];
 
 const DEFAULT_SETTINGS: CompanySettings = {

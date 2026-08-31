@@ -25,6 +25,7 @@ export interface Employee {
   manager1?: string;
   managerName?: string;
   employeeType?: string;
+  workMode?: 'OFFICE' | 'WFH';
 }
 
 export interface Department {

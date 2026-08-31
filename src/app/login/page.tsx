@@ -153,7 +153,7 @@ export default function LoginPage() {
               Quick Role Sign-In Presets
             </p>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
               <button
                 type="button"
                 onClick={() => handleSelectRole('ravina@hrmpilot.com', 'Admin@123')}
@@ -203,6 +203,23 @@ export default function LoginPage() {
                 </div>
                 <p className="font-extrabold text-[11px] text-white light:text-slate-900">Developer</p>
                 <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Sonu Goswami</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectRole('sudeshna@hrmpilot.com', 'Employee@123')}
+                className={`p-2.5 rounded-xl border text-left space-y-1 transition ${
+                  email === 'sudeshna@hrmpilot.com'
+                    ? 'bg-pink-600/20 light:bg-pink-100 border-pink-500 light:border-pink-400 text-white light:text-pink-900'
+                    : 'bg-slate-950/60 light:bg-slate-100 border-slate-800 light:border-slate-300 text-slate-400 light:text-slate-700 hover:border-slate-700'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <UserCheck className="w-3.5 h-3.5 text-pink-400 light:text-pink-600" />
+                  {email === 'sudeshna@hrmpilot.com' && <CheckCircle2 className="w-3 h-3 text-pink-400 light:text-pink-600" />}
+                </div>
+                <p className="font-extrabold text-[11px] text-white light:text-slate-900">WFH Designer</p>
+                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Sudeshna Pyne</p>
               </button>
             </div>
           </div>

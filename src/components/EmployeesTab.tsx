@@ -51,6 +51,7 @@ export default function EmployeesTab() {
   const [secondaryManager, setSecondaryManager] = useState('-- None --');
   const [employmentStatus, setEmploymentStatus] = useState('Active');
   const [employeeType, setEmployeeType] = useState('Full Time');
+  const [workMode, setWorkMode] = useState<'OFFICE' | 'WFH'>('OFFICE');
   const [salary, setSalary] = useState(75000);
   const [weeklyOff, setWeeklyOff] = useState('Sunday');
 
@@ -84,6 +85,7 @@ export default function EmployeesTab() {
     setSecondaryManager('-- None --');
     setEmploymentStatus('Active');
     setEmployeeType('Full Time');
+    setWorkMode('OFFICE');
     setSalary(75000);
     setWeeklyOff('Sunday');
     setIsModalOpen(true);
@@ -105,6 +107,7 @@ export default function EmployeesTab() {
     setSecondaryManager(emp.secondaryManager || '-- None --');
     setEmploymentStatus(emp.status === 'INACTIVE' ? 'Inactive' : 'Active');
     setEmployeeType(emp.employeeType || 'Full Time');
+    setWorkMode(emp.workMode || 'OFFICE');
     setSalary(emp.monthlySalary || 75000);
     setWeeklyOff(emp.weeklyOff || 'Sunday');
     setIsModalOpen(true);
@@ -167,15 +170,19 @@ export default function EmployeesTab() {
           secondaryManager: secondaryManager === '-- None --' ? '' : secondaryManager,
           status: employmentStatus.toUpperCase() === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
           employeeType,
+          workMode,
           monthlySalary: salary,
           weeklyOff,
         }),
       });
 
-      setMessage(selectedEmp ? `Profile and password updated for ${name}!` : `Created new employee profile and password for ${name}!`);
+      setMessage(selectedEmp ? `Profile updated for ${name}! Leave Tracker updated.` : `Created new employee profile for ${name}! Added to Leave Tracker.`);
       setTimeout(() => setMessage(''), 4000);
       setIsModalOpen(false);
       fetchEmployees();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('leaveDataUpdated'));
+      }
     } catch (err) {
       console.error(err);
     }
@@ -383,13 +390,20 @@ export default function EmployeesTab() {
               </div>
 
               <div className="pt-2 flex items-center justify-between text-[11px]">
-                <span className={`px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                  isActive
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                }`}>
-                  {emp.status}
-                </span>
+                <div className="flex items-center space-x-1.5">
+                  <span className={`px-2.5 py-0.5 rounded-full font-bold uppercase ${
+                    isActive
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  }`}>
+                    {emp.status}
+                  </span>
+                  {emp.workMode === 'WFH' && (
+                    <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold text-[10px] uppercase">
+                      🏠 WFH
+                    </span>
+                  )}
+                </div>
                 <span className="text-slate-500 font-mono font-bold">ID: {emp.employeeId || '123456'}</span>
               </div>
             </div>
@@ -586,7 +600,19 @@ export default function EmployeesTab() {
                     </select>
                   </div>
 
-
+                  <div>
+                    <label className="block font-bold text-slate-300 mb-1.5">
+                      Work Location / Mode <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={workMode}
+                      onChange={e => setWorkMode(e.target.value as 'OFFICE' | 'WFH')}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-medium focus:border-blue-500 focus:outline-none font-bold"
+                    >
+                      <option value="OFFICE">🏢 Office (In-Person)</option>
+                      <option value="WFH">🏠 Work From Home (Remote)</option>
+                    </select>
+                  </div>
 
                   <div>
                     <label className="block font-bold text-slate-300 mb-1.5">Weekly Off Day</label>

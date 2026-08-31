@@ -695,11 +695,19 @@ function EmployeePortalContent() {
                     <span className="animate-bounce inline-block">👋</span>
                   </h1>
                   <p className="text-xs md:text-sm text-blue-100 opacity-90">
-                    Here is your attendance, work-hour summary and leave balance for this month.
+                    {employee?.workMode === 'WFH'
+                      ? 'Work From Home Active 🏠 — Submit and manage leave requests seamlessly from your portal.'
+                      : 'Here is your attendance, work-hour summary and leave balance for this month.'}
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                  {employee?.workMode === 'WFH' && (
+                    <div className="bg-purple-500/20 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-purple-400/40 text-xs font-extrabold text-purple-200 shadow-md">
+                      🏠 Work From Home (Remote)
+                    </div>
+                  )}
+
                   <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white whitespace-nowrap shadow-inner">
                     <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
                     <span>ID: {empId} • Manager: {managerName}</span>
@@ -720,14 +728,18 @@ function EmployeePortalContent() {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-400">Present Days</span>
+                    <span className="text-xs font-bold text-slate-400">Work Status</span>
                     <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
                       <CheckCircle className="w-4 h-4" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-3xl font-extrabold text-white font-heading">{presentDaysCount}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">Recorded in August 2026</p>
+                    <p className="text-2xl md:text-3xl font-extrabold text-white font-heading">
+                      {employee?.workMode === 'WFH' ? 'Remote (WFH)' : `${presentDaysCount} Days`}
+                    </p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      {employee?.workMode === 'WFH' ? 'Attendance Punch Excluded' : 'Recorded in August 2026'}
+                    </p>
                   </div>
                 </div>
 

@@ -27,6 +27,7 @@ model Employee {
   plannedAllowance                Int             @default(6)
   sickAllowance                   Int             @default(6)
   password                        String?         @default("Employee@123")
+  workMode                        String?         @default("OFFICE")   // OFFICE, WFH
   createdAt                       DateTime        @default(now())
   updatedAt                       DateTime        @updatedAt
 

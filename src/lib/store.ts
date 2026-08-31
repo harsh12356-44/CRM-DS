@@ -509,28 +509,21 @@ export function getDbData(): InitialState {
     return memoryDb;
   }
 
-  // 1. Try reading from writable /tmp directory if initialized (Vercel serverless lambda write path)
-  try {
-    if (fs.existsSync(TMP_DB_FILE)) {
-      const raw = fs.readFileSync(TMP_DB_FILE, 'utf-8');
-      const data = JSON.parse(raw);
-      if (data && Array.isArray(data.employees) && data.employees.length > 0) {
-        memoryDb = data as InitialState;
-        (globalThis as any)._inMemoryDbData = memoryDb;
-        return memoryDb;
-      }
-    }
-  } catch (e) {
-    console.warn('Could not read from tmp db file:', e);
-  }
-
-  // 2. Read from bundled data/db.json (primary persistent data store)
+  // 1. Read from primary persistent data store data/db.json
   try {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       const data = JSON.parse(raw);
       if (data && Array.isArray(data.employees) && data.employees.length > 0) {
-        const employeesList = (data.employees || DEFAULT_EMPLOYEES).map((e: any) => ({
+        const existingIds = new Set((data.employees || []).map((e: any) => e.id));
+        const rawList = [...(data.employees || [])];
+        DEFAULT_EMPLOYEES.forEach(def => {
+          if (!existingIds.has(def.id)) {
+            rawList.push(def);
+          }
+        });
+
+        const employeesList = rawList.map((e: any) => ({
           ...e,
           casualAllowance: 2,
           plannedAllowance: 4,
@@ -550,23 +543,33 @@ export function getDbData(): InitialState {
           departments: data.departments || [],
         };
         (globalThis as any)._inMemoryDbData = memoryDb;
-
-        // Initialize /tmp/hrm_db.json for serverless lambdas
-        try {
-          fs.writeFileSync(TMP_DB_FILE, JSON.stringify(memoryDb, null, 2));
-        } catch (e) {}
-
         return memoryDb;
       }
     }
   } catch (e) {
-    console.warn('Error reading db.json, falling back to default store:', e);
+    console.warn('Could not read from primary db.json file:', e);
   }
 
-  if (memoryDb) {
-    return memoryDb;
-  }
+  // 2. Fallback to /tmp directory if standalone serverless lambda
+  try {
+    if (fs.existsSync(TMP_DB_FILE)) {
+      const raw = fs.readFileSync(TMP_DB_FILE, 'utf-8');
+      const data = JSON.parse(raw);
+      if (data && Array.isArray(data.employees) && data.employees.length > 0) {
+        const existingIds = new Set(data.employees.map((e: any) => e.id));
+        DEFAULT_EMPLOYEES.forEach(def => {
+          if (!existingIds.has(def.id)) {
+            data.employees.push(def);
+          }
+        });
+        memoryDb = data as InitialState;
+        (globalThis as any)._inMemoryDbData = memoryDb;
+        return memoryDb;
+      }
+    }
+  } catch (e) {}
 
+  // 3. Ultimate fallback to in-memory defaults
   memoryDb = {
     employees: DEFAULT_EMPLOYEES,
     leaveRecords: DEFAULT_LEAVES,

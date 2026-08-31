@@ -42,6 +42,9 @@ export default function LoginPage() {
       if (emp) {
         targetRole = (emp.role as 'ADMIN' | 'MANAGER' | 'EMPLOYEE') || 'EMPLOYEE';
         empId = emp.id;
+      } else if (cleanEmail.includes('sudeshna')) {
+        targetRole = 'EMPLOYEE';
+        empId = 'emp-18';
       } else if (cleanEmail.includes('ravina') || cleanEmail.includes('admin') || cleanEmail.includes('harshit')) {
         targetRole = 'ADMIN';
         empId = 'emp-1';

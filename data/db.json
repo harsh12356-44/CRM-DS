@@ -430,12 +430,12 @@
     {
       "id": "emp-1788174181606",
       "employeeId": "EMP626482",
-      "name": "Vipul ",
+      "name": "Vipul",
       "email": "vipuljg123@gmail.com",
       "password": "Vipul@6482#",
       "phone": "8005686372",
       "department": "Digital Marketing - 2",
-      "designation": "Digital Marketing Manager ",
+      "designation": "Digital Marketing Manager",
       "dateOfJoining": "2026-08-01",
       "role": "EMPLOYEE",
       "status": "ACTIVE",
@@ -15758,6 +15758,37 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-1788176104175",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Leave Request APPROVED",
+      "objectType": "LeaveRecord",
+      "objectId": "l-1788176065328",
+      "oldValue": "{\"id\":\"l-1788176065328\",\"employeeId\":\"emp-1788174181606\",\"leaveType\":\"Planned Leave\",\"dayType\":\"full\",\"startDate\":\"2026-09-01\",\"endDate\":\"2026-09-10\",\"daysCount\":9,\"quarter\":\"Q3\",\"year\":2026,\"status\":\"PENDING\",\"managerStatus\":\"Pending\",\"hrStatus\":\"Pending\",\"note\":\"leave needed\",\"handoverNote\":\"\",\"emergencyContact\":\"\",\"createdAt\":\"2026-08-31T11:34:25.328Z\"}",
+      "newValue": "{\"id\":\"l-1788176065328\",\"employeeId\":\"emp-1788174181606\",\"leaveType\":\"Planned Leave\",\"dayType\":\"full\",\"startDate\":\"2026-09-01\",\"endDate\":\"2026-09-10\",\"daysCount\":9,\"quarter\":\"Q3\",\"year\":2026,\"status\":\"APPROVED\",\"managerStatus\":\"Approved\",\"hrStatus\":\"Approved\",\"note\":\"leave needed\",\"handoverNote\":\"\",\"emergencyContact\":\"\",\"createdAt\":\"2026-08-31T11:34:25.328Z\"}",
+      "timestamp": "2026-08-31T11:35:04.175Z"
+    },
+    {
+      "id": "aud-1788176066088",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Sync Client Backup Leaves",
+      "objectType": "LeaveRecord",
+      "objectId": "backup",
+      "newValue": "Synced 1 records from client backup",
+      "timestamp": "2026-08-31T11:34:26.088Z"
+    },
+    {
+      "id": "aud-1788176065328",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Submit Leave Request",
+      "objectType": "LeaveRecord",
+      "objectId": "l-1788176065328",
+      "newValue": "{\"id\":\"l-1788176065328\",\"employeeId\":\"emp-1788174181606\",\"leaveType\":\"Planned Leave\",\"dayType\":\"full\",\"startDate\":\"2026-09-01\",\"endDate\":\"2026-09-10\",\"daysCount\":9,\"quarter\":\"Q3\",\"year\":2026,\"status\":\"PENDING\",\"managerStatus\":\"Pending\",\"hrStatus\":\"Pending\",\"note\":\"leave needed\",\"handoverNote\":\"\",\"emergencyContact\":\"\",\"createdAt\":\"2026-08-31T11:34:25.328Z\"}",
+      "timestamp": "2026-08-31T11:34:25.328Z"
+    },
+    {
       "id": "aud-1788175480392",
       "userId": "emp-1",
       "userName": "Harshit Bhootra",
@@ -16434,6 +16465,24 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-1788176104181",
+      "employeeId": "emp-1788174181606",
+      "type": "leave_status_updated",
+      "title": "Leave Request APPROVED",
+      "message": "Your leave request #l-1788176065328 status is now APPROVED. Manager: Approved, HR: Approved.",
+      "isRead": false,
+      "createdAt": "2026-08-31T11:35:04.181Z"
+    },
+    {
+      "id": "notif-1788176065335",
+      "employeeId": "emp-1788174181606",
+      "type": "leave_submitted",
+      "title": "Leave Application Submitted",
+      "message": "Your request for Planned Leave (2026-09-01 to 2026-09-10) has been submitted for approval.",
+      "isRead": false,
+      "createdAt": "2026-08-31T11:34:25.335Z"
+    },
     {
       "id": "notif-1788168861770",
       "employeeId": "emp-18",

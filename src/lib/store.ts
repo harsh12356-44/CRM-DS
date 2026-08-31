@@ -503,7 +503,12 @@ function ensureDataDir(): void {
   }
 }
 
-let memoryDb: InitialState | null = (globalThis as any)._inMemoryDbData || null;
+let memoryDb: InitialState | null = null;
+
+export function clearMemoryDbCache() {
+  memoryDb = null;
+  (globalThis as any)._inMemoryDbData = null;
+}
 
 export function getDbData(): InitialState {
   if (memoryDb) {

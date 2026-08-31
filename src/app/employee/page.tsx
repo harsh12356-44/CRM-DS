@@ -586,8 +586,9 @@ function EmployeePortalContent() {
   const casualAllowanceLeft = Math.max(0, (employee?.casualAllowance ?? 2) - casualUsedQ3);
   const plannedAllowanceLeft = Math.max(0, (employee?.plannedAllowance ?? 4) - plannedUsedQ3);
   const totalUsedQ3 = casualUsedQ3 + plannedUsedQ3;
-  const totalAllowance = (employee?.casualAllowance ?? 2) + (employee?.plannedAllowance ?? 4);
+  const totalAllowance = (employee?.casualAllowance ?? 2) + (employee?.plannedAllowance ?? 4); // 6 Days
   const leaveBalance = Math.max(0, totalAllowance - totalUsedQ3);
+  const unpaidLeavesQ3 = Math.max(0, totalUsedQ3 - totalAllowance);
 
   // August 2026 Bar Chart Data (31 days)
   const augustDays = Array.from({ length: 31 }, (_, i) => {
@@ -1201,23 +1202,44 @@ function EmployeePortalContent() {
                   </div>
 
                   {fromDate && (
-                    <div className="p-3.5 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 rounded-xl text-xs text-purple-200 font-semibold flex items-center justify-between shadow-inner">
-                      <span className="flex items-center space-x-1.5">
-                        <CalendarDays className="w-4 h-4 text-purple-400" />
-                        <span>Calculated Leave Duration:</span>
-                      </span>
-                      <strong className="text-purple-300 font-extrabold text-xs bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/40">
-                        {(() => {
-                          const fmt = (dStr: string) => {
-                            if (!dStr) return '';
-                            const d = new Date(dStr + 'T00:00:00');
-                            return isNaN(d.getTime()) ? dStr : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                          };
-                          const count = calcDaysCount();
-                          const formattedRange = !toDate || fromDate === toDate ? `(${fmt(fromDate)})` : `(${fmt(fromDate)} to ${fmt(toDate)})`;
-                          return `${count} ${count === 1 ? 'Day' : 'Days'} ${formattedRange}`;
-                        })()}
-                      </strong>
+                    <div className="space-y-3">
+                      <div className="p-3.5 bg-gradient-to-r from-purple-900/40 to-indigo-900/40 border border-purple-500/30 rounded-xl text-xs text-purple-200 font-semibold flex items-center justify-between shadow-inner">
+                        <span className="flex items-center space-x-1.5">
+                          <CalendarDays className="w-4 h-4 text-purple-400" />
+                          <span>Calculated Leave Duration:</span>
+                        </span>
+                        <strong className="text-purple-300 font-extrabold text-xs bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/40">
+                          {(() => {
+                            const fmt = (dStr: string) => {
+                              if (!dStr) return '';
+                              const d = new Date(dStr + 'T00:00:00');
+                              return isNaN(d.getTime()) ? dStr : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                            };
+                            const count = calcDaysCount();
+                            const formattedRange = !toDate || fromDate === toDate ? `(${fmt(fromDate)})` : `(${fmt(fromDate)} to ${fmt(toDate)})`;
+                            return `${count} ${count === 1 ? 'Day' : 'Days'} ${formattedRange}`;
+                          })()}
+                        </strong>
+                      </div>
+
+                      {(() => {
+                        const requestedDays = calcDaysCount();
+                        if (requestedDays > leaveBalance) {
+                          const excessDays = requestedDays - leaveBalance;
+                          return (
+                            <div className="p-3.5 bg-rose-950/40 border border-rose-500/40 rounded-xl text-xs text-rose-200 space-y-1">
+                              <div className="flex items-center space-x-1.5 font-bold text-rose-300">
+                                <AlertCircle className="w-4 h-4 text-rose-400" />
+                                <span>Quarterly Paid Limit Notice ({excessDays} Unpaid LOP Day{excessDays === 1 ? '' : 's'})</span>
+                              </div>
+                              <p className="text-[11px] text-rose-200/90 leading-relaxed">
+                                You have {leaveBalance} paid leave day(s) remaining in Q3 (limit: 6 days/quarter). Requesting {requestedDays} days will count <strong className="underline text-rose-300">{excessDays} day(s) as Unpaid Leave / Loss of Pay (LOP)</strong>.
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   )}
 
@@ -1246,7 +1268,11 @@ function EmployeePortalContent() {
 
               {/* Right Policy Card */}
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <h3 className="text-sm font-bold text-white font-heading">Leave Balance & Policy</h3>
+                <h3 className="text-sm font-bold text-white font-heading flex items-center space-x-2">
+                  <Plane className="w-4 h-4 text-purple-400" />
+                  <span>Leave Balance & Policy</span>
+                </h3>
+
                 <div className="space-y-3 text-xs">
                   <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 flex justify-between items-center">
                     <span className="text-slate-300">Casual Allowance Left</span>
@@ -1257,9 +1283,25 @@ function EmployeePortalContent() {
                     <strong className="text-purple-400 font-bold">{plannedAllowanceLeft} Days (Q3)</strong>
                   </div>
                   <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-500/30 flex justify-between items-center">
-                    <span className="text-purple-300 font-semibold">Total Remaining Balance</span>
+                    <span className="text-purple-300 font-semibold">Total Paid Balance</span>
                     <strong className="text-purple-200 font-extrabold text-sm">{leaveBalance} Days (Q3)</strong>
                   </div>
+
+                  {unpaidLeavesQ3 > 0 && (
+                    <div className="p-3 bg-rose-950/40 rounded-xl border border-rose-500/40 flex justify-between items-center">
+                      <span className="text-rose-300 font-semibold flex items-center space-x-1">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                        <span>Unpaid Leaves (LOP)</span>
+                      </span>
+                      <strong className="text-rose-400 font-extrabold text-sm">{unpaidLeavesQ3} Days (Exceeded)</strong>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-2 leading-relaxed">
+                  <strong className="text-white block font-bold text-xs">📌 Company Leave Rule:</strong>
+                  <p>• Employees get a maximum of <strong>6 paid leaves per quarter</strong> (2 Casual + 4 Planned).</p>
+                  <p>• Any leave requested beyond 6 days in a quarter is automatically categorized as <strong>Unpaid Leave (Loss of Pay / LOP)</strong>.</p>
                 </div>
               </div>
             </div>

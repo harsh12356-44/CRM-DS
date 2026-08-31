@@ -569,22 +569,25 @@ function EmployeePortalContent() {
       (targetEmp.length >= 3 && currentEmpName.includes(targetEmp));
 
     const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED') && (l.hrStatus === 'Approved' || l.status === 'APPROVED');
-    const isApproved = isBothApproved || l.status === 'APPROVED';
+    const isApproved = isBothApproved || l.status === 'APPROVED' || l.hrStatus === 'Approved';
     const recQuarter = l.quarter || (l.startDate ? (new Date(l.startDate).getMonth() >= 6 && new Date(l.startDate).getMonth() <= 8 ? 'Q3' : 'Q3') : 'Q3');
 
     return matchesEmp && isApproved && (recQuarter === 'Q3' || !l.quarter);
   });
 
   const casualUsedQ3 = q3Leaves
-    .filter(l => l.leaveType === 'Casual Leave')
+    .filter(l => l.leaveType === 'Casual Leave' || l.leaveType === 'Casual')
     .reduce((sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0);
 
   const plannedUsedQ3 = q3Leaves
-    .filter(l => l.leaveType === 'Planned Leave' || l.leaveType === 'Sick Leave')
+    .filter(l => l.leaveType === 'Planned Leave' || l.leaveType === 'Planned' || l.leaveType === 'Sick Leave')
     .reduce((sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0);
 
+  const casualAllowanceLeft = Math.max(0, (employee?.casualAllowance ?? 2) - casualUsedQ3);
+  const plannedAllowanceLeft = Math.max(0, (employee?.plannedAllowance ?? 4) - plannedUsedQ3);
   const totalUsedQ3 = casualUsedQ3 + plannedUsedQ3;
-  const leaveBalance = Math.max(0, 6 - totalUsedQ3).toFixed(1);
+  const totalAllowance = (employee?.casualAllowance ?? 2) + (employee?.plannedAllowance ?? 4);
+  const leaveBalance = Math.max(0, totalAllowance - totalUsedQ3);
 
   // August 2026 Bar Chart Data (31 days)
   const augustDays = Array.from({ length: 31 }, (_, i) => {
@@ -1248,11 +1251,15 @@ function EmployeePortalContent() {
                 <div className="space-y-3 text-xs">
                   <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 flex justify-between items-center">
                     <span className="text-slate-300">Casual Allowance Left</span>
-                    <strong className="text-amber-400 font-bold">2 Days (Q3)</strong>
+                    <strong className="text-amber-400 font-bold">{casualAllowanceLeft} Days (Q3)</strong>
                   </div>
                   <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 flex justify-between items-center">
                     <span className="text-slate-300">Planned Allowance Left</span>
-                    <strong className="text-purple-400 font-bold">4 Days (Q3)</strong>
+                    <strong className="text-purple-400 font-bold">{plannedAllowanceLeft} Days (Q3)</strong>
+                  </div>
+                  <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-500/30 flex justify-between items-center">
+                    <span className="text-purple-300 font-semibold">Total Remaining Balance</span>
+                    <strong className="text-purple-200 font-extrabold text-sm">{leaveBalance} Days (Q3)</strong>
                   </div>
                 </div>
               </div>

@@ -68,7 +68,7 @@
       "id": "emp-4",
       "employeeId": "DV004",
       "name": "Divyanshu",
-      "email": "divyanshu@hrmpilot.com",
+      "email": "divyanshumanoriya.ds@gmail.com",
       "phone": "+91 98765 00004",
       "department": "Development",
       "designation": "Senior Development Manager",
@@ -82,7 +82,10 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-02-15"
+      "dateOfJoining": "2024-02-15",
+      "password": "Divyanshu@DV004",
+      "secondaryManager": "",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-5",
@@ -108,7 +111,7 @@
       "id": "emp-6",
       "employeeId": "NG006",
       "name": "Nandini Gupta",
-      "email": "nandini@hrmpilot.com",
+      "email": "security@harshitbhootra.com",
       "phone": "+91 98765 00006",
       "department": "Founders Office",
       "designation": "Founders Office",
@@ -122,7 +125,10 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-03-15"
+      "dateOfJoining": "2024-03-15",
+      "password": "Nandini@NG006",
+      "secondaryManager": "",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-7",
@@ -150,7 +156,7 @@
       "id": "emp-8",
       "employeeId": "LG008",
       "name": "Lochita g1",
-      "email": "lochita@hrmpilot.com",
+      "email": "lochita.ds@gmail.com",
       "phone": "+91 98765 00008",
       "department": "Development",
       "designation": "Web Designer",
@@ -165,13 +171,15 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-04-10"
+      "dateOfJoining": "2024-04-10",
+      "password": "Lochita@LG008",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-9",
       "employeeId": "RV009",
       "name": "Rajvardhan",
-      "email": "rajvardhan@hrmpilot.com",
+      "email": "rajvardhansingh0404@gmail.com",
       "phone": "+91 98765 00009",
       "department": "Development",
       "designation": "Web Designer",
@@ -186,13 +194,15 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-04-15"
+      "dateOfJoining": "2024-04-15",
+      "password": "Raj@RV009",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-10",
       "employeeId": "MD010",
       "name": "Mudita",
-      "email": "mudita@hrmpilot.com",
+      "email": "muditapurohitwork@gmail.com",
       "phone": "+91 98765 00010",
       "department": "Development",
       "designation": "Web Designer",
@@ -207,13 +217,15 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-05-01"
+      "dateOfJoining": "2024-05-01",
+      "password": "Mudita@MD010",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-11",
       "employeeId": "BB011",
       "name": "Bulbul",
-      "email": "bulbul@hrmpilot.com",
+      "email": "bulbulmaheshwari64@gmail.com",
       "phone": "+91 98765 00011",
       "department": "Development",
       "designation": "Web Designer",
@@ -228,13 +240,15 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-05-10"
+      "dateOfJoining": "2024-05-10",
+      "password": "Bulbul@BB011",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-12",
       "employeeId": "SG012",
       "name": "Sonu Goswami",
-      "email": "sonu@hrmpilot.com",
+      "email": "sonu.digitalsuncity@gmail.com",
       "phone": "+91 98765 00012",
       "department": "Development",
       "designation": "Web Developer",
@@ -249,7 +263,9 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-05-15"
+      "dateOfJoining": "2024-05-15",
+      "password": "Sonu@SG012",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-13",
@@ -277,7 +293,7 @@
       "id": "emp-14",
       "employeeId": "CB014",
       "name": "Charubhati",
-      "email": "charubhati@hrmpilot.com",
+      "email": "charubhati19@gmail.com",
       "phone": "+91 98765 00014",
       "department": "SEO",
       "designation": "SEO Executive",
@@ -292,7 +308,9 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-06-10"
+      "dateOfJoining": "2024-06-10",
+      "password": "Charu@CB014",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-15",
@@ -312,13 +330,16 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-07-01"
+      "dateOfJoining": "2024-07-01",
+      "password": "Employee@123",
+      "secondaryManager": "",
+      "workMode": "WFH"
     },
     {
       "id": "emp-16",
       "employeeId": "GV016",
       "name": "Garv",
-      "email": "garv@hrmpilot.com",
+      "email": "garvathwani@gmail.com",
       "phone": "+91 98765 00016",
       "department": "General",
       "designation": "Final Suspect",
@@ -332,13 +353,16 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-07-05"
+      "dateOfJoining": "2024-07-05",
+      "password": "Garv@GV016",
+      "secondaryManager": "",
+      "workMode": "WFH"
     },
     {
       "id": "emp-17",
       "employeeId": "CS017",
       "name": "Charu Siddhawat",
-      "email": "charu@hrmpilot.com",
+      "email": "charudigitals53@gmail.com",
       "phone": "+91 98765 00017",
       "department": "General",
       "designation": "Final Suspect",
@@ -352,14 +376,17 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-07-10"
+      "dateOfJoining": "2024-07-10",
+      "password": "Charu@CS017",
+      "secondaryManager": "",
+      "workMode": "OFFICE"
     },
     {
       "id": "emp-18",
       "employeeId": "SP018",
       "name": "Sudeshna Pyne",
-      "email": "sudeshna@hrmpilot.com",
-      "password": "Employee@123",
+      "email": "sudeshna.work.office@gmail.com",
+      "password": "Sudeshna@SP018",
       "phone": "+91 98765 00018",
       "department": "Design",
       "designation": "Graphic Designer",
@@ -15231,6 +15258,149 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-1788171325398",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-15",
+      "oldValue": "{\"id\":\"emp-15\",\"employeeId\":\"SY015\",\"name\":\"Shryanshu\",\"email\":\"shryanshu@hrmpilot.com\",\"phone\":\"+91 98765 00015\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-01\"}",
+      "newValue": "{\"id\":\"emp-15\",\"employeeId\":\"SY015\",\"name\":\"Shryanshu\",\"email\":\"shryanshu@hrmpilot.com\",\"phone\":\"+91 98765 00015\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-01\",\"password\":\"Employee@123\",\"secondaryManager\":\"\",\"workMode\":\"WFH\"}",
+      "timestamp": "2026-08-31T10:15:25.398Z"
+    },
+    {
+      "id": "aud-1788171309147",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-16",
+      "oldValue": "{\"id\":\"emp-16\",\"employeeId\":\"GV016\",\"name\":\"Garv\",\"email\":\"garvathwani@gmail.com\",\"phone\":\"+91 98765 00016\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-05\",\"password\":\"Garv@GV016\",\"secondaryManager\":\"\",\"workMode\":\"OFFICE\"}",
+      "newValue": "{\"id\":\"emp-16\",\"employeeId\":\"GV016\",\"name\":\"Garv\",\"email\":\"garvathwani@gmail.com\",\"phone\":\"+91 98765 00016\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-05\",\"password\":\"Garv@GV016\",\"secondaryManager\":\"\",\"workMode\":\"WFH\"}",
+      "timestamp": "2026-08-31T10:15:09.147Z"
+    },
+    {
+      "id": "aud-1788171295429",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-18",
+      "oldValue": "{\"id\":\"emp-18\",\"employeeId\":\"SP018\",\"name\":\"Sudeshna Pyne\",\"email\":\"sudeshna@hrmpilot.com\",\"password\":\"Employee@123\",\"phone\":\"+91 98765 00018\",\"department\":\"Design\",\"designation\":\"Graphic Designer\",\"dateOfJoining\":\"2024-08-01\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"workMode\":\"WFH\",\"primaryManager\":\"Ravina Khimani\",\"monthlySalary\":60000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"secondaryManager\":\"\",\"employeeType\":\"Full Time\"}",
+      "newValue": "{\"id\":\"emp-18\",\"employeeId\":\"SP018\",\"name\":\"Sudeshna Pyne\",\"email\":\"sudeshna.work.office@gmail.com\",\"password\":\"Sudeshna@SP018\",\"phone\":\"+91 98765 00018\",\"department\":\"Design\",\"designation\":\"Graphic Designer\",\"dateOfJoining\":\"2024-08-01\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"workMode\":\"WFH\",\"primaryManager\":\"Ravina Khimani\",\"monthlySalary\":60000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"secondaryManager\":\"\",\"employeeType\":\"Full Time\"}",
+      "timestamp": "2026-08-31T10:14:55.429Z"
+    },
+    {
+      "id": "aud-1788171261889",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-16",
+      "oldValue": "{\"id\":\"emp-16\",\"employeeId\":\"GV016\",\"name\":\"Garv\",\"email\":\"garv@hrmpilot.com\",\"phone\":\"+91 98765 00016\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-05\"}",
+      "newValue": "{\"id\":\"emp-16\",\"employeeId\":\"GV016\",\"name\":\"Garv\",\"email\":\"garvathwani@gmail.com\",\"phone\":\"+91 98765 00016\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-05\",\"password\":\"Garv@GV016\",\"secondaryManager\":\"\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:14:21.889Z"
+    },
+    {
+      "id": "aud-1788171060745",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-8",
+      "oldValue": "{\"id\":\"emp-8\",\"employeeId\":\"LG008\",\"name\":\"Lochita g1\",\"email\":\"lochita@hrmpilot.com\",\"phone\":\"+91 98765 00008\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-04-10\"}",
+      "newValue": "{\"id\":\"emp-8\",\"employeeId\":\"LG008\",\"name\":\"Lochita g1\",\"email\":\"lochita.ds@gmail.com\",\"phone\":\"+91 98765 00008\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-04-10\",\"password\":\"Lochita@LG008\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:11:00.745Z"
+    },
+    {
+      "id": "aud-1788170994926",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-11",
+      "oldValue": "{\"id\":\"emp-11\",\"employeeId\":\"BB011\",\"name\":\"Bulbul\",\"email\":\"bulbul@hrmpilot.com\",\"phone\":\"+91 98765 00011\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-05-10\"}",
+      "newValue": "{\"id\":\"emp-11\",\"employeeId\":\"BB011\",\"name\":\"Bulbul\",\"email\":\"bulbulmaheshwari64@gmail.com\",\"phone\":\"+91 98765 00011\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-05-10\",\"password\":\"Bulbul@BB011\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:09:54.926Z"
+    },
+    {
+      "id": "aud-1788170959540",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-10",
+      "oldValue": "{\"id\":\"emp-10\",\"employeeId\":\"MD010\",\"name\":\"Mudita\",\"email\":\"mudita@hrmpilot.com\",\"phone\":\"+91 98765 00010\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-05-01\"}",
+      "newValue": "{\"id\":\"emp-10\",\"employeeId\":\"MD010\",\"name\":\"Mudita\",\"email\":\"muditapurohitwork@gmail.com\",\"phone\":\"+91 98765 00010\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-05-01\",\"password\":\"Mudita@MD010\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:09:19.540Z"
+    },
+    {
+      "id": "aud-1788170924067",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-9",
+      "oldValue": "{\"id\":\"emp-9\",\"employeeId\":\"RV009\",\"name\":\"Rajvardhan\",\"email\":\"rajvardhan@hrmpilot.com\",\"phone\":\"+91 98765 00009\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-04-15\"}",
+      "newValue": "{\"id\":\"emp-9\",\"employeeId\":\"RV009\",\"name\":\"Rajvardhan\",\"email\":\"rajvardhansingh0404@gmail.com\",\"phone\":\"+91 98765 00009\",\"department\":\"Development\",\"designation\":\"Web Designer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":55000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-04-15\",\"password\":\"Raj@RV009\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:08:44.067Z"
+    },
+    {
+      "id": "aud-1788170900841",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-6",
+      "oldValue": "{\"id\":\"emp-6\",\"employeeId\":\"NG006\",\"name\":\"Nandini Gupta\",\"email\":\"nandini@hrmpilot.com\",\"phone\":\"+91 98765 00006\",\"department\":\"Founders Office\",\"designation\":\"Founders Office\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":65000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-03-15\"}",
+      "newValue": "{\"id\":\"emp-6\",\"employeeId\":\"NG006\",\"name\":\"Nandini Gupta\",\"email\":\"security@harshitbhootra.com\",\"phone\":\"+91 98765 00006\",\"department\":\"Founders Office\",\"designation\":\"Founders Office\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":65000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-03-15\",\"password\":\"Nandini@NG006\",\"secondaryManager\":\"\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:08:20.841Z"
+    },
+    {
+      "id": "aud-1788170861137",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-17",
+      "oldValue": "{\"id\":\"emp-17\",\"employeeId\":\"CS017\",\"name\":\"Charu Siddhawat\",\"email\":\"charu@hrmpilot.com\",\"phone\":\"+91 98765 00017\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-10\"}",
+      "newValue": "{\"id\":\"emp-17\",\"employeeId\":\"CS017\",\"name\":\"Charu Siddhawat\",\"email\":\"charudigitals53@gmail.com\",\"phone\":\"+91 98765 00017\",\"department\":\"General\",\"designation\":\"Final Suspect\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":48000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-07-10\",\"password\":\"Charu@CS017\",\"secondaryManager\":\"\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:07:41.137Z"
+    },
+    {
+      "id": "aud-1788170826915",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-14",
+      "oldValue": "{\"id\":\"emp-14\",\"employeeId\":\"CB014\",\"name\":\"Charubhati\",\"email\":\"charubhati@hrmpilot.com\",\"phone\":\"+91 98765 00014\",\"department\":\"SEO\",\"designation\":\"SEO Executive\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Meenal\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":50000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-06-10\"}",
+      "newValue": "{\"id\":\"emp-14\",\"employeeId\":\"CB014\",\"name\":\"Charubhati\",\"email\":\"charubhati19@gmail.com\",\"phone\":\"+91 98765 00014\",\"department\":\"SEO\",\"designation\":\"SEO Executive\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Meenal\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":50000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-06-10\",\"password\":\"Charu@CB014\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:07:06.915Z"
+    },
+    {
+      "id": "aud-1788170669787",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-12",
+      "oldValue": "{\"id\":\"emp-12\",\"employeeId\":\"SG012\",\"name\":\"Sonu Goswami\",\"email\":\"sonu@hrmpilot.com\",\"phone\":\"+91 98765 00012\",\"department\":\"Development\",\"designation\":\"Web Developer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":60000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-05-15\"}",
+      "newValue": "{\"id\":\"emp-12\",\"employeeId\":\"SG012\",\"name\":\"Sonu Goswami\",\"email\":\"sonu.digitalsuncity@gmail.com\",\"phone\":\"+91 98765 00012\",\"department\":\"Development\",\"designation\":\"Web Developer\",\"role\":\"EMPLOYEE\",\"status\":\"ACTIVE\",\"primaryManager\":\"Naman Bangia\",\"secondaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":60000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-05-15\",\"password\":\"Sonu@SG012\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:04:29.787Z"
+    },
+    {
+      "id": "aud-1788170637155",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Update Employee",
+      "objectType": "Employee",
+      "objectId": "emp-4",
+      "oldValue": "{\"id\":\"emp-4\",\"employeeId\":\"DV004\",\"name\":\"Divyanshu\",\"email\":\"divyanshu@hrmpilot.com\",\"phone\":\"+91 98765 00004\",\"department\":\"Development\",\"designation\":\"Senior Development Manager\",\"role\":\"MANAGER\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":85000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-02-15\"}",
+      "newValue": "{\"id\":\"emp-4\",\"employeeId\":\"DV004\",\"name\":\"Divyanshu\",\"email\":\"divyanshumanoriya.ds@gmail.com\",\"phone\":\"+91 98765 00004\",\"department\":\"Development\",\"designation\":\"Senior Development Manager\",\"role\":\"MANAGER\",\"status\":\"ACTIVE\",\"primaryManager\":\"Ravina Khimani\",\"employeeType\":\"Full Time\",\"monthlySalary\":85000,\"dailyWorkingRequirementMinutes\":480,\"weeklyOff\":\"Sunday\",\"casualAllowance\":2,\"plannedAllowance\":4,\"sickAllowance\":4,\"dateOfJoining\":\"2024-02-15\",\"password\":\"Divyanshu@DV004\",\"secondaryManager\":\"\",\"workMode\":\"OFFICE\"}",
+      "timestamp": "2026-08-31T10:03:57.155Z"
+    },
+    {
       "id": "aud-1788170107730",
       "userId": "emp-1",
       "userName": "Harshit Bhootra",
@@ -15772,5 +15942,6 @@
       "description": "Core Sales Department operations.",
       "employeeCount": 0
     }
-  ]
+  ],
+  "deletedDepartments": []
 }

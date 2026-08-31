@@ -25,6 +25,9 @@ import {
   ArrowRight,
   TrendingUp,
   XCircle,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import AttendanceLogTab from '@/components/AttendanceLogTab';
 import HolidaysTab from '@/components/HolidaysTab';
@@ -94,6 +97,78 @@ function EmployeePortalContent() {
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
   const [formMsg, setFormMsg] = useState('');
+
+  // Change Password State
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPass, setShowCurrentPass] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const handleOpenChangePasswordModal = () => {
+    setCurrentPassword(employee?.password || 'Employee@123');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowCurrentPass(false);
+    setShowNewPass(false);
+    setShowConfirmPass(false);
+    setPasswordMsg('');
+    setPasswordError('');
+    setIsChangePasswordModalOpen(true);
+  };
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError('');
+    setPasswordMsg('');
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and Confirm password do not match.');
+      return;
+    }
+
+    if (newPassword.length < 4) {
+      setPasswordError('Password must be at least 4 characters long.');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const activeEmpId = employee?.id || selectedEmployeeId || 'emp-12';
+      const res = await fetch('/api/employees', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: activeEmpId,
+          password: newPassword,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPasswordMsg('Password changed successfully! Updated live in Admin dashboard.');
+        if (employee) {
+          setEmployee({ ...employee, password: newPassword });
+        }
+        setTimeout(() => {
+          setIsChangePasswordModalOpen(false);
+          setPasswordMsg('');
+        }, 2200);
+        fetchEmployeeDashboardData(true);
+      } else {
+        setPasswordError(data.error || 'Failed to update password.');
+      }
+    } catch (err: any) {
+      setPasswordError(err.message || 'Failed to update password.');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   const fetchEmployeeDashboardData = useCallback(async (isSilent = false) => {
     try {
@@ -624,9 +699,20 @@ function EmployeePortalContent() {
                   </p>
                 </div>
 
-                <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white whitespace-nowrap self-start sm:self-center shadow-inner">
-                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
-                  <span>ID: {empId} • Manager: {managerName}</span>
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                  <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white whitespace-nowrap shadow-inner">
+                    <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
+                    <span>ID: {empId} • Manager: {managerName}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenChangePasswordModal}
+                    className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 backdrop-blur-md rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                  >
+                    <Lock className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Change Password</span>
+                  </button>
                 </div>
               </div>
 
@@ -779,6 +865,18 @@ function EmployeePortalContent() {
                           <p className="text-[10px] text-slate-400">Fix attendance records</p>
                         </div>
                       </Link>
+
+                      <button
+                        type="button"
+                        onClick={handleOpenChangePasswordModal}
+                        className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-amber-500/50 hover:bg-slate-800 transition text-left space-y-1.5 group col-span-2 sm:col-span-1"
+                      >
+                        <Lock className="w-5 h-5 text-amber-400 group-hover:scale-110 transition transform" />
+                        <div>
+                          <p className="text-xs font-bold text-white">Change Password</p>
+                          <p className="text-[10px] text-slate-400">Update account credentials</p>
+                        </div>
+                      </button>
                     </div>
                   </div>
 
@@ -1392,9 +1490,23 @@ function EmployeePortalContent() {
                     <span className="text-slate-400">Work Email:</span>
                     <span className="font-bold font-mono text-white">{employee.email || 'employee@hrmpilot.com'}</span>
                   </div>
-                  <div className="flex justify-between py-1.5">
+                  <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Phone Number:</span>
                     <span className="font-bold font-mono text-white">{employee.phone || '+91 98765 00000'}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 pt-3">
+                    <span className="text-slate-400 flex items-center space-x-1">
+                      <Lock className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Account Security:</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleOpenChangePasswordModal}
+                      className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg font-bold text-[11px] transition flex items-center space-x-1"
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Change Password</span>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -1430,6 +1542,128 @@ function EmployeePortalContent() {
                     <p className="text-[10px] text-slate-500 font-mono mt-1">Yesterday</p>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* CHANGE PASSWORD MODAL */}
+          {isChangePasswordModalOpen && (
+            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 max-w-md w-full space-y-6 shadow-2xl my-8">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      <Lock className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-extrabold text-white font-heading">Change Account Password</h2>
+                      <p className="text-[11px] text-slate-400">Update credentials for {employee?.name || 'Account'}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setIsChangePasswordModalOpen(false)} className="text-slate-400 hover:text-white">
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {passwordMsg && (
+                  <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-400 flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    <span>{passwordMsg}</span>
+                  </div>
+                )}
+
+                {passwordError && (
+                  <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs font-semibold text-red-400 flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{passwordError}</span>
+                  </div>
+                )}
+
+                <form onSubmit={handleChangePasswordSubmit} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-300 mb-1.5">Current Password</label>
+                    <div className="relative">
+                      <input
+                        type={showCurrentPass ? 'text' : 'password'}
+                        required
+                        value={currentPassword}
+                        onChange={e => setCurrentPassword(e.target.value)}
+                        placeholder="Enter current password"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-white font-mono focus:border-amber-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPass(!showCurrentPass)}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white transition"
+                        title={showCurrentPass ? 'Hide' : 'Show'}
+                      >
+                        {showCurrentPass ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-blue-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-300 mb-1.5">New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showNewPass ? 'text' : 'password'}
+                        required
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        placeholder="Enter new password"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-white font-mono focus:border-amber-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPass(!showNewPass)}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white transition"
+                        title={showNewPass ? 'Hide' : 'Show'}
+                      >
+                        {showNewPass ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-blue-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-300 mb-1.5">Confirm New Password</label>
+                    <div className="relative">
+                      <input
+                        type={showConfirmPass ? 'text' : 'password'}
+                        required
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm new password"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-white font-mono focus:border-amber-500 focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPass(!showConfirmPass)}
+                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white transition"
+                        title={showConfirmPass ? 'Hide' : 'Show'}
+                      >
+                        {showConfirmPass ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-blue-400" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-3 pt-4 border-t border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setIsChangePasswordModalOpen(false)}
+                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={passwordLoading}
+                      className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-amber-500/20 transition disabled:opacity-50 flex items-center space-x-2"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>{passwordLoading ? 'Updating Password...' : 'Save New Password'}</span>
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           )}

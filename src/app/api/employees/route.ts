@@ -33,6 +33,7 @@ export async function POST(request: Request) {
       employeeId: body.employeeId || `EMP${Math.floor(100 + Math.random() * 900)}`,
       name: body.name,
       email: body.email,
+      password: body.password || 'Employee@123',
       phone: body.phone || '',
       department: body.department || 'General',
       designation: body.designation || 'Staff',

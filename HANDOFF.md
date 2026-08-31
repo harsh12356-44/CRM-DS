@@ -2,22 +2,22 @@
 
 ## 1. Project Overview & Purpose
 **Project Name**: CRM-DS (HRM Pilot Web App)  
-**Description**: A modern Human Resource Management (HRM) and Customer Relationship / Workforce Pilot application built with Next.js 15, React 19, TypeScript, Tailwind CSS, and Prisma ORM backed by a PostgreSQL / Supabase database. The platform supports role-based management for Admins, Managers, and Employees, tracking attendance, leave allowances, department allocation, holiday calendars, notifications, and audit logging.
+**Description**: A modern Human Resource Management (HRM) and Customer Relationship / Workforce Pilot application built with Next.js 15, React 19, TypeScript, Tailwind CSS, and Prisma ORM backed by a PostgreSQL / Supabase database. The platform supports role-based management for Admins, Managers, and Employees, tracking attendance, leave allowances, password management, department allocation, holiday calendars, notifications, and audit logging.
 
 ---
 
 ## 2. Current Project Status
-- **Repository Setup**: Project checked, sanitized, and prepared for GitHub upload under repository name **CRM-DS**.
+- **GitHub Repository**: Live and up to date at [https://github.com/harsh12356-44/CRM-DS](https://github.com/harsh12356-44/CRM-DS) (`main` branch).
+- **Password Management**: Full password viewing & editing in Admin dashboard, plus employee self-service Change Password functionality with automatic synchronization.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
-- **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee`, `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
-- **Security & Hygiene**: `.gitignore` created to sanitize sensitive `.env` secrets, build artifacts (`.next`), node modules, and local database files. `.env.example` created as a clean environment configuration reference.
+- **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 
 ---
 
 ## 3. Key Features & Structure
-- **Admin Portal** (`/admin`): Department management, employee provisioning, salary & working hours configuration, company settings, and audit logs.
+- **Admin Portal** (`/admin`): Department management, employee provisioning, view/change employee passwords, salary & working hours configuration, company settings, and audit logs.
 - **Manager Portal** (`/manager`): Leave request approvals/rejections, attendance tracking, team management, and departmental reports.
-- **Employee Portal** (`/employee`): Attendance log views, check-in/check-out interactions, leave allowance metrics (Casual, Planned, Sick), and request submissions.
+- **Employee Portal** (`/employee`): Attendance log views, check-in/check-out interactions, leave allowance metrics, self-service Change Password modal, and request submissions.
 - **Authentication & Middleware**: Role-based access control handled via Next.js middleware (`src/middleware.ts`).
 
 ---
@@ -37,8 +37,8 @@ crm-ds/
 │   └── schema.prisma     # Prisma database schema for Supabase PostgreSQL
 └── src/
     ├── app/              # Next.js App Router (admin, manager, employee, login, api)
-    ├── components/       # Reusable UI components
-    ├── lib/              # Database clients and utility functions
+    ├── components/       # Reusable UI components (EmployeesTab, AttendanceLogTab, etc.)
+    ├── lib/              # Database clients, store.ts, and utility functions
     └── middleware.ts     # Edge middleware for routing & authentication
 ```
 
@@ -54,7 +54,7 @@ crm-ds/
 ### Getting Started
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/<your-username>/CRM-DS.git
+   git clone https://github.com/harsh12356-44/CRM-DS.git
    cd CRM-DS
    ```
 2. **Install Dependencies**:
@@ -75,23 +75,3 @@ crm-ds/
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-6. **Production Build**:
-   ```bash
-   npm run build
-   npm start
-   ```
-
----
-
-## 6. Next Steps & Pending Tasks
-1. Initialize Git repository locally and link to GitHub remote repository (`CRM-DS`).
-2. Push `main` branch to GitHub.
-3. Configure CI/CD pipelines (e.g., GitHub Actions) or Vercel deployment if desired.
-4. Set up production environment variables in the hosting platform.
-
----
-
-## 7. Known Issues & Risks
-- `.env` contains Supabase connection strings; ensure `.env` is **NEVER** committed to version control.
-- Verify database migration status using `npx prisma db push` or `npx prisma migrate dev` when setting up a fresh database instance.

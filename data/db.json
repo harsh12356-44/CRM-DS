@@ -15231,6 +15231,36 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-1788170107730",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Delete Department",
+      "objectType": "Department",
+      "objectId": "dept-sales",
+      "oldValue": "{\"id\":\"dept-sales\",\"code\":\"SAL\",\"name\":\"Sales\",\"managerName\":\"Rajesh Kumar\",\"description\":\"Core Sales Department operations.\",\"employeeCount\":0}",
+      "timestamp": "2026-08-31T09:55:07.730Z"
+    },
+    {
+      "id": "aud-1788170103823",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Delete Department",
+      "objectType": "Department",
+      "objectId": "dept-sales",
+      "oldValue": "{\"id\":\"dept-sales\",\"code\":\"SAL\",\"name\":\"Sales\",\"managerName\":\"Rajesh Kumar\",\"description\":\"Core Sales Department operations.\",\"employeeCount\":0}",
+      "timestamp": "2026-08-31T09:55:03.823Z"
+    },
+    {
+      "id": "aud-1788170093700",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Delete Department",
+      "objectType": "Department",
+      "objectId": "dept-sales",
+      "oldValue": "{\"id\":\"dept-sales\",\"code\":\"SAL\",\"name\":\"Sales\",\"managerName\":\"Rajesh Kumar\",\"description\":\"Core Sales Department operations.\",\"employeeCount\":0}",
+      "timestamp": "2026-08-31T09:54:53.700Z"
+    },
+    {
       "id": "aud-1788169973525",
       "userId": "emp-1",
       "userName": "Harshit Bhootra",
@@ -15717,6 +15747,30 @@
       "managerName": "Ravina Khimani",
       "description": "General Operations & Special Assignments.",
       "employeeCount": 3
+    },
+    {
+      "id": "dept-design",
+      "code": "DSG",
+      "name": "Design",
+      "managerName": "Ravina Khimani",
+      "description": "Graphic & UI/UX Design operations and creative direction.",
+      "employeeCount": 1
+    },
+    {
+      "id": "dept-engineering",
+      "code": "ENG",
+      "name": "Engineering",
+      "managerName": "Harshit Bhootra",
+      "description": "Core Engineering Department operations.",
+      "employeeCount": 0
+    },
+    {
+      "id": "dept-sales",
+      "code": "SAL",
+      "name": "Sales",
+      "managerName": "Rajesh Kumar",
+      "description": "Core Sales Department operations.",
+      "employeeCount": 0
     }
   ]
 }

@@ -16,6 +16,11 @@ export async function GET() {
   if (!db.departments) {
     db.departments = [];
   }
+  if (!db.deletedDepartments) {
+    db.deletedDepartments = [];
+  }
+
+  const deletedSet = new Set(db.deletedDepartments.map(d => d.toLowerCase().trim()));
 
   // Compute base count map and managers map for all employee departments
   const deptsMap = new Map<string, { count: number; managerName?: string }>();
@@ -31,7 +36,7 @@ export async function GET() {
     }
   });
 
-  // Ensure initial core departments exist
+  // Ensure initial core departments exist (unless explicitly deleted by Admin)
   const defaultSeeds = [
     { id: 'dept-design', code: 'DSG', name: 'Design', managerName: 'Ravina Khimani', description: 'Graphic & UI/UX Design operations and creative direction.' },
     { id: 'dept-development', code: 'DEV', name: 'Development', managerName: 'Naman Bangia', description: 'Web & Software Engineering Development operations.' },
@@ -44,8 +49,10 @@ export async function GET() {
   let hasChanged = false;
 
   defaultSeeds.forEach(seed => {
-    const exists = db.departments!.some(d => d.name.toLowerCase().trim() === seed.name.toLowerCase());
-    if (!exists) {
+    const cleanName = seed.name.toLowerCase().trim();
+    const exists = db.departments!.some(d => d.name.toLowerCase().trim() === cleanName);
+    const isDeleted = deletedSet.has(cleanName) || deletedSet.has(seed.id.toLowerCase());
+    if (!exists && !isDeleted) {
       db.departments!.push({
         ...seed,
         employeeCount: deptsMap.get(seed.name)?.count || 0,
@@ -54,12 +61,14 @@ export async function GET() {
     }
   });
 
-  // Dynamically auto-create ANY missing department found on employee profiles
+  // Dynamically auto-create ANY missing department found on employee profiles (unless explicitly deleted)
   deptsMap.forEach((info, deptName) => {
-    const exists = db.departments!.some(d => d.name.toLowerCase().trim() === deptName.toLowerCase());
-    if (!exists) {
+    const cleanName = deptName.toLowerCase().trim();
+    const exists = db.departments!.some(d => d.name.toLowerCase().trim() === cleanName);
+    const isDeleted = deletedSet.has(cleanName);
+    if (!exists && !isDeleted) {
       db.departments!.push({
-        id: `dept-${deptName.toLowerCase().replace(/\s+/g, '-')}`,
+        id: `dept-${cleanName.replace(/\s+/g, '-')}`,
         code: deptName.substring(0, 3).toUpperCase(),
         name: deptName,
         managerName: info.managerName || 'Ravina Khimani',
@@ -92,6 +101,10 @@ export async function POST(request: Request) {
 
     const db = getDbData();
     if (!db.departments) db.departments = [];
+    if (!db.deletedDepartments) db.deletedDepartments = [];
+
+    const cleanName = name.toLowerCase().trim();
+    db.deletedDepartments = db.deletedDepartments.filter(d => d.toLowerCase().trim() !== cleanName);
 
     const newDept: DepartmentItem = {
       id: `dept-${Date.now()}`,
@@ -157,15 +170,37 @@ export async function DELETE(request: Request) {
 
     const db = getDbData();
     if (!db.departments) db.departments = [];
+    if (!db.deletedDepartments) db.deletedDepartments = [];
 
-    const index = db.departments.findIndex(d => d.id === id);
+    const index = db.departments.findIndex(d => d.id === id || d.name.toLowerCase() === id.toLowerCase());
 
     if (index !== -1) {
       const deletedDept = db.departments[index];
+      const deptNameLower = deletedDept.name.toLowerCase().trim();
+
+      // Track as permanently deleted
+      if (!db.deletedDepartments.includes(deptNameLower)) {
+        db.deletedDepartments.push(deptNameLower);
+      }
+      if (!db.deletedDepartments.includes(deletedDept.id.toLowerCase())) {
+        db.deletedDepartments.push(deletedDept.id.toLowerCase());
+      }
+
+      // Remove from departments array
       db.departments.splice(index, 1);
+
+      // Re-assign employees in this department to General
+      if (Array.isArray(db.employees)) {
+        db.employees.forEach(e => {
+          if (e.department && e.department.toLowerCase().trim() === deptNameLower) {
+            e.department = 'General';
+          }
+        });
+      }
+
       logAudit('Delete Department', 'Department', id, JSON.stringify(deletedDept), undefined);
       saveDbData(db);
-      return NextResponse.json({ success: true, message: `Department ${deletedDept.name} deleted`, departments: db.departments });
+      return NextResponse.json({ success: true, message: `Department ${deletedDept.name} deleted successfully`, departments: db.departments });
     }
 
     return NextResponse.json({ error: 'Department not found' }, { status: 404 });

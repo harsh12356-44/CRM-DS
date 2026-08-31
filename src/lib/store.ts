@@ -30,6 +30,7 @@ interface InitialState {
   attendanceImports: AttendanceImport[];
   notifications: NotificationItem[];
   departments?: any[];
+  deletedDepartments?: string[];
 }
 
 const DEFAULT_EMPLOYEES: Employee[] = [

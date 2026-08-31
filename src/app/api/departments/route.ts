@@ -13,58 +13,71 @@ export interface DepartmentItem {
 export async function GET() {
   const db = getDbData();
 
-  // Compute base count map
-  const deptsMap = new Map<string, number>();
+  if (!db.departments) {
+    db.departments = [];
+  }
+
+  // Compute base count map and managers map for all employee departments
+  const deptsMap = new Map<string, { count: number; managerName?: string }>();
   db.employees.forEach(e => {
-    const dept = e.department || 'General';
-    deptsMap.set(dept, (deptsMap.get(dept) || 0) + 1);
+    const dept = (e.department || 'General').trim();
+    if (!deptsMap.has(dept)) {
+      deptsMap.set(dept, { count: 0, managerName: e.primaryManager || e.managerName || 'Ravina Khimani' });
+    }
+    const curr = deptsMap.get(dept)!;
+    curr.count += 1;
+    if ((!curr.managerName || curr.managerName === 'Unassigned') && (e.primaryManager || e.managerName)) {
+      curr.managerName = e.primaryManager || e.managerName;
+    }
   });
 
-  // Seed default departments ONCE if db.departments is completely uninitialized
-  if (!db.departments) {
-    db.departments = [
-      {
-        id: 'dept-engineering',
-        code: 'ENG',
-        name: 'Engineering',
-        managerName: 'Harshit Bhootra',
-        description: 'Core Engineering Department operations and personnel management.',
-        employeeCount: deptsMap.get('Engineering') || 0,
-      },
-      {
-        id: 'dept-human-resources',
-        code: 'HR',
-        name: 'Human Resources',
-        managerName: 'Ananya Sharma',
-        description: 'Core Human Resources Department operations and personnel management.',
-        employeeCount: deptsMap.get('Human Resources') || 0,
-      },
-      {
-        id: 'dept-sales',
-        code: 'SAL',
-        name: 'Sales',
-        managerName: 'Rajesh Kumar',
-        description: 'Core Sales Department operations and personnel management.',
-        employeeCount: deptsMap.get('Sales') || 0,
-      },
-      {
-        id: 'dept-marketing',
-        code: 'MKT',
-        name: 'Marketing',
-        managerName: 'Harshit Bhootra',
-        description: 'Core Marketing Department operations and personnel management.',
-        employeeCount: deptsMap.get('Marketing') || 0,
-      },
-    ];
+  // Ensure initial core departments exist
+  const defaultSeeds = [
+    { id: 'dept-design', code: 'DSG', name: 'Design', managerName: 'Ravina Khimani', description: 'Graphic & UI/UX Design operations and creative direction.' },
+    { id: 'dept-development', code: 'DEV', name: 'Development', managerName: 'Naman Bangia', description: 'Web & Software Engineering Development operations.' },
+    { id: 'dept-human-resources', code: 'HR', name: 'Human Resources', managerName: 'Ravina Khimani', description: 'Core Human Resources & People Operations.' },
+    { id: 'dept-seo', code: 'SEO', name: 'SEO', managerName: 'Meenal', description: 'Search Engine Optimization and Digital Marketing.' },
+    { id: 'dept-engineering', code: 'ENG', name: 'Engineering', managerName: 'Harshit Bhootra', description: 'Core Engineering Department operations.' },
+    { id: 'dept-sales', code: 'SAL', name: 'Sales', managerName: 'Rajesh Kumar', description: 'Core Sales Department operations.' },
+  ];
+
+  let hasChanged = false;
+
+  defaultSeeds.forEach(seed => {
+    const exists = db.departments!.some(d => d.name.toLowerCase().trim() === seed.name.toLowerCase());
+    if (!exists) {
+      db.departments!.push({
+        ...seed,
+        employeeCount: deptsMap.get(seed.name)?.count || 0,
+      });
+      hasChanged = true;
+    }
+  });
+
+  // Dynamically auto-create ANY missing department found on employee profiles
+  deptsMap.forEach((info, deptName) => {
+    const exists = db.departments!.some(d => d.name.toLowerCase().trim() === deptName.toLowerCase());
+    if (!exists) {
+      db.departments!.push({
+        id: `dept-${deptName.toLowerCase().replace(/\s+/g, '-')}`,
+        code: deptName.substring(0, 3).toUpperCase(),
+        name: deptName,
+        managerName: info.managerName || 'Ravina Khimani',
+        description: `Core ${deptName} Department operations and personnel management.`,
+        employeeCount: info.count,
+      });
+      hasChanged = true;
+    }
+  });
+
+  if (hasChanged) {
     saveDbData(db);
   }
 
-  const customDepts: DepartmentItem[] = db.departments;
-
   // Update employee counts dynamically
-  const finalDepts = customDepts.map(d => ({
+  const finalDepts = db.departments.map(d => ({
     ...d,
-    employeeCount: deptsMap.get(d.name) || d.employeeCount || 0,
+    employeeCount: deptsMap.get(d.name.trim())?.count || d.employeeCount || 0,
   }));
 
   return NextResponse.json(finalDepts);

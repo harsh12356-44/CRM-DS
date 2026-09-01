@@ -240,12 +240,22 @@ function EmployeePortalContent() {
           }
         }
 
-        const empLogs = logsList.filter(a => a.employeeId === currentEmp.id || a.employeeId === currentEmp.employeeId);
-        setAttendance(empLogs);
-
         const empIdStr = String(currentEmp.id || '').trim().toLowerCase();
         const empCodeStr = String(currentEmp.employeeId || '').trim().toLowerCase();
         const empNameStr = String(currentEmp.name || '').trim().toLowerCase();
+
+        const empLogs = logsList.filter(a => {
+          if (!a) return false;
+          const target = String(a.employeeId || '').trim().toLowerCase();
+          const targetName = String((a as any).employeeName || '').trim().toLowerCase();
+          return (
+            target === empIdStr ||
+            target === empCodeStr ||
+            target === empNameStr ||
+            (targetName && targetName === empNameStr)
+          );
+        });
+        setAttendance(empLogs);
 
         if (leavesList.length === 0) {
           setLeaves([]);
@@ -266,7 +276,7 @@ function EmployeePortalContent() {
           const empLeaves = leavesList.filter(l => {
             if (!l) return false;
             const target = String(l.employeeId || '').trim().toLowerCase();
-            const targetName = String(l.employeeName || '').trim().toLowerCase();
+            const targetName = String((l as any).employeeName || '').trim().toLowerCase();
             return (
               target === empIdStr ||
               target === empCodeStr ||
@@ -298,14 +308,16 @@ function EmployeePortalContent() {
 
     const handleUpdate = () => fetchEmployeeDashboardData(true);
     window.addEventListener('leaveDataUpdated', handleUpdate);
+    window.addEventListener('attendanceUpdated', handleUpdate);
 
     // Silent background poll without triggering loading spinner or event loops
     const pollInterval = setInterval(() => {
       fetchEmployeeDashboardData(true);
-    }, 4000);
+    }, 6000);
 
     return () => {
       window.removeEventListener('leaveDataUpdated', handleUpdate);
+      window.removeEventListener('attendanceUpdated', handleUpdate);
       clearInterval(pollInterval);
     };
   }, [fetchEmployeeDashboardData]);
@@ -480,15 +492,15 @@ function EmployeePortalContent() {
           const isBothApproved = newManagerStatus === 'Approved' && l.hrStatus === 'Approved';
           return {
             ...l,
-            managerStatus: newManagerStatus,
-            status: isBothApproved ? 'APPROVED' : newStatus || l.status,
+            managerStatus: newManagerStatus as any,
+            status: (isBothApproved ? 'APPROVED' : newStatus || l.status) as any,
           };
         }
         return l;
       });
 
-    setAllLeaves(updater);
-    setLeaves(updater);
+    setAllLeaves(updater as any);
+    setLeaves(updater as any);
 
     if (typeof window !== 'undefined') {
       try {
@@ -538,8 +550,8 @@ function EmployeePortalContent() {
 
   // Present Days Count for current month
   const presentDaysCount = currentMonthLogs.reduce((sum, a) => {
-    if (a.attendanceCode === 'P' || a.attendanceCode === 'PRESENT' || (a.checkIn && !a.attendanceCode)) return sum + 1;
-    if (a.attendanceCode === 'HD' || a.attendanceCode === 'HALF_DAY') return sum + 0.5;
+    if (a.attendanceCode === 'P' || (a.attendanceCode as string) === 'PRESENT' || (a.checkIn && !a.attendanceCode)) return sum + 1;
+    if (a.attendanceCode === 'HD' || (a.attendanceCode as string) === 'HALF_DAY') return sum + 0.5;
     return sum;
   }, 0);
 
@@ -551,7 +563,7 @@ function EmployeePortalContent() {
   const avgDailyHours = presentDaysCount > 0 ? (totalWorkedMins / 60 / presentDaysCount).toFixed(1) : '0';
 
   // Late Arrivals for current month (checkIn > 09:15:00)
-  const lateArrivalsCount = currentMonthLogs.filter(a => (a.checkIn && a.checkIn > '09:15:00') || a.isLate).length || 0;
+  const lateArrivalsCount = currentMonthLogs.filter(a => (a.checkIn && a.checkIn > '09:15:00') || (a as any).isLate).length || 0;
 
   // Leave Balance for current quarter (Q3 - July/August/September 2026) fetched from Leave Tracker rules
   const currentEmpId = employee?.id || selectedEmployeeId || 'emp-12';
@@ -595,7 +607,7 @@ function EmployeePortalContent() {
     const dayNum = i + 1;
     const dateStr = `2026-08-${String(dayNum).padStart(2, '0')}`;
     const log = safeAttendance.find(a => a.date === dateStr);
-    const workedHours = log ? (log.workedMinutes / 60) : (dayNum <= 6 ? 8 : 0);
+    const workedHours = log ? Number((log.workedMinutes / 60).toFixed(1)) : 0;
     return {
       day: dayNum,
       dateStr,

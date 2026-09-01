@@ -132,7 +132,7 @@ export default function LeaveRecordsAdminPage() {
           };
         }
         return l;
-      })
+      }) as any
     );
 
     if (typeof window !== 'undefined') {

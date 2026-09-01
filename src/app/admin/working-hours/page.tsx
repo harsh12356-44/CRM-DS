@@ -52,6 +52,11 @@ export default function WorkingHoursPage() {
     setSyncToast('');
     try {
       await fetchWorkingHours();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('attendanceUpdated', {
+          detail: { month: selectedMonth, year: selectedYear, monthYear: `${selectedYear}-${String(selectedMonth).padStart(2, '0')}` }
+        }));
+      }
       setSyncToast('✓ Successfully calculated & synced working hours from attendance grid!');
       setTimeout(() => setSyncToast(''), 4500);
     } catch (e) {

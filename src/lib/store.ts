@@ -9,7 +9,6 @@ import {
   AuditLogEntry,
   AttendanceImport,
   NotificationItem,
-  mergeLeavesNonRegressive,
 } from './types';
 import fs from 'fs';
 import path from 'path';
@@ -592,8 +591,6 @@ export function getDbData(): InitialState {
   return memoryDb;
 }
 
-const PERSISTENT_CLOUD_URL = 'https://api.restful-api.dev/objects/ff8081819ff5b11001a01eda01715b3e';
-
 export async function ensureCloudSync() {
   try {
     const db = getDbData();
@@ -613,83 +610,14 @@ export async function ensureCloudSync() {
         }
       } catch (e) {}
     }
-
-    const res = await fetch(PERSISTENT_CLOUD_URL, { cache: 'no-store' });
-    if (res.ok) {
-      const json = await res.json();
-      const cloudLeaves = json?.data?.leaveRecords;
-      if (Array.isArray(cloudLeaves)) {
-        if (cloudLeaves.length === 0) {
-          db.leaveRecords = [];
-        } else {
-          db.leaveRecords = mergeLeavesNonRegressive(db.leaveRecords || [], cloudLeaves);
-        }
-      }
-
-      const cloudAttendance = json?.data?.attendanceLogs;
-      if (Array.isArray(cloudAttendance) && cloudAttendance.length > 0) {
-        cloudAttendance.forEach((rawL: any) => {
-          const l: AttendanceLog = {
-            id: rawL.id || `att-${rawL.e || rawL.employeeId}-${rawL.d || rawL.date}`,
-            employeeId: rawL.e || rawL.employeeId,
-            date: rawL.d || rawL.date,
-            checkIn: rawL.c || rawL.checkIn || '09:00',
-            checkOut: rawL.o || rawL.checkOut || '18:00',
-            workedMinutes: rawL.w !== undefined ? rawL.w : rawL.workedMinutes || 480,
-            requiredMinutes: 480,
-            shortMinutes: Math.max(0, 480 - (rawL.w !== undefined ? rawL.w : rawL.workedMinutes || 480)),
-            extraMinutes: Math.max(0, (rawL.w !== undefined ? rawL.w : rawL.workedMinutes || 480) - 480),
-            sundayWorkedMinutes: 0,
-            attendanceCode: rawL.a || rawL.attendanceCode || 'P',
-            isManual: false,
-          };
-          const idx = db.attendanceLogs.findIndex(existing => existing.id === l.id || (existing.employeeId === l.employeeId && existing.date === l.date));
-          if (idx !== -1) db.attendanceLogs[idx] = l;
-          else db.attendanceLogs.push(l);
-        });
-      }
-
-      const cloudImports = json?.data?.attendanceImports;
-      if (Array.isArray(cloudImports) && cloudImports.length > 0) {
-        db.attendanceImports = cloudImports;
-      }
-    }
     memoryDb = db;
     (globalThis as any)._inMemoryDbData = db;
   } catch (e) {}
 }
 
 async function syncCloudStorageAsync(data: InitialState) {
-  try {
-    const compactLogs = (data.attendanceLogs || []).map(l => ({
-      id: l.id,
-      e: l.employeeId,
-      d: l.date,
-      c: l.checkIn,
-      o: l.checkOut,
-      w: l.workedMinutes,
-      a: l.attendanceCode,
-    }));
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-    await fetch(PERSISTENT_CLOUD_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'hrm_pilot_leaves',
-        data: {
-          leaveRecords: data.leaveRecords || [],
-          attendanceLogs: compactLogs,
-          attendanceImports: data.attendanceImports || [],
-        },
-      }),
-      signal: controller.signal,
-    }).catch(() => {});
-
-    clearTimeout(timeoutId);
-  } catch (e) {}
+  // Local storage save is handled directly via saveDbData / saveDbDataAsync
+  return;
 }
 
 export async function saveDbDataAsync(data: InitialState): Promise<void> {

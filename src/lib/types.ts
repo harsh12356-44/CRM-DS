@@ -193,14 +193,14 @@ export function mergeLeavesNonRegressive(primaryList: LeaveRecord[] = [], second
     if (!record) return;
 
     const cleanId = record.id ? String(record.id).replace(/[^0-9a-zA-Z]/g, '').toLowerCase() : '';
-    const empRef = String(record.employeeId || record.employeeName || '').replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
+    const empRef = String(record.employeeId || (record as any).employeeName || '').replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
     const startDate = String(record.startDate || '').trim();
 
     let matchKey: string | null = null;
 
     for (const [key, existing] of map.entries()) {
       const exCleanId = existing.id ? String(existing.id).replace(/[^0-9a-zA-Z]/g, '').toLowerCase() : '';
-      const exEmpRef = String(existing.employeeId || existing.employeeName || '').replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
+      const exEmpRef = String(existing.employeeId || (existing as any).employeeName || '').replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
       const exStartDate = String(existing.startDate || '').trim();
 
       const isExactId = cleanId && exCleanId && cleanId === exCleanId;

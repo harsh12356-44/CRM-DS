@@ -57,8 +57,10 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
   const [editOut, setEditOut] = useState('18:00');
   const [reason, setReason] = useState('');
 
-  const fetchAttendance = async () => {
-    setLoading(true);
+  const [allEmployees, setAllEmployees] = useState<any[]>([]);
+
+  const fetchAttendance = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       let url = `/api/attendance?department=${department}`;
       if (viewMode === 'matrix') {
@@ -75,6 +77,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
       
       let empsList: any[] = data.employees || [];
       let logsList: any[] = data.logs || [];
+      setAllEmployees(empsList);
 
       // If in Employee Portal mode (hideImport=true or targetEmployeeId provided), strictly show target employee only
       if (hideImport || targetEmployeeId) {
@@ -105,48 +108,11 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
         const activeEmp = empsList[0];
         if (activeEmp) {
           logsList = logsList.filter((l: any) =>
-            l.employeeId === activeEmp.id || l.employeeId === activeEmp.employeeId || l.employeeId === activeEmp.name
+            l.employeeId === activeEmp.id ||
+            l.employeeId === activeEmp.employeeId ||
+            (l.employeeId && activeEmp.name && l.employeeId.toLowerCase().trim() === activeEmp.name.toLowerCase().trim())
           );
         }
-      }
-
-      if (Array.isArray(data.logs) && data.logs.length > 0) {
-        if (typeof window !== 'undefined') {
-          try {
-            const existingCached = localStorage.getItem('hrm_attendance_backup');
-            let mergedCached = data.logs;
-            if (existingCached) {
-              const parsed = JSON.parse(existingCached);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                const map: any = {};
-                parsed.forEach((l: any) => { if (l && l.id) map[l.id] = l; });
-                data.logs.forEach((l: any) => { if (l && l.id) map[l.id] = l; });
-                mergedCached = Object.values(map);
-              }
-            }
-            localStorage.setItem('hrm_attendance_backup', JSON.stringify(mergedCached));
-          } catch (e) {}
-        }
-      } else if (typeof window !== 'undefined') {
-        try {
-          const cached = localStorage.getItem('hrm_attendance_backup');
-          if (cached) {
-            const parsedCached = JSON.parse(cached);
-            if (Array.isArray(parsedCached) && parsedCached.length > 0) {
-              const syncRes = await fetch('/api/attendance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'sync_client_backup', logs: parsedCached }),
-              });
-              const syncData = await syncRes.json();
-              if (syncData && Array.isArray(syncData.logs) && syncData.logs.length > 0) {
-                logsList = syncData.logs;
-              } else {
-                logsList = parsedCached;
-              }
-            }
-          }
-        } catch (e) {}
       }
 
       setLogs(logsList);
@@ -155,12 +121,12 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAttendance();
+    fetchAttendance(false);
 
     const handleUpdate = (e: Event) => {
       const customEvt = e as CustomEvent;
@@ -175,16 +141,23 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
           if (year) setSelectedYear(String(year));
         }
       }
-      fetchAttendance();
+      fetchAttendance(true);
     };
 
     if (typeof window !== 'undefined') {
       window.addEventListener('attendanceUpdated', handleUpdate);
     }
+
+    // Auto polling silently every 6s to reflect updates live without UI lag
+    const pollInterval = setInterval(() => {
+      fetchAttendance(true);
+    }, 6000);
+
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener('attendanceUpdated', handleUpdate);
       }
+      clearInterval(pollInterval);
     };
   }, [viewMode, selectedMonth, selectedYear, department, date, targetEmployeeId]);
 
@@ -239,13 +212,13 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'MANUAL_EDIT',
-          logId: editLog.id,
+          id: editLog.id,
           employeeId: editLog.employeeId,
           date: editLog.date,
           attendanceCode: editCode,
           checkIn: editIn,
           checkOut: editOut,
-          reason,
+          correctionReason: reason,
         }),
       });
       const data = await res.json();
@@ -280,16 +253,18 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
     return dStr;
   };
 
-  // Helper map for fast lookup in matrix grid across emp.id and emp.employeeId
+  // Helper map for fast lookup in matrix grid across emp.id, emp.employeeId, and emp.name
   const logsMap: { [key: string]: any } = {};
+  const empListToSearch = allEmployees.length > 0 ? allEmployees : employees;
+
   logs.forEach(l => {
     if (l && l.date) {
       const normDate = normalizeDateKey(l.date);
       logsMap[`${l.employeeId}_${normDate}`] = l;
       logsMap[`${l.employeeId}_${l.date}`] = l;
 
-      const emp = employees.find(
-        e => e.id === l.employeeId || e.employeeId === l.employeeId || (e.name && l.employeeId && e.name.toLowerCase() === l.employeeId.toLowerCase())
+      const emp = empListToSearch.find(
+        e => e.id === l.employeeId || e.employeeId === l.employeeId || (e.name && l.employeeId && e.name.toLowerCase().trim() === l.employeeId.toLowerCase().trim())
       );
       if (emp) {
         logsMap[`${emp.id}_${normDate}`] = l;
@@ -297,6 +272,10 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
         if (emp.employeeId) {
           logsMap[`${emp.employeeId}_${normDate}`] = l;
           logsMap[`${emp.employeeId}_${l.date}`] = l;
+        }
+        if (emp.name) {
+          logsMap[`${emp.name}_${normDate}`] = l;
+          logsMap[`${emp.name}_${l.date}`] = l;
         }
       }
     }
@@ -429,7 +408,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
 
           {/* Filter Action Button */}
           <button
-            onClick={fetchAttendance}
+            onClick={() => fetchAttendance(false)}
             className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition"
           >
             Filter

@@ -333,11 +333,28 @@ export async function POST(request: Request) {
     }
 
     if (body.action === 'MANUAL_EDIT') {
-      const { id, employeeId, date, attendanceCode, checkIn, checkOut, correctionReason } = body;
+      const targetId = body.id || body.logId;
+      const { employeeId, date, attendanceCode, checkIn, checkOut } = body;
+      const correctionReason = body.correctionReason || body.reason || '';
+
+      const matchedEmp = db.employees.find(e =>
+        e.id === employeeId ||
+        e.employeeId === employeeId ||
+        (e.name && employeeId && e.name.toLowerCase().trim() === String(employeeId).toLowerCase().trim())
+      );
+      const canonicalEmpId = matchedEmp ? matchedEmp.id : employeeId;
       
-      let index = db.attendanceLogs.findIndex(l => l.id === id);
-      if (index === -1 && employeeId && date) {
-        index = db.attendanceLogs.findIndex(l => l.employeeId === employeeId && l.date === date);
+      let index = -1;
+      if (targetId) {
+        index = db.attendanceLogs.findIndex(l => l.id === targetId);
+      }
+      if (index === -1 && canonicalEmpId && date) {
+        index = db.attendanceLogs.findIndex(l => {
+          if (l.date !== date) return false;
+          if (l.employeeId === canonicalEmpId || l.employeeId === matchedEmp?.employeeId) return true;
+          if (matchedEmp && l.employeeId && matchedEmp.name.toLowerCase().trim() === l.employeeId.toLowerCase().trim()) return true;
+          return false;
+        });
       }
 
       let workedMinutes = 0;
@@ -361,6 +378,7 @@ export async function POST(request: Request) {
 
       if (index !== -1) {
         const oldVal = JSON.stringify(db.attendanceLogs[index]);
+        db.attendanceLogs[index].employeeId = canonicalEmpId;
         db.attendanceLogs[index].attendanceCode = attendanceCode;
         db.attendanceLogs[index].checkIn = checkIn;
         db.attendanceLogs[index].checkOut = checkOut;
@@ -374,10 +392,10 @@ export async function POST(request: Request) {
         await saveDbDataAsync(db);
 
         return NextResponse.json({ success: true, log: db.attendanceLogs[index] });
-      } else if (employeeId && date) {
+      } else if (canonicalEmpId && date) {
         const newLog: AttendanceLog = {
-          id: id || `att-${employeeId}-${date}`,
-          employeeId,
+          id: targetId || `att-${canonicalEmpId}-${date}`,
+          employeeId: canonicalEmpId,
           date,
           attendanceCode,
           checkIn,

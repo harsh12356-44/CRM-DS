@@ -2,20 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Lock, Mail, ArrowRight, UserCheck, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('ravina@hrmpilot.com');
-  const [password, setPassword] = useState('Admin@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const handleSelectRole = (userEmail: string, userPass: string) => {
-    setEmail(userEmail);
-    setPassword(userPass);
-    setError('');
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,6 +115,7 @@ export default function LoginPage() {
                   className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 light:placeholder-slate-400 focus:outline-none focus:border-blue-500 light:focus:border-blue-600 font-medium transition"
                   placeholder="name@company.com"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -136,6 +131,7 @@ export default function LoginPage() {
                   className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 light:placeholder-slate-400 focus:outline-none focus:border-blue-500 light:focus:border-blue-600 font-medium transition"
                   placeholder="••••••••"
                   required
+                  autoComplete="current-password"
                 />
               </div>
             </div>
@@ -143,89 +139,12 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
             >
               <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
               <ArrowRight className="w-4 h-4 text-white" />
             </button>
           </form>
-
-          {/* Quick Demo Credentials Switcher */}
-          <div className="pt-4 border-t border-slate-800 light:border-slate-200 space-y-2">
-            <p className="text-[11px] font-black text-slate-400 light:text-slate-600 text-center uppercase tracking-wider">
-              Quick Role Sign-In Presets
-            </p>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              <button
-                type="button"
-                onClick={() => handleSelectRole('ravina@hrmpilot.com', 'Admin@123')}
-                className={`p-2.5 rounded-xl border text-left space-y-1 transition ${
-                  email === 'ravina@hrmpilot.com'
-                    ? 'bg-blue-600/20 light:bg-blue-100 border-blue-500 light:border-blue-400 text-white light:text-blue-900'
-                    : 'bg-slate-950/60 light:bg-slate-100 border-slate-800 light:border-slate-300 text-slate-400 light:text-slate-700 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <Shield className="w-3.5 h-3.5 text-blue-400 light:text-blue-600" />
-                  {email === 'ravina@hrmpilot.com' && <CheckCircle2 className="w-3 h-3 text-blue-400 light:text-blue-600" />}
-                </div>
-                <p className="font-extrabold text-[11px] text-white light:text-slate-900">HR / COO</p>
-                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Ravina Khimani</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectRole('naman@hrmpilot.com', 'Manager@123')}
-                className={`p-2.5 rounded-xl border text-left space-y-1 transition ${
-                  email === 'naman@hrmpilot.com'
-                    ? 'bg-purple-600/20 light:bg-purple-100 border-purple-500 light:border-purple-400 text-white light:text-purple-900'
-                    : 'bg-slate-950/60 light:bg-slate-100 border-slate-800 light:border-slate-300 text-slate-400 light:text-slate-700 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <UserCheck className="w-3.5 h-3.5 text-purple-400 light:text-purple-600" />
-                  {email === 'naman@hrmpilot.com' && <CheckCircle2 className="w-3 h-3 text-purple-400 light:text-purple-600" />}
-                </div>
-                <p className="font-extrabold text-[11px] text-white light:text-slate-900">Dev Manager</p>
-                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Naman Bangia</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectRole('sonu@hrmpilot.com', 'Employee@123')}
-                className={`p-2.5 rounded-xl border text-left space-y-1 transition ${
-                  email === 'sonu@hrmpilot.com'
-                    ? 'bg-emerald-600/20 light:bg-emerald-100 border-emerald-500 light:border-emerald-400 text-white light:text-emerald-900'
-                    : 'bg-slate-950/60 light:bg-slate-100 border-slate-800 light:border-slate-300 text-slate-400 light:text-slate-700 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <UserCheck className="w-3.5 h-3.5 text-emerald-400 light:text-emerald-600" />
-                  {email === 'sonu@hrmpilot.com' && <CheckCircle2 className="w-3 h-3 text-emerald-400 light:text-emerald-600" />}
-                </div>
-                <p className="font-extrabold text-[11px] text-white light:text-slate-900">Developer</p>
-                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Sonu Goswami</p>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSelectRole('sudeshna@hrmpilot.com', 'Employee@123')}
-                className={`p-2.5 rounded-xl border text-left space-y-1 transition ${
-                  email === 'sudeshna@hrmpilot.com'
-                    ? 'bg-pink-600/20 light:bg-pink-100 border-pink-500 light:border-pink-400 text-white light:text-pink-900'
-                    : 'bg-slate-950/60 light:bg-slate-100 border-slate-800 light:border-slate-300 text-slate-400 light:text-slate-700 hover:border-slate-700'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <UserCheck className="w-3.5 h-3.5 text-pink-400 light:text-pink-600" />
-                  {email === 'sudeshna@hrmpilot.com' && <CheckCircle2 className="w-3 h-3 text-pink-400 light:text-pink-600" />}
-                </div>
-                <p className="font-extrabold text-[11px] text-white light:text-slate-900">WFH Employee</p>
-                <p className="text-[9px] text-slate-400 light:text-slate-600 truncate font-semibold">Graphic Designer</p>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </main>

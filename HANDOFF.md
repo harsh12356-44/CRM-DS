@@ -9,7 +9,7 @@
 ## 2. Current Project Status
 - **GitHub Repository**: Live and up to date at [https://github.com/harsh12356-44/CRM-DS](https://github.com/harsh12356-44/CRM-DS) (`main` branch).
 - **Anup Sen Attendance Grid**: Populated complete 31-day Check-In and Check-Out biometric punch records for all working days across July and August 2026, and updated `getDbData()` in `store.ts` to ensure dynamic real-time data reloading.
-- **Login Security & Clean Form**: Cleared initial state defaults and removed preset quick-login buttons from the sign-in page so users must manually input their own credentials to access accounts.
+- **Login Security & Anti-Autofill**: Cleared initial state defaults, deleted preset quick-login buttons, and blocked browser password manager autofill using dummy traps (`autoComplete="off"` / `autoComplete="new-password"`) so login fields load 100% blank without autofill prompts.
 - **Password Management**: Full password viewing & editing in Admin dashboard, plus employee self-service Change Password functionality with automatic synchronization.
 - **Attendance & Working Hours Real-Time Sync**: Real-time auto-updates for attendance grids and working hours across employee dashboards for all days (1 to 31) of the month, with auto-polling and multi-key employee ID normalization (`emp.id`, `emp.employeeId`, `emp.name`).
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.

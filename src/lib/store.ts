@@ -594,7 +594,7 @@ export async function ensureCloudSync() {
       try {
         const raw = fs.readFileSync(TMP_DB_FILE, 'utf-8');
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.leaveRecords)) {
+        if (Array.isArray(parsed.leaveRecords) && db.leaveRecords.length > 0) {
           db.leaveRecords = mergeLeavesNonRegressive(db.leaveRecords || [], parsed.leaveRecords);
         }
         if (Array.isArray(parsed.attendanceLogs) && parsed.attendanceLogs.length > 0) {

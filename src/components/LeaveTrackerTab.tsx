@@ -286,8 +286,12 @@ export default function LeaveTrackerTab() {
       const data = await res.json();
       if (res.ok) {
         setImportStatus('All leave records cleared successfully!');
+        if (data.summaries) {
+          setSummaries(data.summaries);
+        }
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('leaveDataUpdated'));
+          window.dispatchEvent(new Event('attendanceUpdated'));
         }
         fetchLeaveData();
       } else {

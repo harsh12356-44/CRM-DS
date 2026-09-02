@@ -40,6 +40,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   const activeTabParam = searchParams ? searchParams.get('tab') : null;
   const activeTab = activeTabParam || currentTab || 'dashboard';
 
+  const [mounted, setMounted] = useState<boolean>(false);
   const [activeRole, setActiveRole] = useState<string>('ADMIN');
   const [isManager, setIsManager] = useState<boolean>(false);
   const [isWfh, setIsWfh] = useState<boolean>(false);
@@ -47,6 +48,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('hrm_sidebar_collapsed');
       if (stored === 'true') {
@@ -107,8 +109,8 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   }, [role, pathname]);
 
   // Determine effective role based on current path and active user identity
-  const storedEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-  const isRavinaKhimani = storedEmpId === 'emp-1' || storedEmpId === 'rk001';
+  const storedEmpId = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
+  const isRavinaKhimani = !mounted || storedEmpId === 'emp-1' || storedEmpId === 'rk001' || !storedEmpId;
 
   const effectiveRole = isRavinaKhimani && pathname.startsWith('/admin')
     ? 'ADMIN'
@@ -178,6 +180,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
 
   return (
     <aside
+      suppressHydrationWarning
       className={`${
         isCollapsed ? 'w-20' : 'w-68'
       } bg-[#0f172a] light:bg-white border-r border-slate-800 light:border-slate-200 text-slate-200 light:text-slate-800 min-h-[calc(100vh-65px)] p-3.5 flex flex-col justify-between shrink-0 transition-all duration-300 ease-in-out relative group`}

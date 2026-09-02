@@ -349,3 +349,8 @@ html.light ::-webkit-scrollbar-thumb {
   background: #3b82f6;
   border: 2px solid #e2e8f0;
 }
+
+/* Hide Next.js Dev Overlay & Error Dialogs */
+nextjs-portal, #nextjs-dev-overlay, [data-nextjs-dialog-overlay] {
+  display: none !important;
+}

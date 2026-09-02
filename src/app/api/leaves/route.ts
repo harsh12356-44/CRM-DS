@@ -1,6 +1,9 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 import { NextResponse } from 'next/server';
 import { getDbData, saveDbData, getQuarterlyLeaveSummaries, getEmployeeAllQuarters, addNotification, logAudit, ensureCloudSync } from '@/lib/store';
 import { LeaveRecord, Employee, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
@@ -57,6 +60,13 @@ export async function POST(request: Request) {
       const targetQ = body.quarter || 'Q3';
       db.leaveRecords = [];
       saveDbData(db);
+
+      try {
+        const tmpPath = path.join(os.tmpdir(), 'hrm_db.json');
+        if (fs.existsSync(tmpPath)) {
+          fs.writeFileSync(tmpPath, JSON.stringify(db, null, 2));
+        }
+      } catch (e) {}
 
       try {
         await fetch('https://api.restful-api.dev/objects/ff8081819ff5b11001a01eda01715b3e', {

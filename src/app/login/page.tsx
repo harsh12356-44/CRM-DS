@@ -113,8 +113,8 @@ export default function LoginPage() {
               <div className="relative">
                 <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 light:text-slate-500" />
                 <input
-                  type="email"
-                  name="user_email_no_autofill"
+                  type="text"
+                  name="user_identifier_field"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 light:placeholder-slate-400 focus:outline-none focus:border-blue-500 light:focus:border-blue-600 font-medium transition"
@@ -130,14 +130,15 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 light:text-slate-500" />
                 <input
-                  type="password"
-                  name="user_password_no_autofill"
+                  type="text"
+                  name="user_security_token_field"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
+                  style={{ WebkitTextSecurity: 'disc' } as any}
                   className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 light:placeholder-slate-400 focus:outline-none focus:border-blue-500 light:focus:border-blue-600 font-medium transition"
                   placeholder="••••••••"
                   required
-                  autoComplete="new-password"
+                  autoComplete="off"
                 />
               </div>
             </div>

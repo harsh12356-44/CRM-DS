@@ -8,6 +8,7 @@
 
 ## 2. Current Project Status
 - **GitHub Repository**: Live and up to date at [https://github.com/harsh12356-44/CRM-DS](https://github.com/harsh12356-44/CRM-DS) (`main` branch).
+- **Anup Sen Attendance Grid**: Populated complete 31-day Check-In and Check-Out biometric punch records for all working days across July and August 2026, and updated `getDbData()` in `store.ts` to ensure dynamic real-time data reloading.
 - **Login Security & Clean Form**: Cleared initial state defaults and removed preset quick-login buttons from the sign-in page so users must manually input their own credentials to access accounts.
 - **Password Management**: Full password viewing & editing in Admin dashboard, plus employee self-service Change Password functionality with automatic synchronization.
 - **Attendance & Working Hours Real-Time Sync**: Real-time auto-updates for attendance grids and working hours across employee dashboards for all days (1 to 31) of the month, with auto-polling and multi-key employee ID normalization (`emp.id`, `emp.employeeId`, `emp.name`).

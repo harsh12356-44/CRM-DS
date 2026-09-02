@@ -72,6 +72,9 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
         fetch(url),
         fetch('/api/holidays'),
       ]);
+
+      if (!attRes.ok || !holRes.ok) return;
+
       const data = await attRes.json();
       const holData = await holRes.json();
       

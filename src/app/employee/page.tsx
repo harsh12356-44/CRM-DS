@@ -179,6 +179,8 @@ function EmployeePortalContent() {
         fetch(`/api/leaves?t=${Date.now()}`, { cache: 'no-store' }),
       ]);
 
+      if (!empRes.ok || !attRes.ok || !leaveRes.ok) return;
+
       const empData = await empRes.json();
       const attData = await attRes.json();
       const leaveData = await leaveRes.json();

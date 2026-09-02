@@ -14,8 +14,8 @@
   - It affects only the employee's **Leave Balance / Allowance**, keeping biometric attendance logs intact.
   - Its status displays **`APPROVED BY BOTH ✓`** in green on the Live Final Status column.
 - **Login Security & Chrome Popup Suppression**: Cleared initial state defaults, deleted preset quick-login buttons, and suppressed browser password manager autofill popups using `-webkit-text-security: disc` styling so login fields load strictly blank without credential popups.
-- **Password Management**: Full password viewing & editing in Admin dashboard, plus employee self-service Change Password functionality with automatic synchronization.
-- **Attendance & Working Hours Real-Time Sync**: Real-time auto-updates for attendance grids and working hours across employee dashboards for all days (1 to 31) of the month, with auto-polling and multi-key employee ID normalization (`emp.id`, `emp.employeeId`, `emp.name`).
+- **Password Management & Credential Audit**: Documented complete listing of Admin, Manager, and Employee credentials in database. Full password viewing & editing in Admin dashboard, plus employee self-service Change Password functionality with automatic synchronization.
+- **Hostinger Live Database Migration Plan**: Discussed connecting the live Hostinger Next.js deployment to a centralized database (Option 2: Hostinger Remote MySQL) so changes on localhost and live app sync in real-time. Safety backup plan established (backup copy of `data/db.json` and dedicated Git safety branch `backup-before-mysql-migration`) prior to execution.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 
@@ -41,7 +41,7 @@ crm-ds/
 ├── server.js             # Custom production server script
 ├── tsconfig.json         # TypeScript compiler configuration
 ├── prisma/
-│   └── schema.prisma     # Prisma database schema for Supabase PostgreSQL
+│   └── schema.prisma     # Prisma database schema for Supabase PostgreSQL / Hostinger MySQL
 └── src/
     ├── app/              # Next.js App Router (admin, manager, employee, login, api)
     ├── components/       # Reusable UI components (EmployeesTab, AttendanceLogTab, etc.)
@@ -51,12 +51,22 @@ crm-ds/
 
 ---
 
-## 5. Setup & Execution Instructions
+## 5. Pending Tasks & Next Steps
+1. **Hostinger MySQL Migration**:
+   - Create timestamped backup of `data/db.json` (`data/backups/db_backup.json`).
+   - Create Git safety branch `backup-before-mysql-migration`.
+   - Obtain Hostinger MySQL credentials (DB Name, Username, Password, Host, Remote MySQL access).
+   - Configure Prisma / MySQL driver to connect Next.js app to Hostinger MySQL database.
+   - Seed Hostinger MySQL database with current `db.json` dataset.
+
+---
+
+## 6. Setup & Execution Instructions
 
 ### Prerequisites
 - Node.js (v18+ recommended)
 - npm or pnpm / yarn
-- PostgreSQL database instance (e.g., Supabase)
+- PostgreSQL / MySQL database instance
 
 ### Getting Started
 1. **Clone the Repository**:
@@ -69,7 +79,7 @@ crm-ds/
    npm install
    ```
 3. **Environment Setup**:
-   Copy `.env.example` to `.env` and fill in your Supabase or PostgreSQL credentials:
+   Copy `.env.example` to `.env` and fill in your database credentials:
    ```bash
    cp .env.example .env
    ```
@@ -82,3 +92,4 @@ crm-ds/
    npm run dev
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
+

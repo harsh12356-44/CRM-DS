@@ -112,6 +112,7 @@ export async function POST(request: Request) {
         db.leaveRecords.unshift({
           id: `l-override-cas-${Date.now()}`,
           employeeId: emp.id,
+          employeeName: emp.name,
           leaveType: 'Casual Leave',
           dayType: 'full',
           startDate: datePrefix,
@@ -120,7 +121,9 @@ export async function POST(request: Request) {
           quarter: targetQuarter,
           year: 2026,
           status: 'APPROVED',
-          note: 'Manual HR Override (Casual)',
+          managerStatus: 'Approved',
+          hrStatus: 'Approved',
+          note: 'Manual HR Override (Casual Leave Adjustment)',
           createdAt: new Date().toISOString(),
         });
       }
@@ -129,6 +132,7 @@ export async function POST(request: Request) {
         db.leaveRecords.unshift({
           id: `l-override-pla-${Date.now()}`,
           employeeId: emp.id,
+          employeeName: emp.name,
           leaveType: 'Planned Leave',
           dayType: 'full',
           startDate: datePrefix,
@@ -137,7 +141,9 @@ export async function POST(request: Request) {
           quarter: targetQuarter,
           year: 2026,
           status: 'APPROVED',
-          note: 'Manual HR Override (Planned)',
+          managerStatus: 'Approved',
+          hrStatus: 'Approved',
+          note: 'Manual HR Override (Planned Leave Adjustment)',
           createdAt: new Date().toISOString(),
         });
       }
@@ -329,14 +335,16 @@ export async function POST(request: Request) {
       else if (month >= 10 && month <= 12) quarter = 'Q4';
     }
 
-    const isHrSubmission = body.isHrSubmission || body.status === 'APPROVED' || body.submittedBy === 'HR';
-    const managerStatus = isHrSubmission ? 'Approved' : 'Pending';
-    const hrStatus = isHrSubmission ? 'Approved' : 'Pending';
-    const finalStatus = isHrSubmission ? 'APPROVED' : (body.status || 'PENDING');
+    const isShortHours = Boolean(body.isShortHours || body.status === 'SHORT_HOURS');
+    const isHrSubmission = body.isHrSubmission || body.status === 'APPROVED' || body.status === 'SHORT_HOURS' || body.submittedBy === 'HR';
+    const managerStatus = body.managerStatus || (isShortHours ? 'Approved (Short Hours)' : isHrSubmission ? 'Approved' : 'Pending');
+    const hrStatus = body.hrStatus || (isShortHours ? 'Approved (Short Hours)' : isHrSubmission ? 'Approved' : 'Pending');
+    const finalStatus = body.status || (isHrSubmission ? 'APPROVED' : 'PENDING');
 
     const newRecord: LeaveRecord = {
       id: `l-${Date.now()}`,
       employeeId: emp.id,
+      employeeName: emp.name,
       leaveType: leaveType || 'Casual Leave',
       dayType: dayType || 'full',
       startDate,
@@ -347,6 +355,8 @@ export async function POST(request: Request) {
       status: finalStatus,
       managerStatus,
       hrStatus,
+      isAdjustment: Boolean(body.isAdjustment),
+      isShortHours,
       note: note || reason || 'Leave application',
       handoverNote: handoverNote || '',
       emergencyContact: emergencyContact || '',

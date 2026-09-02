@@ -60,14 +60,23 @@ export default function AdjustLeaveModal({
           dayType: days === 0.5 ? 'first_half' : 'full',
           daysCount,
           allowOverlap: true,
-          reason: `Manual Adjustment (${actionType}): ${reason || 'Leave balance adjustment'}`,
+          isAdjustment: true,
+          isShortHours: true,
+          reason: `Leave Balance Adjustment (${actionType}): ${reason || 'Adjusted for short working hours'}`,
+          note: `Leave Balance Adjustment (${days} day ${leaveType}): ${reason || 'Cover short working hours'}`,
           status: 'APPROVED',
+          managerStatus: 'Approved',
+          hrStatus: 'Approved',
         }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setMessage('Successfully applied leave adjustment!');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('leaveDataUpdated'));
+          window.dispatchEvent(new Event('attendanceUpdated'));
+        }
+        setMessage('Successfully applied leave adjustment and auto-synced employee account!');
         setTimeout(() => {
           onSuccess();
           onClose();

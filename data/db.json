@@ -474,7 +474,29 @@
       "employeeType": "Full Time"
     }
   ],
-  "leaveRecords": [],
+  "leaveRecords": [
+    {
+      "id": "l-1788333903872",
+      "employeeId": "emp-7",
+      "employeeName": "Anup Sen",
+      "leaveType": "Casual Leave",
+      "dayType": "full",
+      "startDate": "2026-08-15",
+      "endDate": "2026-08-15",
+      "daysCount": 1,
+      "quarter": "Q3",
+      "year": 2026,
+      "status": "SHORT_HOURS",
+      "managerStatus": "Approved (Short Hours)",
+      "hrStatus": "Approved (Short Hours)",
+      "isAdjustment": true,
+      "isShortHours": true,
+      "note": "Short Hours (1 day Casual Leave): Cover 8.0h short working hours",
+      "handoverNote": "",
+      "emergencyContact": "",
+      "createdAt": "2026-09-02T07:25:03.872Z"
+    }
+  ],
   "attendanceLogs": [
     {
       "id": "att-emp-1-2026-07-01",

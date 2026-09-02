@@ -40,16 +40,19 @@ export interface Department {
 export interface LeaveRecord {
   id: string;
   employeeId: string;
-  leaveType: 'Casual Leave' | 'Planned Leave' | string;
+  employeeName?: string;
+  leaveType: 'Casual Leave' | 'Planned Leave' | 'Short Hours' | string;
   startDate: string;
   endDate: string;
   dayType?: 'full' | 'first_half' | 'second_half';
   daysCount: number;
   quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4';
   year: number;
-  status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'CANCELLED' | 'MORE_INFO_REQUIRED';
-  managerStatus?: 'Pending' | 'Approved' | 'Rejected';
-  hrStatus?: 'Pending' | 'Approved' | 'Rejected';
+  status: 'APPROVED' | 'PENDING' | 'REJECTED' | 'CANCELLED' | 'MORE_INFO_REQUIRED' | 'SHORT_HOURS' | string;
+  managerStatus?: 'Pending' | 'Approved' | 'Rejected' | 'Short Hours' | string;
+  hrStatus?: 'Pending' | 'Approved' | 'Rejected' | 'Short Hours' | string;
+  isAdjustment?: boolean;
+  isShortHours?: boolean;
   note?: string;
   handoverNote?: string;
   emergencyContact?: string;

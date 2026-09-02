@@ -35,8 +35,9 @@ import LeaveTrackerTab from '@/components/LeaveTrackerTab';
 import { Employee, AttendanceLog, LeaveRecord, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
 function getLiveStatusBadge(l: LeaveRecord) {
   if (!l) return null;
-  const isMgrApp = l.managerStatus === 'Approved';
-  const isHrApp = l.hrStatus === 'Approved' || l.status === 'APPROVED';
+  const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+  const isMgrApp = l.managerStatus === 'Approved' || l.managerStatus?.includes('Approved') || l.status === 'APPROVED';
+  const isHrApp = l.hrStatus === 'Approved' || l.hrStatus?.includes('Approved') || l.status === 'APPROVED';
   const isRejected = l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected';
 
   if (isRejected) {
@@ -47,19 +48,11 @@ function getLiveStatusBadge(l: LeaveRecord) {
       </span>
     );
   }
-  if (isHrApp || (isMgrApp && isHrApp)) {
+  if (isHrApp || isMgrApp || l.status === 'APPROVED') {
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
         <CheckCircle className="w-3.5 h-3.5 mr-1" />
-        HR AND MANAGER HAVE APPROVED ✓
-      </span>
-    );
-  }
-  if (isMgrApp) {
-    return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20 whitespace-nowrap">
-        <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-        MANAGER APPROVED (PENDING HR) ✓
+        APPROVED BY BOTH ✓
       </span>
     );
   }
@@ -1366,8 +1359,9 @@ function EmployeePortalContent() {
                         const endStr = l.endDate || startStr;
                         const daysNum = l.daysCount || 1;
                         const noteStr = l.note || 'Leave application';
-                        const mgrStat = l.status === 'APPROVED' || l.managerStatus === 'Approved' ? 'Approved ✓' : l.managerStatus === 'Rejected' ? 'Rejected ✗' : 'Pending';
-                        const hrStat = l.status === 'APPROVED' || l.hrStatus === 'Approved' ? 'Approved ✓' : l.hrStatus === 'Rejected' ? 'Rejected ✗' : 'Pending HR';
+                        const isShort = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+                        const mgrStat = isShort ? 'Short Hours ✓' : l.status === 'APPROVED' || l.managerStatus === 'Approved' ? 'Approved ✓' : l.managerStatus === 'Rejected' ? 'Rejected ✗' : 'Pending';
+                        const hrStat = isShort ? 'Short Hours ✓' : l.status === 'APPROVED' || l.hrStatus === 'Approved' ? 'Approved ✓' : l.hrStatus === 'Rejected' ? 'Rejected ✗' : 'Pending HR';
 
                         let dateStr = '06 Aug 2026';
                         try {

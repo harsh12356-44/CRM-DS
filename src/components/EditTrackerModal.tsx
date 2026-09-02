@@ -58,6 +58,10 @@ export default function EditTrackerModal({
 
       const data = await res.json();
       if (res.ok) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('leaveDataUpdated'));
+          window.dispatchEvent(new Event('attendanceUpdated'));
+        }
         setMessage('Successfully updated quarterly leave values!');
         setTimeout(() => {
           onSuccess();

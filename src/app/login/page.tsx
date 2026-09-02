@@ -103,19 +103,24 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-4 text-xs">
+          <form onSubmit={handleLogin} className="space-y-4 text-xs" autoComplete="off" method="post">
+            {/* Hidden dummy inputs to trap browser autofill managers */}
+            <input type="text" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" autoComplete="off" />
+            <input type="password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" autoComplete="off" />
+
             <div>
               <label className="block font-bold text-slate-300 light:text-slate-700 mb-1.5">Email Address</label>
               <div className="relative">
                 <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 light:text-slate-500" />
                 <input
                   type="email"
+                  name="user_email_no_autofill"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 light:placeholder-slate-400 focus:outline-none focus:border-blue-500 light:focus:border-blue-600 font-medium transition"
                   placeholder="name@company.com"
                   required
-                  autoComplete="email"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -126,12 +131,13 @@ export default function LoginPage() {
                 <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 light:text-slate-500" />
                 <input
                   type="password"
+                  name="user_password_no_autofill"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 light:placeholder-slate-400 focus:outline-none focus:border-blue-500 light:focus:border-blue-600 font-medium transition"
                   placeholder="••••••••"
                   required
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                 />
               </div>
             </div>

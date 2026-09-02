@@ -510,11 +510,7 @@ export function clearMemoryDbCache() {
 }
 
 export function getDbData(): InitialState {
-  if (memoryDb) {
-    return memoryDb;
-  }
-
-  // 1. Read from primary persistent data store data/db.json
+  // Always read persistent data store data/db.json to ensure real-time accuracy
   try {
     if (fs.existsSync(DB_FILE)) {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');

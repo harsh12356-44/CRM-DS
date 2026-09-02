@@ -575,8 +575,9 @@ function EmployeePortalContent() {
       (currentEmpName.length >= 3 && targetEmp.includes(currentEmpName)) ||
       (targetEmp.length >= 3 && currentEmpName.includes(targetEmp));
 
-    const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED') && (l.hrStatus === 'Approved' || l.status === 'APPROVED');
-    const isApproved = isBothApproved || l.status === 'APPROVED' || l.hrStatus === 'Approved';
+    const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+    const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || (l.managerStatus && l.managerStatus.includes('Short Hours'))) && (l.hrStatus === 'Approved' || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || (l.hrStatus && l.hrStatus.includes('Short Hours')));
+    const isApproved = isBothApproved || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || l.isAdjustment || isShortHours || (l as any).submittedBy === 'HR' || l.managerStatus === 'Approved' || l.hrStatus === 'Approved';
     const recQuarter = l.quarter || (l.startDate ? (new Date(l.startDate).getMonth() >= 6 && new Date(l.startDate).getMonth() <= 8 ? 'Q3' : 'Q3') : 'Q3');
 
     return matchesEmp && isApproved && (recQuarter === 'Q3' || !l.quarter);
@@ -613,18 +614,21 @@ function EmployeePortalContent() {
   // Helper for live final status badge on Leave History
   const getLiveStatusBadge = (l: LeaveRecord) => {
     if (!l) return null;
-    const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED') && (l.hrStatus === 'Approved' || l.status === 'APPROVED');
-    if (isBothApproved || l.status === 'APPROVED') {
-      return (
-        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
-          HR AND MANAGER HAVE APPROVED ✓
-        </span>
-      );
-    }
-    if (l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected') {
+    const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+    const isApproved = l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || l.isAdjustment || isShortHours || (l as any).submittedBy === 'HR' || (l.managerStatus === 'Approved' && l.hrStatus === 'Approved') || (l.managerStatus && l.managerStatus.includes('Short Hours')) || (l.hrStatus && l.hrStatus.includes('Short Hours')) || l.managerStatus === 'Approved' || l.hrStatus === 'Approved';
+    const isRejected = l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected';
+
+    if (isRejected) {
       return (
         <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
           REJECTED ✗
+        </span>
+      );
+    }
+    if (isApproved) {
+      return (
+        <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
+          APPROVED BY BOTH ✓
         </span>
       );
     }

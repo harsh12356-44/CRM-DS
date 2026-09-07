@@ -37,6 +37,9 @@ crm-ds/
 ├── HANDOFF.md            # Master handoff documentation
 ├── next.config.ts        # Next.js framework configuration
 ├── package.json          # Project dependencies and script definitions
+├── .github/
+│   └── workflows/
+│       └── deploy.yml    # Automated CI/CD deployment workflow for Hostinger
 ├── postcss.config.mjs    # PostCSS configuration for Tailwind CSS
 ├── server.js             # Custom production server script
 ├── tsconfig.json         # TypeScript compiler configuration

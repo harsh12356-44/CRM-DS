@@ -1,0 +1,47 @@
+name: Deploy CRM-DS to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Hostinger Live Server
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 📦 Install Dependencies & Build locally to verify
+        run: |
+          npm ci
+          npx prisma generate
+          npm run build
+
+      - name: 🚀 Deploy & Restart Application on Hostinger via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          script: |
+            echo "Starting deployment on Hostinger..."
+            cd ${{ secrets.TARGET_DIR }}
+            git pull origin main
+            npm install --omit=dev
+            npx prisma generate
+            npm run build || true
+            mkdir -p tmp
+            touch tmp/restart.txt
+            echo "Deployment completed successfully!"

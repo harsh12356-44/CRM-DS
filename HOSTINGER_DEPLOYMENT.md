@@ -55,3 +55,21 @@ This zip package contains everything required to deploy the **CRM-DS (HRM Pilot 
 
 ## ✅ Post-Deployment Verification
 - Ensure `data/db.json` has write permissions (`644` or `664`) so attendance grid edits and password updates persist seamlessly on Hostinger.
+
+---
+
+## ⚡ Automated Deployment via GitHub Actions (.github/workflows/deploy.yml)
+
+Every time code is pushed to `main` branch, GitHub Actions will automatically deploy updates to Hostinger.
+
+### Required GitHub Secrets Setup:
+Go to GitHub Repository ➔ **Settings** ➔ **Secrets and variables** ➔ **Actions** ➔ **New repository secret**, and add:
+
+| Secret Name | Description / Example Value |
+|---|---|
+| `HOSTINGER_HOST` | Your Hostinger Server IP or Domain (e.g. `185.xxx.xxx.xxx`) |
+| `HOSTINGER_USERNAME` | SSH Username from Hostinger hPanel ➔ Advanced ➔ SSH Access |
+| `HOSTINGER_PASSWORD` | SSH Password (or set `HOSTINGER_SSH_KEY` if using private SSH key) |
+| `HOSTINGER_PORT` | SSH Port (default is `65002` on Hostinger) |
+| `TARGET_DIR` | Absolute path to application root on Hostinger (e.g., `/home/u123456789/domains/yourdomain.com/public_html`) |
+

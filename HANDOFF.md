@@ -61,6 +61,7 @@ crm-ds/
    - Configured GitHub Secrets (`HOSTINGER_HOST`, `HOSTINGER_USERNAME`, `HOSTINGER_PASSWORD`, `HOSTINGER_PORT`, `TARGET_DIR`) in GitHub Actions.
    - Removed Mahatma Gandhi Jayanti from company holidays list both locally and on live Hostinger instance.
    - Configured month-wise chronological sorting for company holidays (January ➔ December) in API routes, UI components, and database storage.
+   - Updated Leave History & Applications table: Removed Live Final Status column; configured distinct Manager Status and HR / Admin Status columns displaying "Pending Approval" / "Pending HR Approval" when awaiting action, with both badges turning green when fully approved.
 2. **Hostinger MySQL Migration**:
    - Create timestamped backup of `data/db.json` (`data/backups/db_backup.json`).
    - Create Git safety branch `backup-before-mysql-migration`.

@@ -58,7 +58,8 @@ crm-ds/
 1. **GitHub to Hostinger Direct Deployment (CONFIGURED & VERIFIED)**:
    - Verified live SSH connection to Hostinger server (`88.222.247.3:65002`).
    - Initialized Git repository on Hostinger server and linked tracking to `origin/main` at target directory `/home/u127898937/domains/mediumvioletred-fox-353008.hostingersite.com/hbuilds/current/nodejs`.
-   - Configure GitHub Repository Secrets (`HOSTINGER_HOST`, `HOSTINGER_USERNAME`, `HOSTINGER_PASSWORD`, `HOSTINGER_PORT`, `TARGET_DIR`) in GitHub Actions for automated live deployments on `git push origin main`.
+   - Configured GitHub Secrets (`HOSTINGER_HOST`, `HOSTINGER_USERNAME`, `HOSTINGER_PASSWORD`, `HOSTINGER_PORT`, `TARGET_DIR`) in GitHub Actions.
+   - Removed Mahatma Gandhi Jayanti from company holidays list both locally and on live Hostinger instance.
 2. **Hostinger MySQL Migration**:
    - Create timestamped backup of `data/db.json` (`data/backups/db_backup.json`).
    - Create Git safety branch `backup-before-mysql-migration`.

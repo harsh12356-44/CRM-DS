@@ -476,6 +476,27 @@
   ],
   "leaveRecords": [
     {
+      "id": "l-1788866470013",
+      "employeeId": "emp-9",
+      "employeeName": "Rajvardhan",
+      "leaveType": "Casual Leave",
+      "dayType": "full",
+      "startDate": "2026-09-15",
+      "endDate": "2026-09-15",
+      "daysCount": 1,
+      "quarter": "Q3",
+      "year": 2026,
+      "status": "PENDING",
+      "managerStatus": "Pending",
+      "hrStatus": "Pending",
+      "isAdjustment": false,
+      "isShortHours": false,
+      "note": "Personal work",
+      "handoverNote": "",
+      "emergencyContact": "",
+      "createdAt": "2026-09-08T11:21:10.013Z"
+    },
+    {
       "id": "l-1788333903872",
       "employeeId": "emp-7",
       "employeeName": "Anup Sen",

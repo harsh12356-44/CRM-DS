@@ -62,6 +62,7 @@ crm-ds/
    - Removed Mahatma Gandhi Jayanti from company holidays list both locally and on live Hostinger instance.
    - Configured month-wise chronological sorting for company holidays (January ➔ December) in API routes, UI components, and database storage.
    - Updated Leave History & Applications table: Removed Live Final Status column; configured distinct Manager Status and HR / Admin Status columns displaying "Pending Approval" / "Pending HR Approval" when awaiting action, with both badges turning green when fully approved.
+   - Fixed `mergeLeavesNonRegressive` fuzzy matching bug in `src/lib/types.ts` that caused new leave submissions for overlapping date ranges to collapse into existing records; updated Rajvardhan's 4-day leave request (`9 Sep - 12 Sep 2026`, 4 days) across local and live Hostinger database instances.
 2. **Hostinger MySQL Migration**:
    - Create timestamped backup of `data/db.json` (`data/backups/db_backup.json`).
    - Create Git safety branch `backup-before-mysql-migration`.

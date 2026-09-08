@@ -60,6 +60,7 @@ crm-ds/
    - Initialized Git repository on Hostinger server and linked tracking to `origin/main` at target directory `/home/u127898937/domains/mediumvioletred-fox-353008.hostingersite.com/hbuilds/current/nodejs`.
    - Configured GitHub Secrets (`HOSTINGER_HOST`, `HOSTINGER_USERNAME`, `HOSTINGER_PASSWORD`, `HOSTINGER_PORT`, `TARGET_DIR`) in GitHub Actions.
    - Removed Mahatma Gandhi Jayanti from company holidays list both locally and on live Hostinger instance.
+   - Configured month-wise chronological sorting for company holidays (January ➔ December) in API routes, UI components, and database storage.
 2. **Hostinger MySQL Migration**:
    - Create timestamped backup of `data/db.json` (`data/backups/db_backup.json`).
    - Create Git safety branch `backup-before-mysql-migration`.

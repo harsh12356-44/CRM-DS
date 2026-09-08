@@ -467,6 +467,7 @@ const DEFAULT_HOLIDAYS: Holiday[] = [
   { id: 'h-2026-03', name: 'Holi', date: '2026-03-04', isOptional: false },
   { id: 'h-2026-04', name: 'Independence Day', date: '2026-08-15', isOptional: false },
   { id: 'h-2026-05', name: 'Raksha Bandhan', date: '2026-08-28', isOptional: false },
+  { id: 'h-2026-gandhi', name: 'Mahatma Gandhi Jayanti', date: '2026-10-02', isOptional: false },
   { id: 'h-2026-06', name: 'Diwali', date: '2026-11-08', isOptional: false },
   { id: 'h-2026-07', name: 'Diwali (Rama Shama)', date: '2026-11-09', isOptional: false },
   { id: 'h-2026-08', name: 'Christmas', date: '2026-12-25', isOptional: false },

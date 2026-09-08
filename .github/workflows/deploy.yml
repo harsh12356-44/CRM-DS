@@ -37,6 +37,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             echo "Starting deployment on Hostinger..."
+            export PATH=/opt/alt/alt-nodejs22/root/bin:$PATH
             cd ${{ secrets.TARGET_DIR }}
             git pull origin main
             npm install --omit=dev

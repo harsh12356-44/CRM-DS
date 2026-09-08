@@ -15718,30 +15718,6 @@
   ],
   "holidays": [
     {
-      "id": "h-1",
-      "name": "Independence Day",
-      "date": "2026-08-15",
-      "isOptional": false
-    },
-    {
-      "id": "h-3",
-      "name": "Diwali Festival",
-      "date": "2026-11-08",
-      "isOptional": false
-    },
-    {
-      "id": "h-4",
-      "name": "Christmas Day",
-      "date": "2026-12-25",
-      "isOptional": false
-    },
-    {
-      "id": "h-5",
-      "name": "New Year's Day",
-      "date": "2027-01-01",
-      "isOptional": true
-    },
-    {
       "id": "h-2026-01",
       "name": "New Year",
       "date": "2026-01-01",
@@ -15760,9 +15736,21 @@
       "isOptional": false
     },
     {
+      "id": "h-1",
+      "name": "Independence Day",
+      "date": "2026-08-15",
+      "isOptional": false
+    },
+    {
       "id": "h-2026-05",
       "name": "Raksha Bandhan",
       "date": "2026-08-28",
+      "isOptional": false
+    },
+    {
+      "id": "h-3",
+      "name": "Diwali Festival",
+      "date": "2026-11-08",
       "isOptional": false
     },
     {
@@ -15770,6 +15758,18 @@
       "name": "Diwali (Rama Shama)",
       "date": "2026-11-09",
       "isOptional": false
+    },
+    {
+      "id": "h-4",
+      "name": "Christmas Day",
+      "date": "2026-12-25",
+      "isOptional": false
+    },
+    {
+      "id": "h-5",
+      "name": "New Year's Day",
+      "date": "2027-01-01",
+      "isOptional": true
     }
   ],
   "auditLogs": [

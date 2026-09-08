@@ -26,6 +26,7 @@ export async function GET() {
     }
   });
 
+  db.holidays.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
   return NextResponse.json(db.holidays);
 }
 
@@ -92,6 +93,7 @@ export async function POST(request: Request) {
         });
       }
 
+      db.holidays.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
       logAudit('Import Holidays List', 'Holiday', `count-${importedHolidays.length}`, undefined, `${importedHolidays.length} holidays imported`);
       saveDbData(db);
 
@@ -117,6 +119,7 @@ export async function POST(request: Request) {
     };
 
     db.holidays.push(newHoliday);
+    db.holidays.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     logAudit('Add Holiday', 'Holiday', newHoliday.id, undefined, JSON.stringify(newHoliday));
     saveDbData(db);
 
@@ -141,6 +144,7 @@ export async function DELETE(request: Request) {
     if (index !== -1) {
       const deletedHoliday = db.holidays[index];
       db.holidays.splice(index, 1);
+      db.holidays.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
       logAudit('Delete Holiday', 'Holiday', id, JSON.stringify(deletedHoliday), undefined);
       saveDbData(db);
       return NextResponse.json({ success: true, message: `Holiday ${deletedHoliday.name} deleted`, holidays: db.holidays });

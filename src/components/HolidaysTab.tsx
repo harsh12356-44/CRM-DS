@@ -25,7 +25,9 @@ export default function HolidaysTab() {
     try {
       const res = await fetch('/api/holidays');
       const data = await res.json();
-      setHolidays(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      list.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+      setHolidays(list);
     } catch (err) {
       console.error(err);
     }

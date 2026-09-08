@@ -36,30 +36,39 @@ import { Employee, AttendanceLog, LeaveRecord, mergeLeavesNonRegressive, calcula
 function getLiveStatusBadge(l: LeaveRecord) {
   if (!l) return null;
   const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
-  const isMgrApp = l.managerStatus === 'Approved' || l.managerStatus?.includes('Approved') || l.status === 'APPROVED';
-  const isHrApp = l.hrStatus === 'Approved' || l.hrStatus?.includes('Approved') || l.status === 'APPROVED';
+  const isMgrApp = isShortHours || l.isAdjustment || l.status === 'APPROVED' || l.managerStatus === 'Approved';
+  const isHrApp = isShortHours || l.isAdjustment || l.status === 'APPROVED' || l.hrStatus === 'Approved';
+  const isBothApproved = (isMgrApp && isHrApp) || l.status === 'APPROVED' || isShortHours || l.isAdjustment;
   const isRejected = l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected';
 
   if (isRejected) {
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20 whitespace-nowrap">
         <XCircle className="w-3.5 h-3.5 mr-1" />
-        REJECTED ✗
+        Rejected ✗
       </span>
     );
   }
-  if (isHrApp || isMgrApp || l.status === 'APPROVED') {
+  if (isBothApproved) {
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap">
         <CheckCircle className="w-3.5 h-3.5 mr-1" />
-        APPROVED BY BOTH ✓
+        Approved ✓
+      </span>
+    );
+  }
+  if (isMgrApp) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700 whitespace-nowrap">
+        <Clock className="w-3.5 h-3.5 mr-1" />
+        Pending HR Approval
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 whitespace-nowrap">
       <Clock className="w-3.5 h-3.5 mr-1" />
-      PENDING APPROVAL
+      Pending Approval
     </span>
   );
 }
@@ -1087,13 +1096,24 @@ function EmployeePortalContent() {
                             <th className="py-3.5 px-4">Leave Type</th>
                             <th className="py-3.5 px-4 text-center">Quarter</th>
                             <th className="py-3.5 px-4 text-center">Approved Duration</th>
-                            <th className="py-3.5 px-4 text-center">Live Status</th>
+                            <th className="py-3.5 px-4 text-center">Manager Status</th>
+                            <th className="py-3.5 px-4 text-center">HR / Admin Status</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/60">
                           {filteredDashboardLeaves.length > 0 ? (
                             filteredDashboardLeaves.map((l, index) => {
-                              const isApproved = l.status === 'APPROVED' || l.hrStatus === 'Approved';
+                              const isShort = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+                              const isAdjustment = Boolean(l.isAdjustment);
+
+                              const isMgrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.managerStatus === 'Approved' || (l.managerStatus && l.managerStatus.includes('Approved'));
+                              const isHrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.hrStatus === 'Approved' || (l.hrStatus && l.hrStatus.includes('Approved'));
+
+                              const isMgrRej = l.managerStatus === 'Rejected' || (l.status === 'REJECTED' && !isHrApp);
+                              const isHrRej = l.hrStatus === 'Rejected' || (l.status === 'REJECTED' && !isMgrApp);
+
+                              const isBothApproved = (isMgrApp && isHrApp) || l.status === 'APPROVED' || isShort || isAdjustment;
+
                               const reqQuarter = l.quarter || getQuarterFromDate(l.startDate);
                               const startStr = l.startDate || '2026-08-01';
                               const endStr = l.endDate || startStr;
@@ -1113,11 +1133,11 @@ function EmployeePortalContent() {
                                     </span>
                                   </td>
                                   <td className="py-3.5 px-4 text-center font-bold">
-                                    {isApproved ? (
+                                    {isBothApproved ? (
                                       <span className="text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
                                         {daysNum} {daysNum === 1 ? 'Day' : 'Days'} Approved
                                       </span>
-                                    ) : l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected' ? (
+                                    ) : isMgrRej || isHrRej ? (
                                       <span className="text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full border border-rose-500/20">
                                         0 Days (Rejected)
                                       </span>
@@ -1128,7 +1148,42 @@ function EmployeePortalContent() {
                                     )}
                                   </td>
                                   <td className="py-3.5 px-4 text-center">
-                                    {getLiveStatusBadge(l)}
+                                    {isMgrRej ? (
+                                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold text-[11px] inline-block">
+                                        Rejected ✗
+                                      </span>
+                                    ) : isMgrApp ? (
+                                      <span className={`px-2.5 py-1 rounded-full border text-[11px] inline-block ${
+                                        isBothApproved
+                                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                                          : 'bg-slate-800 text-slate-300 border-slate-700 font-semibold'
+                                      }`}>
+                                        Approved ✓
+                                      </span>
+                                    ) : (
+                                      <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold text-[11px] inline-block">
+                                        Pending Approval
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td className="py-3.5 px-4 text-center">
+                                    {isHrRej ? (
+                                      <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold text-[11px] inline-block">
+                                        Rejected ✗
+                                      </span>
+                                    ) : isHrApp ? (
+                                      <span className={`px-2.5 py-1 rounded-full border text-[11px] inline-block ${
+                                        isBothApproved
+                                          ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                                          : 'bg-slate-800 text-slate-300 border-slate-700 font-semibold'
+                                      }`}>
+                                        Approved ✓
+                                      </span>
+                                    ) : (
+                                      <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold text-[11px] inline-block">
+                                        Pending HR Approval
+                                      </span>
+                                    )}
                                   </td>
                                 </tr>
                               );
@@ -1338,7 +1393,7 @@ function EmployeePortalContent() {
                 </Link>
               </div>
 
-              {/* Leave Applications Table with Live Manager / HR Status */}
+              {/* Leave Applications Table with Manager & HR / Admin Status */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
@@ -1349,7 +1404,6 @@ function EmployeePortalContent() {
                       <th className="py-3.5 px-4">Reason / Notes</th>
                       <th className="py-3.5 px-4 text-center">Manager Status</th>
                       <th className="py-3.5 px-4 text-center">HR / Admin Status</th>
-                      <th className="py-3.5 px-4 text-center">Live Final Status</th>
                       <th className="py-3.5 px-4 text-right">Submitted Date</th>
                     </tr>
                   </thead>
@@ -1363,9 +1417,69 @@ function EmployeePortalContent() {
                         const endStr = l.endDate || startStr;
                         const daysNum = l.daysCount || 1;
                         const noteStr = l.note || 'Leave application';
+                        
                         const isShort = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
-                        const mgrStat = isShort ? 'Short Hours ✓' : l.status === 'APPROVED' || l.managerStatus === 'Approved' ? 'Approved ✓' : l.managerStatus === 'Rejected' ? 'Rejected ✗' : 'Pending';
-                        const hrStat = isShort ? 'Short Hours ✓' : l.status === 'APPROVED' || l.hrStatus === 'Approved' ? 'Approved ✓' : l.hrStatus === 'Rejected' ? 'Rejected ✗' : 'Pending HR';
+                        const isAdjustment = Boolean(l.isAdjustment);
+
+                        const isMgrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.managerStatus === 'Approved' || (l.managerStatus && l.managerStatus.includes('Approved'));
+                        const isHrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.hrStatus === 'Approved' || (l.hrStatus && l.hrStatus.includes('Approved'));
+
+                        const isMgrRej = l.managerStatus === 'Rejected' || (l.status === 'REJECTED' && !isHrApp);
+                        const isHrRej = l.hrStatus === 'Rejected' || (l.status === 'REJECTED' && !isMgrApp);
+
+                        const isBothApproved = (isMgrApp && isHrApp) || l.status === 'APPROVED' || isShort || isAdjustment;
+
+                        // Manager Status Badge
+                        let mgrBadge = null;
+                        if (isMgrRej) {
+                          mgrBadge = (
+                            <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold text-[11px] inline-block">
+                              Rejected ✗
+                            </span>
+                          );
+                        } else if (isMgrApp) {
+                          mgrBadge = (
+                            <span className={`px-3 py-1 rounded-full border text-[11px] inline-block ${
+                              isBothApproved
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                                : 'bg-slate-800 text-slate-300 border-slate-700 font-semibold'
+                            }`}>
+                              Approved ✓
+                            </span>
+                          );
+                        } else {
+                          mgrBadge = (
+                            <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold text-[11px] inline-block">
+                              Pending Approval
+                            </span>
+                          );
+                        }
+
+                        // HR / Admin Status Badge
+                        let hrBadge = null;
+                        if (isHrRej) {
+                          hrBadge = (
+                            <span className="px-3 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold text-[11px] inline-block">
+                              Rejected ✗
+                            </span>
+                          );
+                        } else if (isHrApp) {
+                          hrBadge = (
+                            <span className={`px-3 py-1 rounded-full border text-[11px] inline-block ${
+                              isBothApproved
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                                : 'bg-slate-800 text-slate-300 border-slate-700 font-semibold'
+                            }`}>
+                              Approved ✓
+                            </span>
+                          );
+                        } else {
+                          hrBadge = (
+                            <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold text-[11px] inline-block">
+                              Pending HR Approval
+                            </span>
+                          );
+                        }
 
                         let dateStr = '06 Aug 2026';
                         try {
@@ -1392,14 +1506,11 @@ function EmployeePortalContent() {
                             <td className="py-3.5 px-4 text-slate-300 max-w-xs truncate">
                               {noteStr}
                             </td>
-                            <td className="py-3.5 px-4 text-center font-semibold text-slate-300">
-                              {mgrStat}
-                            </td>
-                            <td className="py-3.5 px-4 text-center font-semibold text-slate-300">
-                              {hrStat}
+                            <td className="py-3.5 px-4 text-center">
+                              {mgrBadge}
                             </td>
                             <td className="py-3.5 px-4 text-center">
-                              {getLiveStatusBadge(l)}
+                              {hrBadge}
                             </td>
                             <td className="py-3.5 px-4 text-right font-mono text-slate-400 text-[11px]">
                               {dateStr}

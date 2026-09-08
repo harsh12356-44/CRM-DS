@@ -195,30 +195,28 @@ export function mergeLeavesNonRegressive(primaryList: LeaveRecord[] = [], second
   combined.forEach(record => {
     if (!record) return;
 
-    const cleanId = record.id ? String(record.id).replace(/[^0-9a-zA-Z]/g, '').toLowerCase() : '';
-    const empRef = String(record.employeeId || (record as any).employeeName || '').replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
+    const cleanId = record.id ? String(record.id).trim() : '';
+    const empId = String(record.employeeId || (record as any).employeeName || '').trim().toLowerCase();
     const startDate = String(record.startDate || '').trim();
 
     let matchKey: string | null = null;
 
     for (const [key, existing] of map.entries()) {
-      const exCleanId = existing.id ? String(existing.id).replace(/[^0-9a-zA-Z]/g, '').toLowerCase() : '';
-      const exEmpRef = String(existing.employeeId || (existing as any).employeeName || '').replace(/[^0-9a-zA-Z]/g, '').toLowerCase();
+      const exCleanId = existing.id ? String(existing.id).trim() : '';
+      const exEmpId = String(existing.employeeId || (existing as any).employeeName || '').trim().toLowerCase();
       const exStartDate = String(existing.startDate || '').trim();
 
       const isExactId = cleanId && exCleanId && cleanId === exCleanId;
-      const isIdMatch = cleanId && exCleanId && (cleanId.endsWith(exCleanId) || exCleanId.endsWith(cleanId));
-      const isEmpDateMatch = startDate && exStartDate && startDate === exStartDate &&
-        (empRef === exEmpRef || (empRef && exEmpRef && (empRef.includes(exEmpRef) || exEmpRef.includes(empRef))));
+      const isSameEmpAndDate = empId && exEmpId && empId === exEmpId && startDate && exStartDate && startDate === exStartDate && record.leaveType === existing.leaveType;
 
-      if (isExactId || isIdMatch || isEmpDateMatch) {
+      if (isExactId || isSameEmpAndDate) {
         matchKey = key;
         break;
       }
     }
 
     if (!matchKey) {
-      const newKey = cleanId || `${empRef}_${startDate}_${record.leaveType}`;
+      const newKey = cleanId || `${empId}_${startDate}_${record.leaveType}_${Math.random()}`;
       map.set(newKey, { ...record });
     } else {
       const existing = map.get(matchKey)!;

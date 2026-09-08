@@ -476,14 +476,14 @@
   ],
   "leaveRecords": [
     {
-      "id": "l-1788866470013",
+      "id": "l-1788869100000",
       "employeeId": "emp-9",
       "employeeName": "Rajvardhan",
-      "leaveType": "Casual Leave",
+      "leaveType": "Planned Leave",
       "dayType": "full",
-      "startDate": "2026-09-15",
-      "endDate": "2026-09-15",
-      "daysCount": 1,
+      "startDate": "2026-09-09",
+      "endDate": "2026-09-12",
+      "daysCount": 4,
       "quarter": "Q3",
       "year": 2026,
       "status": "PENDING",
@@ -491,10 +491,10 @@
       "hrStatus": "Pending",
       "isAdjustment": false,
       "isShortHours": false,
-      "note": "Personal work",
-      "handoverNote": "",
-      "emergencyContact": "",
-      "createdAt": "2026-09-08T11:21:10.013Z"
+      "note": "Leave application for 4 days (9 Sep - 12 Sep)",
+      "handoverNote": "Tasks handed over",
+      "emergencyContact": "+91 98765 00009",
+      "createdAt": "2026-09-08T11:25:29.634Z"
     },
     {
       "id": "l-1788333903872",

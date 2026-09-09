@@ -118,6 +118,11 @@ export default function LoginPage() {
       document.cookie = `hrm_user_role=${targetRole}; path=/; max-age=86400`;
       
       if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.clear();
+          localStorage.removeItem('hrm_user_submitted_leaves');
+          localStorage.removeItem('hrm_leave_records_backup');
+        } catch (e) {}
         localStorage.setItem('hrm_active_employee_id', empId);
         localStorage.setItem('hrm_active_employee_role', targetRole);
         localStorage.setItem('hrm_active_employee_email', cleanEmail);
@@ -131,7 +136,7 @@ export default function LoginPage() {
       } else if (targetRole === 'MANAGER') {
         router.push('/manager');
       } else {
-        router.push('/employee');
+        router.push('/employee?tab=dashboard');
       }
     } catch (err: any) {
       console.error(err);

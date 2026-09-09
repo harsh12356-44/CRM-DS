@@ -100,7 +100,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
           if (storedRole === 'ADMIN') {
             found = empsList.find((e: any) => e.role === 'ADMIN') || empsList[0];
           } else if (storedRole === 'MANAGER') {
-            found = empsList.find((e: any) => e.role === 'MANAGER' || (e.name && e.name.toLowerCase().includes('naman'))) || empsList[1];
+            found = empsList.find((e: any) => e.role === 'MANAGER') || empsList[1];
           } else {
             found = empsList.find((e: any) => e.employeeId === 'SG012' || (e.name && e.name.toLowerCase().includes('sonu'))) || empsList[0];
           }

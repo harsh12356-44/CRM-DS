@@ -207,9 +207,11 @@ function EmployeePortalContent() {
           const matchEmail = employeesList.find(e => e.email && e.email.toLowerCase() === storedEmail.toLowerCase());
           if (matchEmail) activeTargetId = matchEmail.id;
         } else if (storedRole === 'ADMIN') {
-          activeTargetId = 'emp-1';
+          const adm = employeesList.find(e => e.role === 'ADMIN');
+          activeTargetId = adm ? adm.id : 'emp-1';
         } else if (storedRole === 'MANAGER') {
-          activeTargetId = 'emp-2';
+          const mgr = employeesList.find(e => e.role === 'MANAGER');
+          activeTargetId = mgr ? mgr.id : 'emp-2';
         } else {
           activeTargetId = 'emp-12';
         }

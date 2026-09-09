@@ -27,24 +27,91 @@ export default function LoginPage() {
         employeesList = Array.isArray(data) ? data : data.employees || [];
       } catch (err) {}
 
-      // Find matching employee by email
-      const emp = employeesList.find((e: any) => e.email && e.email.toLowerCase().trim() === cleanEmail);
+      // Find matching employee by email, username prefix, employee ID, or name
+      const emp = employeesList.find((e: any) => {
+        if (!e) return false;
+        const eEmail = (e.email || '').toLowerCase().trim();
+        const ePrefix = eEmail.split('@')[0];
+        const eCode = (e.employeeId || '').toLowerCase().trim();
+        const eName = (e.name || '').toLowerCase().trim();
+        return (
+          eEmail === cleanEmail ||
+          (ePrefix && ePrefix === cleanEmail) ||
+          (eCode && eCode === cleanEmail) ||
+          (eName && eName === cleanEmail) ||
+          (cleanEmail.length > 2 && eEmail.startsWith(cleanEmail))
+        );
+      });
 
       let targetRole: 'ADMIN' | 'MANAGER' | 'EMPLOYEE' = 'EMPLOYEE';
-      let empId = 'emp-12';
+      let empId = '';
 
       if (emp) {
         targetRole = (emp.role as 'ADMIN' | 'MANAGER' | 'EMPLOYEE') || 'EMPLOYEE';
         empId = emp.id;
-      } else if (cleanEmail.includes('sudeshna')) {
-        targetRole = 'EMPLOYEE';
-        empId = 'emp-18';
-      } else if (cleanEmail.includes('ravina') || cleanEmail.includes('admin') || cleanEmail.includes('harshit')) {
-        targetRole = 'ADMIN';
-        empId = 'emp-1';
-      } else if (cleanEmail.includes('naman') || cleanEmail.includes('jigyasa') || cleanEmail.includes('meenal') || cleanEmail.includes('divyanshu') || cleanEmail.includes('manager')) {
-        targetRole = 'MANAGER';
-        empId = 'emp-2';
+      } else {
+        // Fallback matching for known employee credentials if API returns non-matched structure
+        if (cleanEmail.includes('ravina') || cleanEmail.includes('admin') || cleanEmail.includes('harshit')) {
+          targetRole = 'ADMIN';
+          empId = 'emp-1';
+        } else if (cleanEmail.includes('naman')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-2';
+        } else if (cleanEmail.includes('jigyasa')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-3';
+        } else if (cleanEmail.includes('divyanshu')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-4';
+        } else if (cleanEmail.includes('meenal')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-5';
+        } else if (cleanEmail.includes('nandini')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-6';
+        } else if (cleanEmail.includes('anup')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-7';
+        } else if (cleanEmail.includes('lochita')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-8';
+        } else if (cleanEmail.includes('rajvardhan')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-9';
+        } else if (cleanEmail.includes('mudita')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-10';
+        } else if (cleanEmail.includes('bulbul')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-11';
+        } else if (cleanEmail.includes('sonu')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-12';
+        } else if (cleanEmail.includes('shweta')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-13';
+        } else if (cleanEmail.includes('charubhati')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-14';
+        } else if (cleanEmail.includes('shryanshu')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-15';
+        } else if (cleanEmail.includes('garv')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-16';
+        } else if (cleanEmail.includes('charu')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-17';
+        } else if (cleanEmail.includes('sudeshna')) {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-18';
+        } else if (cleanEmail.includes('manager')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-2';
+        } else {
+          targetRole = 'EMPLOYEE';
+          empId = 'emp-12';
+        }
       }
 
       // Set cookie and localStorage for role & active employee
@@ -53,7 +120,9 @@ export default function LoginPage() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('hrm_active_employee_id', empId);
         localStorage.setItem('hrm_active_employee_role', targetRole);
+        localStorage.setItem('hrm_active_employee_email', cleanEmail);
         window.dispatchEvent(new Event('roleChange'));
+        window.dispatchEvent(new Event('employeeChanged'));
       }
 
       // Perform strict role-based dashboard redirection

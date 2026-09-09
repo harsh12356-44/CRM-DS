@@ -43,6 +43,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
   const loadActiveUser = async () => {
     try {
       const storedId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
+      const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
       const storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
       const res = await fetch(`/api/employees?t=${Date.now()}`);
       const data = await res.json();
@@ -54,12 +55,16 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
         currentEmp = employeesList.find((e: any) => e.id === storedId || e.employeeId === storedId);
       }
 
+      if (!currentEmp && storedEmail) {
+        currentEmp = employeesList.find((e: any) => e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim());
+      }
+
       if (!currentEmp) {
         const effectiveRole = storedRole || currentRole;
         if (effectiveRole === 'ADMIN') {
           currentEmp = employeesList.find((e: any) => e.role === 'ADMIN') || employeesList[0];
         } else if (effectiveRole === 'MANAGER') {
-          currentEmp = employeesList.find((e: any) => e.role === 'MANAGER' || e.name.toLowerCase().includes('naman')) || employeesList[1];
+          currentEmp = employeesList.find((e: any) => e.role === 'MANAGER') || employeesList[1];
         } else {
           currentEmp = employeesList.find((e: any) => e.employeeId === 'SG012' || e.name.toLowerCase().includes('sonu')) || employeesList[0];
         }

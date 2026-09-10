@@ -39,7 +39,9 @@ jobs:
             echo "Starting deployment on Hostinger..."
             export PATH=/opt/alt/alt-nodejs22/root/bin:$PATH
             cd ${{ secrets.TARGET_DIR }}
-            git pull origin main
+            git fetch --all
+            git checkout -f main
+            git reset --hard origin/main
             npm install --omit=dev
             npx prisma generate
             npm run build || true

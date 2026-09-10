@@ -476,6 +476,27 @@
   ],
   "leaveRecords": [
     {
+      "id": "l-1788960000710",
+      "employeeId": "emp-13",
+      "employeeName": "Shweta dadhich",
+      "leaveType": "Planned Leave",
+      "dayType": "full",
+      "startDate": "2026-09-21",
+      "endDate": "2026-09-26",
+      "daysCount": 6,
+      "quarter": "Q3",
+      "year": 2026,
+      "status": "PENDING",
+      "managerStatus": "Pending",
+      "hrStatus": "Pending",
+      "isAdjustment": false,
+      "isShortHours": false,
+      "note": "Requesting leave for a pre-planned vacation out of town",
+      "handoverNote": "",
+      "emergencyContact": "",
+      "createdAt": "2026-09-10T12:00:00.000Z"
+    },
+    {
       "id": "l-1788869100000",
       "employeeId": "emp-9",
       "employeeName": "Rajvardhan",

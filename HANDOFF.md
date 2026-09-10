@@ -60,7 +60,7 @@ crm-ds/
 
 ---
 
-5. **Pending Tasks & Next Steps**
+## 5. Pending Tasks & Next Steps
 1. **GitHub to Hostinger Direct Deployment (CONFIGURED & VERIFIED)**:
    - Verified live SSH connection to Hostinger server (`88.222.247.3:65002`).
    - Initialized Git repository on Hostinger server and linked tracking to `origin/main` at target directory `/home/u127898937/domains/mediumvioletred-fox-353008.hostingersite.com/hbuilds/current/nodejs`.

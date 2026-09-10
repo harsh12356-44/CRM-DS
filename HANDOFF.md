@@ -25,6 +25,8 @@
 - **Admin Save & Sync Database Button**:
   - Added a dedicated **"💾 Save Database"** button to the top header (`Navbar.tsx`), restricted strictly to Admin users (`isRavinaUser` / `currentRole === 'ADMIN'`).
   - Triggers `POST /api/admin/save-db`, which flushes in-memory data, saves `data/db.json`, generates a timestamped snapshot backup in `data/backups/db_backup_<timestamp>.json`, and displays a live toast confirmation with synced record counts.
+- **Reverted Auto-Seeded September Attendance**:
+  - Reverted the 630 auto-generated September 2026 attendance records (`commit b6f36be`) per user request to restore original clean attendance state prior to monthly biometric Excel file upload.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

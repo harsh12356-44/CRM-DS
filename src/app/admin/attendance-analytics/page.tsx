@@ -24,8 +24,8 @@ const MONTHS = [
 const YEARS = ['2024', '2025', '2026', '2027'];
 
 export default function AttendanceAnalyticsPage() {
-  const [selectedMonth, setSelectedMonth] = useState(() => String(new Date().getMonth() + 1));
-  const [selectedYear, setSelectedYear] = useState(() => String(new Date().getFullYear()));
+  const [selectedMonth, setSelectedMonth] = useState('7'); // July default
+  const [selectedYear, setSelectedYear] = useState('2026');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('emp-1'); // Default to Ravina Khimani
   const [hoveredDay, setHoveredDay] = useState<any>(null);
 

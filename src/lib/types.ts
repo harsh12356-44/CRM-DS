@@ -189,75 +189,23 @@ export function getLeaveTimestamp(l: Partial<LeaveRecord> | undefined | null): n
 }
 
 export function mergeLeavesNonRegressive(primaryList: LeaveRecord[] = [], secondaryList: LeaveRecord[] = []): LeaveRecord[] {
-  const combined = [...(primaryList || []), ...(secondaryList || [])].filter(Boolean);
   const map = new Map<string, LeaveRecord>();
 
-  combined.forEach(record => {
+  // Process primary list first
+  (primaryList || []).forEach(record => {
     if (!record) return;
-
     const cleanId = record.id ? String(record.id).trim() : '';
-    const empId = String(record.employeeId || (record as any).employeeName || '').trim().toLowerCase();
-    const startDate = String(record.startDate || '').trim();
-
-    let matchKey: string | null = null;
-
-    for (const [key, existing] of map.entries()) {
-      const exCleanId = existing.id ? String(existing.id).trim() : '';
-      const exEmpId = String(existing.employeeId || (existing as any).employeeName || '').trim().toLowerCase();
-      const exStartDate = String(existing.startDate || '').trim();
-
-      const isExactId = cleanId && exCleanId && cleanId === exCleanId;
-      const isSameEmpAndDate = empId && exEmpId && empId === exEmpId && startDate && exStartDate && startDate === exStartDate && record.leaveType === existing.leaveType;
-
-      if (isExactId || isSameEmpAndDate) {
-        matchKey = key;
-        break;
-      }
+    if (cleanId) {
+      map.set(cleanId, { ...record });
     }
+  });
 
-    if (!matchKey) {
-      const newKey = cleanId || `${empId}_${startDate}_${record.leaveType}_${Math.random()}`;
-      map.set(newKey, { ...record });
-    } else {
-      const existing = map.get(matchKey)!;
-
-      const bestManagerStatus =
-        existing.managerStatus === 'Approved' || record.managerStatus === 'Approved'
-          ? 'Approved'
-          : existing.managerStatus === 'Rejected' || record.managerStatus === 'Rejected'
-          ? 'Rejected'
-          : record.managerStatus || existing.managerStatus || 'Pending';
-
-      const bestHrStatus =
-        existing.hrStatus === 'Approved' || record.hrStatus === 'Approved'
-          ? 'Approved'
-          : existing.hrStatus === 'Rejected' || record.hrStatus === 'Rejected'
-          ? 'Rejected'
-          : record.hrStatus || existing.hrStatus || 'Pending';
-
-      const isApproved =
-        (bestManagerStatus === 'Approved' && bestHrStatus === 'Approved') ||
-        existing.status === 'APPROVED' ||
-        record.status === 'APPROVED';
-
-      const isRejected =
-        existing.status === 'REJECTED' ||
-        record.status === 'REJECTED' ||
-        bestManagerStatus === 'Rejected' ||
-        bestHrStatus === 'Rejected';
-
-      const bestStatus = isApproved ? 'APPROVED' : isRejected ? 'REJECTED' : (record.status || existing.status || 'PENDING');
-
-      map.set(matchKey, {
-        ...existing,
-        ...record,
-        id: existing.id || record.id,
-        managerStatus: bestManagerStatus,
-        hrStatus: bestHrStatus,
-        status: bestStatus,
-        note: record.note && record.note !== 'Leave application' ? record.note : existing.note || record.note,
-        createdAt: getLeaveTimestamp(record) > getLeaveTimestamp(existing) ? record.createdAt : existing.createdAt,
-      });
+  // Process secondary list; only add records if ID does not already exist
+  (secondaryList || []).forEach(record => {
+    if (!record) return;
+    const cleanId = record.id ? String(record.id).trim() : '';
+    if (cleanId && !map.has(cleanId)) {
+      map.set(cleanId, { ...record });
     }
   });
 

@@ -263,43 +263,24 @@ function EmployeePortalContent() {
         });
         setAttendance(empLogs);
 
-        if (leavesList.length === 0) {
-          setLeaves([]);
-          if (typeof window !== 'undefined') {
-            try {
-              localStorage.removeItem('hrm_user_submitted_leaves');
-              localStorage.removeItem('hrm_leave_records_backup');
-            } catch (e) {}
-          }
-        } else {
-          let localSaved: LeaveRecord[] = [];
-          if (typeof window !== 'undefined') {
-            try {
-              localSaved = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-            } catch (e) {}
-          }
+        const empLeaves = leavesList.filter(l => {
+          if (!l) return false;
+          const target = String(l.employeeId || '').trim().toLowerCase();
+          const targetName = String((l as any).employeeName || '').trim().toLowerCase();
+          return (
+            target === empIdStr ||
+            target === empCodeStr ||
+            target === empNameStr ||
+            (targetName && targetName === empNameStr)
+          );
+        });
 
-          const empLeaves = leavesList.filter(l => {
-            if (!l) return false;
-            const target = String(l.employeeId || '').trim().toLowerCase();
-            const targetName = String((l as any).employeeName || '').trim().toLowerCase();
-            return (
-              target === empIdStr ||
-              target === empCodeStr ||
-              target === empNameStr ||
-              (targetName && targetName === empNameStr) ||
-              (empNameStr.length > 2 && target.includes(empNameStr)) ||
-              (empNameStr.length > 2 && empNameStr.includes(target))
-            );
-          });
-
-          setLeaves(prev => {
-            const merged = mergeLeavesNonRegressive(mergeLeavesNonRegressive(prev, localSaved.filter(l => {
-              const target = String(l?.employeeId || '').trim().toLowerCase();
-              return target === empIdStr || target === empCodeStr || target === empNameStr;
-            })), empLeaves);
-            return merged;
-          });
+        setLeaves(empLeaves);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('hrm_user_submitted_leaves');
+            localStorage.removeItem('hrm_leave_records_backup');
+          } catch (e) {}
         }
       }
     } catch (err) {
@@ -367,6 +348,16 @@ function EmployeePortalContent() {
         setPunchMsg('Successfully punched out. Have a great evening!');
       }
       fetchEmployeeDashboardData();
+      if (typeof window !== 'undefined') {
+        const now = new Date();
+        window.dispatchEvent(new CustomEvent('attendanceUpdated', {
+          detail: {
+            month: String(now.getMonth() + 1),
+            year: String(now.getFullYear()),
+            monthYear: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+          }
+        }));
+      }
     } catch (err) {
       console.error(err);
       setPunchMsg('Failed to process punch.');
@@ -413,20 +404,13 @@ function EmployeePortalContent() {
 
         if (newRecord) {
           // Instant 0ms local state update so new leave shows at top of table immediately
-          setLeaves(prev => mergeLeavesNonRegressive([newRecord], prev));
-          setAllLeaves(prev => mergeLeavesNonRegressive([newRecord], prev));
+          setLeaves(prev => [newRecord, ...prev.filter(l => l.id !== newRecord.id)]);
+          setAllLeaves(prev => [newRecord, ...prev.filter(l => l.id !== newRecord.id)]);
 
           if (typeof window !== 'undefined') {
             try {
-              const existing = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-              const updatedList = Array.isArray(existing) ? mergeLeavesNonRegressive([newRecord], existing) : [newRecord];
-              localStorage.setItem('hrm_user_submitted_leaves', JSON.stringify(updatedList));
-
-              fetch('/api/leaves', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'sync_client_backup', records: updatedList }),
-              }).catch(() => {});
+              localStorage.removeItem('hrm_user_submitted_leaves');
+              localStorage.removeItem('hrm_leave_records_backup');
             } catch (e) {}
           }
         }
@@ -494,7 +478,7 @@ function EmployeePortalContent() {
 
     const updater = (prevList: LeaveRecord[]) =>
       prevList.map(l => {
-        if (l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))) {
+        if (l.id === id) {
           const isBothApproved = newManagerStatus === 'Approved' && l.hrStatus === 'Approved';
           return {
             ...l,
@@ -510,11 +494,8 @@ function EmployeePortalContent() {
 
     if (typeof window !== 'undefined') {
       try {
-        const local = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-        if (Array.isArray(local) && local.length > 0) {
-          const updatedLocal = updater(local);
-          localStorage.setItem('hrm_user_submitted_leaves', JSON.stringify(updatedLocal));
-        }
+        localStorage.removeItem('hrm_user_submitted_leaves');
+        localStorage.removeItem('hrm_leave_records_backup');
       } catch (e) {}
     }
 

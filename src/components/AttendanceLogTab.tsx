@@ -39,10 +39,10 @@ const formatMins = (mins: number) => {
 
 export default function AttendanceLogTab({ hideImport = false, targetEmployeeId, showHoursFormat = false }: AttendanceLogTabProps) {
   const [viewMode, setViewMode] = useState<'matrix' | 'daily'>('matrix');
-  const [selectedMonth, setSelectedMonth] = useState('8'); // August 2026
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState(() => String(new Date().getMonth() + 1));
+  const [selectedYear, setSelectedYear] = useState(() => String(new Date().getFullYear()));
   const [department, setDepartment] = useState('ALL');
-  const [date, setDate] = useState('2026-08-12');
+  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
 
   const [logs, setLogs] = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);

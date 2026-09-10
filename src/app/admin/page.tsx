@@ -46,14 +46,7 @@ export default function AdminDashboardPage() {
       setEmployees(Array.isArray(empData) ? empData : empData.employees || []);
       setAttendance(Array.isArray(attData.logs) ? attData.logs : Array.isArray(attData) ? attData : attData.attendance || []);
       const serverLeaves: LeaveRecord[] = leaveData.records || (Array.isArray(leaveData) ? leaveData : []);
-      let localSaved: LeaveRecord[] = [];
-      if (typeof window !== 'undefined') {
-        try {
-          localSaved = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-        } catch (e) {}
-      }
-
-      setLeaves((prev) => mergeLeavesNonRegressive(mergeLeavesNonRegressive(prev, localSaved), serverLeaves));
+      setLeaves(serverLeaves);
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     } finally {
@@ -65,9 +58,7 @@ export default function AdminDashboardPage() {
     const newHrStatus = action === 'APPROVED' ? 'Approved' : 'Rejected';
     const newStatus = action === 'REJECTED' ? 'REJECTED' : 'APPROVED';
 
-    const targetRecord = leaves.find(
-      (l) => l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))
-    );
+    const targetRecord = leaves.find(l => l.id === id);
 
     const updatedTargetRecord = targetRecord
       ? {
@@ -80,7 +71,7 @@ export default function AdminDashboardPage() {
 
     setLeaves((prev) =>
       prev.map((l) => {
-        if (l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))) {
+        if (l.id === id) {
           return {
             ...l,
             hrStatus: newHrStatus,
@@ -91,21 +82,6 @@ export default function AdminDashboardPage() {
         return l;
       })
     );
-
-    if (typeof window !== 'undefined') {
-      try {
-        const local = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-        if (Array.isArray(local) && local.length > 0) {
-          const updatedLocal = local.map((l: any) => {
-            if (l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))) {
-              return { ...l, hrStatus: newHrStatus, managerStatus: 'Approved', status: newStatus };
-            }
-            return l;
-          });
-          localStorage.setItem('hrm_user_submitted_leaves', JSON.stringify(updatedLocal));
-        }
-      } catch (e) {}
-    }
 
     try {
       const res = await fetch('/api/leaves', {

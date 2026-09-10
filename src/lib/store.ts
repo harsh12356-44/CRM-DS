@@ -869,56 +869,19 @@ export function mergeLeavesNonRegressive(primaryList: LeaveRecord[], secondaryLi
 
   const map = new Map<string, LeaveRecord>();
 
-  const getCleanKey = (l: LeaveRecord): string => {
-    if (!l) return '';
-    if (l.id) return String(l.id).replace(/[^0-9a-zA-Z_-]/g, '').toLowerCase();
-    return `${String(l.employeeId).toLowerCase()}_${l.startDate}_${l.leaveType}`.toLowerCase();
-  };
-
-  const processRecord = (record: LeaveRecord) => {
+  // Primary list takes priority
+  primaryList.forEach(record => {
     if (!record) return;
-    const key = getCleanKey(record);
-    if (!key) return;
+    const cleanId = record.id ? String(record.id).trim() : '';
+    if (cleanId) map.set(cleanId, { ...record });
+  });
 
-    const existing = map.get(key);
-    if (!existing) {
-      map.set(key, { ...record });
-    } else {
-      const bestManagerStatus =
-        existing.managerStatus === 'Approved' || record.managerStatus === 'Approved'
-          ? 'Approved'
-          : existing.managerStatus === 'Rejected' || record.managerStatus === 'Rejected'
-          ? 'Rejected'
-          : record.managerStatus || existing.managerStatus || 'Pending';
-
-      const bestHrStatus =
-        existing.hrStatus === 'Approved' || record.hrStatus === 'Approved'
-          ? 'Approved'
-          : existing.hrStatus === 'Rejected' || record.hrStatus === 'Rejected'
-          ? 'Rejected'
-          : record.hrStatus || existing.hrStatus || 'Pending';
-
-      const bestStatus =
-        (bestManagerStatus === 'Approved' && bestHrStatus === 'Approved') ||
-        existing.status === 'APPROVED' ||
-        record.status === 'APPROVED'
-          ? 'APPROVED'
-          : existing.status === 'REJECTED' || record.status === 'REJECTED'
-          ? 'REJECTED'
-          : record.status || existing.status || 'PENDING';
-
-      map.set(key, {
-        ...existing,
-        ...record,
-        managerStatus: bestManagerStatus,
-        hrStatus: bestHrStatus,
-        status: bestStatus,
-      });
-    }
-  };
-
-  primaryList.forEach(processRecord);
-  secondaryList.forEach(processRecord);
+  // Secondary list only adds missing IDs
+  secondaryList.forEach(record => {
+    if (!record) return;
+    const cleanId = record.id ? String(record.id).trim() : '';
+    if (cleanId && !map.has(cleanId)) map.set(cleanId, { ...record });
+  });
 
   return Array.from(map.values());
 }

@@ -34,33 +34,7 @@ export default function HRTeamApprovalsPage() {
 
       const serverLeaves: LeaveRecord[] = Array.isArray(leaveData) ? leaveData : leaveData.records || [];
 
-      if (serverLeaves.length === 0) {
-        setLeaves([]);
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.removeItem('hrm_user_submitted_leaves');
-            localStorage.removeItem('hrm_leave_records_backup');
-          } catch (e) {}
-        }
-      } else {
-        let localSaved: LeaveRecord[] = [];
-        if (typeof window !== 'undefined') {
-          try {
-            localSaved = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-          } catch (e) {}
-        }
-
-        setLeaves((prev) => {
-          const merged = mergeLeavesNonRegressive(mergeLeavesNonRegressive(prev, localSaved), serverLeaves);
-          if (typeof window !== 'undefined' && merged.length > 0) {
-            try {
-              localStorage.setItem('hrm_user_submitted_leaves', JSON.stringify(merged));
-            } catch (e) {}
-          }
-          return merged;
-        });
-      }
-
+      setLeaves(serverLeaves);
       setEmployees(Array.isArray(empData) ? empData : empData.employees || []);
     } catch (err) {
       console.error('Error fetching HR Team Approvals data:', err);
@@ -90,9 +64,7 @@ export default function HRTeamApprovalsPage() {
     const newHrStatus = action === 'APPROVED' ? 'Approved' : 'Rejected';
     const newStatus = action === 'REJECTED' ? 'REJECTED' : 'APPROVED';
 
-    const targetRecord = leaves.find(
-      (l) => l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))
-    );
+    const targetRecord = leaves.find(l => l.id === id);
 
     const updatedTargetRecord = targetRecord
       ? {
@@ -106,7 +78,7 @@ export default function HRTeamApprovalsPage() {
     // 1. Instant Optimistic State Update (0ms UI latency)
     setLeaves((prev) =>
       prev.map((l) => {
-        if (l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))) {
+        if (l.id === id) {
           return {
             ...l,
             hrStatus: newHrStatus,
@@ -117,21 +89,6 @@ export default function HRTeamApprovalsPage() {
         return l;
       })
     );
-
-    if (typeof window !== 'undefined') {
-      try {
-        const local = JSON.parse(localStorage.getItem('hrm_user_submitted_leaves') || '[]');
-        if (Array.isArray(local) && local.length > 0) {
-          const updatedLocal = local.map((l: any) => {
-            if (l.id === id || (typeof l.id === 'string' && l.id.endsWith(id.replace(/[^0-9]/g, '')))) {
-              return { ...l, hrStatus: newHrStatus, managerStatus: 'Approved', status: newStatus };
-            }
-            return l;
-          });
-          localStorage.setItem('hrm_user_submitted_leaves', JSON.stringify(updatedLocal));
-        }
-      } catch (e) {}
-    }
 
     setStatusMsg(`HR Decision Recorded: ${action}! Request status updated.`);
 

@@ -26,8 +26,8 @@ const YEARS = ['2024', '2025', '2026', '2027'];
 
 export default function WorkingHoursPage() {
   const [viewMode, setViewMode] = useState<'matrix' | 'daily'>('matrix');
-  const [selectedMonth, setSelectedMonth] = useState('8'); // August default
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState(() => String(new Date().getMonth() + 1));
+  const [selectedYear, setSelectedYear] = useState(() => String(new Date().getFullYear()));
   const [department, setDepartment] = useState('ALL');
 
   const [logs, setLogs] = useState<AttendanceLog[]>([]);

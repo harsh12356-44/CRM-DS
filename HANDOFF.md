@@ -8,7 +8,8 @@
 
 ## 2. Current Project Status
 - **GitHub Repository**: Live and up to date at [https://github.com/harsh12356-44/CRM-DS](https://github.com/harsh12356-44/CRM-DS) (`main` branch).
-- **Anup Sen Attendance Grid**: Populated complete 31-day Check-In and Check-Out biometric punch records for all working days across July and August 2026, and updated `getDbData()` in `store.ts` to ensure dynamic real-time data reloading.
+- **Attendance Grid Dynamic Month & Punch Events**: Configured `AttendanceLogTab` to dynamically default to current month/year (`new Date().getMonth() + 1`, `new Date().getFullYear()`) and dispatch `attendanceUpdated` custom events upon Punch In/Out for instant 0ms grid updates.
+- **Leave Request Processing & Rejection Fixes**: Refactored `mergeLeavesNonRegressive()` in `types.ts` and `store.ts` to strictly match records by exact unique `record.id`. Removed browser `localStorage` leave caching (`hrm_user_submitted_leaves`) and `sync_client_backup` calls to prevent old leaves from re-appearing, and eliminated fuzzy ID regex matching across Admin/Manager review pages to ensure rejecting one request never affects separate pending requests.
 - **Auto-Sync Leave Balance Adjustments**: Fully integrated Admin Leave Balance adjustments ("⚖️ Adjust Employee Leave" modal). When Admin records an adjustment for short hours or quarterly leave allowance coverage:
   - It automatically syncs in real-time to that employee's account under **My Leave History & Real-Time Approval Status**.
   - It affects only the employee's **Leave Balance / Allowance**, keeping biometric attendance logs intact.

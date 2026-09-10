@@ -17,6 +17,11 @@
 - **Login Security & Chrome Popup Suppression**: Cleared initial state defaults, deleted preset quick-login buttons, and suppressed browser password manager autofill popups using `-webkit-text-security: disc` styling so login fields load strictly blank without credential popups.
 - **Password Management & Credential Audit**: Documented complete listing of Admin, Manager, and Employee credentials in database. Full password viewing & editing in Admin dashboard, plus employee self-service Change Password functionality with automatic synchronization.
 - **Hostinger Live Database Migration Plan**: Discussed connecting the live Hostinger Next.js deployment to a centralized database (Option 2: Hostinger Remote MySQL) so changes on localhost and live app sync in real-time. Safety backup plan established (backup copy of `data/db.json` and dedicated Git safety branch `backup-before-mysql-migration`) prior to execution.
+- **Restored Historical Leaves & Added Missing Approved Entries**:
+  - Restored 11 historical leave records in `data/db.json` across git history.
+  - Marked Shweta's 6-day Planned Leave (`2026-09-21` to `2026-09-26`) as `APPROVED` with `managerStatus: "Approved"` and `hrStatus: "Approved"`.
+  - Marked Rajvardhan's 4-day Planned Leave (`2026-09-09` to `2026-09-12`) as `APPROVED` with `managerStatus: "Approved"` and `hrStatus: "Approved"`.
+  - Added missing approved Planned Leave entries for Jigyasa Sen (`emp-3` / `JS003`): Request `#731` (`2026-09-21`, 1 day) and Request `#372` (`2026-09-18`, 1 day) into `data/db.json` and synced live to Hostinger.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

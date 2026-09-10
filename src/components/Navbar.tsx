@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Bell, Check, X, LogOut, Shield, UserCheck, LayoutDashboard, UserCheck2, User, Sun, Moon } from 'lucide-react';
+import { Bell, Check, X, LogOut, Shield, UserCheck, LayoutDashboard, UserCheck2, User, Sun, Moon, Save, Database, Loader2 } from 'lucide-react';
 import { NotificationItem } from '@/lib/types';
 
 interface NavbarProps {
@@ -17,6 +17,8 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [savingDb, setSavingDb] = useState(false);
+  const [saveToast, setSaveToast] = useState<{ show: boolean; msg: string; isError?: boolean }>({ show: false, msg: '' });
 
   const fetchNotifications = async () => {
     try {
@@ -161,6 +163,30 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     router.push('/login');
   };
 
+  const handleSaveDb = async () => {
+    try {
+      setSavingDb(true);
+      const res = await fetch('/api/admin/save-db', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setSaveToast({
+          show: true,
+          msg: `Database saved & backed up! (${data.stats.employees} Emps, ${data.stats.leaveRecords} Leaves)`,
+          isError: false,
+        });
+      } else {
+        setSaveToast({ show: true, msg: data.error || 'Failed to save database', isError: true });
+      }
+    } catch (err: any) {
+      setSaveToast({ show: true, msg: err.message || 'Error saving database', isError: true });
+    } finally {
+      setSavingDb(false);
+      setTimeout(() => {
+        setSaveToast({ show: false, msg: '' });
+      }, 5000);
+    }
+  };
+
   const setRoleCookie = (role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE') => {
     if (typeof window !== 'undefined') {
       const activeId = localStorage.getItem('hrm_active_employee_id');
@@ -282,6 +308,35 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
               </>
             )}
           </button>
+        )}
+
+        {/* Admin Save & Sync Database Button */}
+        {isRavinaUser && (
+          <button
+            onClick={handleSaveDb}
+            disabled={savingDb}
+            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow-sm border border-emerald-500 cursor-pointer"
+            title="Save and backup all app database changes"
+          >
+            {savingDb ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Save className="w-3.5 h-3.5" />
+            )}
+            <span className="hidden sm:inline">{savingDb ? 'Saving...' : 'Save Database'}</span>
+          </button>
+        )}
+
+        {/* Floating Save Toast Notification */}
+        {saveToast.show && (
+          <div className={`fixed top-16 right-6 z-50 px-4 py-3 rounded-xl shadow-2xl border flex items-center space-x-2 text-xs font-bold animate-in fade-in slide-in-from-top-3 ${
+            saveToast.isError 
+              ? 'bg-rose-500 text-white border-rose-600' 
+              : 'bg-emerald-600 text-white border-emerald-500'
+          }`}>
+            <Check className="w-4 h-4" />
+            <span>{saveToast.msg}</span>
+          </div>
         )}
 
         {/* Notifications Bell */}

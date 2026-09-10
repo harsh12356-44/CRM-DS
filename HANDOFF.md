@@ -22,6 +22,9 @@
   - Marked Shweta's 6-day Planned Leave (`2026-09-21` to `2026-09-26`) as `APPROVED` with `managerStatus: "Approved"` and `hrStatus: "Approved"`.
   - Marked Rajvardhan's 4-day Planned Leave (`2026-09-09` to `2026-09-12`) as `APPROVED` with `managerStatus: "Approved"` and `hrStatus: "Approved"`.
   - Added missing approved Planned Leave entries for Jigyasa Sen (`emp-3` / `JS003`): Request `#731` (`2026-09-21`, 1 day) and Request `#372` (`2026-09-18`, 1 day) into `data/db.json` and synced live to Hostinger.
+- **Admin Save & Sync Database Button**:
+  - Added a dedicated **"💾 Save Database"** button to the top header (`Navbar.tsx`), restricted strictly to Admin users (`isRavinaUser` / `currentRole === 'ADMIN'`).
+  - Triggers `POST /api/admin/save-db`, which flushes in-memory data, saves `data/db.json`, generates a timestamped snapshot backup in `data/backups/db_backup_<timestamp>.json`, and displays a live toast confirmation with synced record counts.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

@@ -219,7 +219,9 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
   };
 
   const activeEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
+  const storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
   const isRavinaUser = activeEmpId === 'emp-1' || activeEmpId === 'rk001' || currentRole === 'ADMIN';
+  const isAdminAccount = isRavinaUser || currentRole === 'ADMIN' || storedRole === 'ADMIN';
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-sm transition-colors duration-300">
@@ -317,20 +319,20 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
           </button>
         )}
 
-        {/* Admin Save & Sync Database Button */}
-        {isRavinaUser && (
+        {/* Admin Save & Sync Database Button (Strictly for Admin Accounts) */}
+        {isAdminAccount && (
           <button
             onClick={handleSaveDb}
             disabled={savingDb}
-            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs transition flex items-center space-x-1.5 shadow-sm border border-emerald-500 cursor-pointer"
-            title="Save and backup all app database changes"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-extrabold text-xs transition flex items-center space-x-2 shadow-md border border-emerald-400/30 cursor-pointer active:scale-95 shrink-0"
+            title="Click to save and backup all database records immediately"
           >
             {savingDb ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-emerald-100" />
             ) : (
-              <Save className="w-3.5 h-3.5" />
+              <Save className="w-4 h-4 text-emerald-100" />
             )}
-            <span className="hidden sm:inline">{savingDb ? 'Saving...' : 'Save Database'}</span>
+            <span className="font-extrabold tracking-wide">{savingDb ? 'Saving Database...' : '💾 Save Database'}</span>
           </button>
         )}
 

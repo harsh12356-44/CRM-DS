@@ -38,9 +38,9 @@
   - Enhanced `/api/employees` (`POST` and `PUT` methods) to match target employee records by `id`, `employeeId`, or `email`, persisting password and profile edits directly into `data/db.json` on the backend server.
   - Enhanced `handleChangePasswordSubmit` in Employee Portal (`src/app/employee/page.tsx`) to validate current password and update exact employee ID (`emp-5` for Meenal).
   - Enforced password check in `LoginPage` (`src/app/login/page.tsx`), validating entered credentials against the employee password in the backend database.
-- **Middleware Matcher & RSC Flight Payload Prevention**:
-  - Updated `matcher` in [src/middleware.ts](file:///d:/Ravina/Antigravity/crm-ds/src/middleware.ts) to explicitly include exact root paths (`/admin`, `/manager`, `/employee`) alongside subpaths (`/admin/:path*`, `/manager/:path*`, `/employee/:path*`).
-  - Prevents Next.js App Router from outputting raw React Server Component (RSC) flight JSON text when navigating to `/manager` or `/employee`.
+- **Admin Top Header Save Database Button**:
+  - Configured a prominent **"💾 Save Database"** button in [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx), exclusively visible to Admin accounts.
+  - Clicking this button invokes `POST /api/admin/save-db` ([route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/admin/save-db/route.ts)), flushing all in-memory database changes, persisting `data/db.json` synchronously via `saveDbDataAsync(db)`, generating a timestamped backup in `/data/backups/db_backup_<timestamp>.json`, and displaying a live toast confirmation with synced record counts.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

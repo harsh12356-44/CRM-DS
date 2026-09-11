@@ -23,7 +23,7 @@ export async function POST() {
     fs.writeFileSync(backupPath, JSON.stringify(db, null, 2), 'utf-8');
 
     // Force flush to data/db.json
-    saveDbData(db);
+    await saveDbDataAsync(db);
 
     const stats = {
       employees: db.employees?.length || 0,

@@ -78,24 +78,29 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
       const currentRole = role || getCookieRole();
       setActiveRole(currentRole);
 
-      if (typeof window !== 'undefined') {
-        const storedId = localStorage.getItem('hrm_active_employee_id');
-        const isMgr =
-          localStorage.getItem('hrm_active_employee_is_manager') === 'true' ||
-          localStorage.getItem('hrm_active_employee_role') === 'MANAGER' ||
-          localStorage.getItem('hrm_active_employee_role') === 'ADMIN';
-        setIsManager(isMgr);
+        if (typeof window !== 'undefined') {
+          const storedId = localStorage.getItem('hrm_active_employee_id');
+          const storedEmail = localStorage.getItem('hrm_active_employee_email');
+          const isMgr =
+            localStorage.getItem('hrm_active_employee_is_manager') === 'true' ||
+            localStorage.getItem('hrm_active_employee_role') === 'MANAGER' ||
+            localStorage.getItem('hrm_active_employee_role') === 'ADMIN';
+          setIsManager(isMgr);
 
-        try {
-          const res = await fetch(`/api/employees?t=${Date.now()}`);
-          const data = await res.json();
-          const employeesList: any[] = Array.isArray(data) ? data : data.employees || [];
-          const emp = employeesList.find((e: any) => e.id === storedId || e.employeeId === storedId);
-          setIsWfh(emp?.workMode === 'WFH');
-          const newCode = emp ? (emp.employeeId || emp.id) : (storedId || 'NB002');
-          setEmpCodeDisplay(prev => prev === newCode ? prev : newCode);
-        } catch (e) {}
-      }
+          try {
+            const res = await fetch(`/api/employees?t=${Date.now()}`);
+            const data = await res.json();
+            const employeesList: any[] = Array.isArray(data) ? data : data.employees || [];
+            const emp = employeesList.find((e: any) =>
+              (storedId && (e.id === storedId || e.employeeId === storedId)) ||
+              (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
+              (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim())
+            );
+            setIsWfh(emp?.workMode === 'WFH');
+            const newCode = emp ? (emp.employeeId || emp.id) : (storedId || 'MN005');
+            setEmpCodeDisplay(prev => prev === newCode ? prev : newCode);
+          } catch (e) {}
+        }
     };
 
     updateSidebarData();

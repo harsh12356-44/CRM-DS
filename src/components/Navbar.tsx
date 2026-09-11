@@ -58,7 +58,13 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
       }
 
       if (!currentEmp && storedEmail) {
-        currentEmp = employeesList.find((e: any) => e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim());
+        const cleanStoredEmail = storedEmail.toLowerCase().trim();
+        currentEmp = employeesList.find(
+          (e: any) =>
+            (e.email && e.email.toLowerCase().trim() === cleanStoredEmail) ||
+            (e.email && e.email.toLowerCase().split('@')[0] === cleanStoredEmail) ||
+            (e.name && e.name.toLowerCase().trim() === cleanStoredEmail)
+        );
       }
 
       if (!currentEmp) {
@@ -66,7 +72,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
         if (effectiveRole === 'ADMIN') {
           currentEmp = employeesList.find((e: any) => e.role === 'ADMIN') || employeesList[0];
         } else if (effectiveRole === 'MANAGER') {
-          currentEmp = employeesList.find((e: any) => e.role === 'MANAGER') || employeesList[1];
+          currentEmp = employeesList.find((e: any) => e.id === 'emp-5' || e.name.toLowerCase().includes('meenal')) || employeesList.find((e: any) => e.role === 'MANAGER') || employeesList[1];
         } else {
           currentEmp = employeesList.find((e: any) => e.employeeId === 'SG012' || e.name.toLowerCase().includes('sonu')) || employeesList[0];
         }

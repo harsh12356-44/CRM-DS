@@ -46,9 +46,11 @@ export default function LoginPage() {
       let targetRole: 'ADMIN' | 'MANAGER' | 'EMPLOYEE' = 'EMPLOYEE';
       let empId = '';
 
+      let savedEmail = cleanEmail;
       if (emp) {
         targetRole = (emp.role as 'ADMIN' | 'MANAGER' | 'EMPLOYEE') || 'EMPLOYEE';
         empId = emp.id;
+        if (emp.email) savedEmail = emp.email;
       } else {
         // Fallback matching for known employee credentials if API returns non-matched structure
         if (cleanEmail.includes('ravina') || cleanEmail.includes('admin') || cleanEmail.includes('harshit')) {
@@ -66,6 +68,7 @@ export default function LoginPage() {
         } else if (cleanEmail.includes('meenal')) {
           targetRole = 'MANAGER';
           empId = 'emp-5';
+          savedEmail = 'meenal@hrmpilot.com';
         } else if (cleanEmail.includes('nandini')) {
           targetRole = 'EMPLOYEE';
           empId = 'emp-6';
@@ -125,7 +128,7 @@ export default function LoginPage() {
         } catch (e) {}
         localStorage.setItem('hrm_active_employee_id', empId);
         localStorage.setItem('hrm_active_employee_role', targetRole);
-        localStorage.setItem('hrm_active_employee_email', cleanEmail);
+        localStorage.setItem('hrm_active_employee_email', savedEmail);
         window.dispatchEvent(new Event('roleChange'));
         window.dispatchEvent(new Event('employeeChanged'));
       }

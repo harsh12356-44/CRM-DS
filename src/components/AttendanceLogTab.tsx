@@ -85,6 +85,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
       // If in Employee Portal mode (hideImport=true or targetEmployeeId provided), strictly show target employee only
       if (hideImport || targetEmployeeId) {
         let storedId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
+        let storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
         let storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
         let targetId = (targetEmployeeId || storedId || '').toLowerCase().trim();
 
@@ -96,11 +97,18 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
             (e.name && e.name.toLowerCase().includes(targetId))
           );
         }
+        if (!found && storedEmail) {
+          const cleanEmail = storedEmail.toLowerCase().trim();
+          found = empsList.find((e: any) =>
+            (e.email && e.email.toLowerCase().trim() === cleanEmail) ||
+            (e.email && e.email.toLowerCase().split('@')[0] === cleanEmail)
+          );
+        }
         if (!found) {
           if (storedRole === 'ADMIN') {
             found = empsList.find((e: any) => e.role === 'ADMIN') || empsList[0];
           } else if (storedRole === 'MANAGER') {
-            found = empsList.find((e: any) => e.role === 'MANAGER') || empsList[1];
+            found = empsList.find((e: any) => e.id === 'emp-5' || (e.name && e.name.toLowerCase().includes('meenal'))) || empsList.find((e: any) => e.role === 'MANAGER') || empsList[1];
           } else {
             found = empsList.find((e: any) => e.employeeId === 'SG012' || (e.name && e.name.toLowerCase().includes('sonu'))) || empsList[0];
           }

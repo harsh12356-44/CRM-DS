@@ -195,25 +195,28 @@ function EmployeePortalContent() {
       setAllLeaves(leavesList);
 
       // Resolve target active employee ID (respecting storedRole, storedEmail and storedId)
-      let activeTargetId = 'emp-12';
+      let activeTargetId = '';
       if (typeof window !== 'undefined') {
         const storedId = localStorage.getItem('hrm_active_employee_id');
         const storedEmail = localStorage.getItem('hrm_active_employee_email');
         const storedRole = localStorage.getItem('hrm_active_employee_role');
 
-        if (storedId && employeesList.some(e => e.id === storedId || e.employeeId === storedId)) {
-          activeTargetId = storedId;
-        } else if (storedEmail && employeesList.some(e => e.email && e.email.toLowerCase() === storedEmail.toLowerCase())) {
-          const matchEmail = employeesList.find(e => e.email && e.email.toLowerCase() === storedEmail.toLowerCase());
-          if (matchEmail) activeTargetId = matchEmail.id;
+        let matched = employeesList.find(
+          e =>
+            (storedId && (e.id === storedId || e.employeeId === storedId)) ||
+            (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
+            (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim())
+        );
+
+        if (matched) {
+          activeTargetId = matched.id;
         } else if (storedRole === 'ADMIN') {
           const adm = employeesList.find(e => e.role === 'ADMIN');
           activeTargetId = adm ? adm.id : 'emp-1';
         } else if (storedRole === 'MANAGER') {
-          const mgr = employeesList.find(e => e.role === 'MANAGER');
-          activeTargetId = mgr ? mgr.id : 'emp-2';
+          activeTargetId = storedId || 'emp-5';
         } else {
-          activeTargetId = 'emp-12';
+          activeTargetId = storedId || 'emp-12';
         }
         localStorage.setItem('hrm_active_employee_id', activeTargetId);
       }

@@ -40,6 +40,7 @@
   - Enforced password check in `LoginPage` (`src/app/login/page.tsx`), validating entered credentials against the employee password in the backend database.
 - **Admin Top Header Save Database Button**:
   - Configured a prominent **"💾 Save Database"** button in [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx), exclusively visible to Admin accounts.
+  - Expanded `isAdminAccount` check (`isAdminPage || isAdminRole || isAdminUser`) so the button is guaranteed 100% visible on all `/admin` pages and Admin logins.
   - Clicking this button invokes `POST /api/admin/save-db` ([route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/admin/save-db/route.ts)), flushing all in-memory database changes, persisting `data/db.json` synchronously via `saveDbDataAsync(db)`, generating a timestamped backup in `/data/backups/db_backup_<timestamp>.json`, and displaying a live toast confirmation with synced record counts.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.

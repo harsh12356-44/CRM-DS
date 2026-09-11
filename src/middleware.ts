@@ -35,5 +35,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/manager/:path*', '/employee/:path*', '/login'],
+  matcher: ['/admin', '/admin/:path*', '/manager', '/manager/:path*', '/employee', '/employee/:path*', '/login'],
 };

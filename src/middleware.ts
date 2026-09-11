@@ -31,12 +31,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/employee', request.url));
   }
 
-  // 3. Authenticated users opening /login -> redirect to their role dashboard
-  if (pathname === '/login' && userRole) {
-    const target = userRole === 'ADMIN' ? '/admin' : userRole === 'MANAGER' ? '/manager' : '/employee';
-    return NextResponse.redirect(new URL(target, request.url));
-  }
-
   return NextResponse.next();
 }
 

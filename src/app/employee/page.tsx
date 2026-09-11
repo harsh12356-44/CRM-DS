@@ -440,7 +440,7 @@ function EmployeePortalContent() {
   // Compute Employee Own & Team Statistics
   const empName = employee ? employee.name.split(' ')[0] : 'Sonu';
   const empId = employee?.employeeId || 'SG012';
-  const managerName = employee?.primaryManager || 'Naman Bangia';
+  const managerName = employee?.primaryManager || 'Ravina Khimani';
 
   const safeAttendance = Array.isArray(attendance) ? attendance : [];
   const safeLeaves = Array.isArray(leaves) ? leaves : [];
@@ -1748,7 +1748,7 @@ function EmployeePortalContent() {
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Reporting & Contact</p>
                   <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Primary Manager:</span>
-                    <span className="font-bold text-indigo-300">{employee.primaryManager || 'Naman Bangia'}</span>
+                    <span className="font-bold text-indigo-300">{employee.primaryManager || 'Ravina Khimani'}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Secondary Manager:</span>

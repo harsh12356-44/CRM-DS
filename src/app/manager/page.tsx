@@ -11,8 +11,8 @@ export default function ManagerPortalPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState('');
-
   const [activeManager, setActiveManager] = useState<Employee | null>(null);
+  const [filterMode, setFilterMode] = useState<'MY_TEAM' | 'ALL'>('MY_TEAM');
 
   const fetchManagerData = useCallback(async (isSilent = false) => {
     try {
@@ -47,6 +47,30 @@ export default function ManagerPortalPage() {
       if (!isSilent) setLoading(false);
     }
   }, []);
+
+  const displayedLeaves = leaves.filter(l => {
+    if (filterMode === 'ALL') return true;
+    if (!activeManager) return true;
+
+    const emp = employees.find(
+      e => e.id === l.employeeId || e.employeeId === l.employeeId || e.name === l.employeeId
+    );
+
+    if (!emp) return true;
+
+    const mgrNameLower = activeManager.name.toLowerCase().trim();
+    const mgrFirstName = mgrNameLower.split(' ')[0];
+
+    const isDirectSubordinate =
+      (emp.primaryManager && (emp.primaryManager.toLowerCase().includes(mgrNameLower) || emp.primaryManager.toLowerCase().includes(mgrFirstName))) ||
+      (emp.secondaryManager && (emp.secondaryManager.toLowerCase().includes(mgrNameLower) || emp.secondaryManager.toLowerCase().includes(mgrFirstName)));
+
+    const isSameDepartment = Boolean(
+      emp.department && activeManager.department && emp.department.toLowerCase().trim() === activeManager.department.toLowerCase().trim()
+    );
+
+    return isDirectSubordinate || isSameDepartment;
+  });
 
   useEffect(() => {
     fetchManagerData(false);
@@ -187,10 +211,31 @@ export default function ManagerPortalPage() {
 
           {/* Subordinate Leave Applications Table */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-lg space-y-4 p-5">
-            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Subordinate Leave Requests Register</span>
-            </h3>
+            <div className="flex items-center justify-between flex-wrap gap-2 pb-2">
+              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>Subordinate Leave Requests Register</span>
+              </h3>
+
+              <div className="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-[11px] font-bold">
+                <button
+                  onClick={() => setFilterMode('MY_TEAM')}
+                  className={`px-3 py-1 rounded-lg transition ${
+                    filterMode === 'MY_TEAM' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  👥 My Team Subordinates ({activeManager ? activeManager.name : 'Meenal'})
+                </button>
+                <button
+                  onClick={() => setFilterMode('ALL')}
+                  className={`px-3 py-1 rounded-lg transition ${
+                    filterMode === 'ALL' ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  🏢 All Company Requests
+                </button>
+              </div>
+            </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
@@ -213,14 +258,14 @@ export default function ManagerPortalPage() {
                         Loading team leave requests...
                       </td>
                     </tr>
-                  ) : leaves.length === 0 ? (
+                  ) : displayedLeaves.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="py-8 text-center text-slate-500">
-                        No team leave applications found.
+                        No team leave applications found for {filterMode === 'MY_TEAM' ? 'your direct team' : 'this selection'}.
                       </td>
                     </tr>
                   ) : (
-                    leaves.map(l => {
+                    displayedLeaves.map(l => {
                       const emp = employees.find(
                         e => e.id === l.employeeId || e.employeeId === l.employeeId || e.name === l.employeeId
                       );

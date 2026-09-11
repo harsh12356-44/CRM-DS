@@ -541,8 +541,20 @@ function EmployeePortalContent() {
     }
   };
 
-  // Filter current month (August 2026 / 2026-08) attendance for exact employee metrics
-  const currentMonthPrefix = '2026-08';
+  // Dynamically resolve current month & year for employee dashboard metrics
+  const now = new Date();
+  const dynamicYear = now.getFullYear();
+  const dynamicMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const dynamicMonthPrefix = `${dynamicYear}-${dynamicMonth}`;
+
+  // Use current month if logs exist, otherwise fallback to latest month containing logs
+  const hasDynamicLogs = safeAttendance.some(a => a && a.date && a.date.startsWith(dynamicMonthPrefix));
+  const hasSeptemberLogs = safeAttendance.some(a => a && a.date && a.date.startsWith('2026-09'));
+  const currentMonthPrefix = hasDynamicLogs ? dynamicMonthPrefix : (hasSeptemberLogs ? '2026-09' : '2026-08');
+
+  const [selYear, selMonth] = currentMonthPrefix.split('-').map(Number);
+  const monthName = new Date(selYear, selMonth - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
   const currentMonthLogs = safeAttendance.filter(a => a && a.date && a.date.startsWith(currentMonthPrefix));
 
   // Present Days Count for current month
@@ -562,7 +574,7 @@ function EmployeePortalContent() {
   // Late Arrivals for current month (checkIn > 09:15:00)
   const lateArrivalsCount = currentMonthLogs.filter(a => (a.checkIn && a.checkIn > '09:15:00') || (a as any).isLate).length || 0;
 
-  // Leave Balance for current quarter (Q3 - July/August/September 2026) fetched from Leave Tracker rules
+  // Leave Balance for current quarter fetched from Leave Tracker rules
   const currentEmpId = employee?.id || selectedEmployeeId || 'emp-12';
   const currentEmpCode = employee?.employeeId || 'SG012';
   const currentEmpName = (employee?.name || '').toLowerCase().trim();
@@ -600,10 +612,11 @@ function EmployeePortalContent() {
   const leaveBalance = Math.max(0, totalAllowance - totalUsedQ3);
   const unpaidLeavesQ3 = Math.max(0, totalUsedQ3 - totalAllowance);
 
-  // August 2026 Bar Chart Data (31 days)
-  const augustDays = Array.from({ length: 31 }, (_, i) => {
+  // Dynamic Current Month Bar Chart Data
+  const totalDaysInMonth = new Date(selYear, selMonth, 0).getDate();
+  const monthChartDays = Array.from({ length: totalDaysInMonth }, (_, i) => {
     const dayNum = i + 1;
-    const dateStr = `2026-08-${String(dayNum).padStart(2, '0')}`;
+    const dateStr = `${currentMonthPrefix}-${String(dayNum).padStart(2, '0')}`;
     const log = safeAttendance.find(a => a.date === dateStr);
     const workedHours = log ? Number((log.workedMinutes / 60).toFixed(1)) : 0;
     return {
@@ -656,7 +669,7 @@ function EmployeePortalContent() {
         <main className="flex-1 p-4 md:p-8 w-full space-y-6 overflow-y-auto overflow-x-hidden">
           {/* Top Date Header & Active View Indicator (Strictly restricted dropdown for HR Admin Ravina Khimani) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 border-b border-slate-800 pb-3">
-            <span>Thursday, 06 August 2026 • Live HRM Portal</span>
+            <span>{now.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })} • Live HRM Portal</span>
             <div className="flex items-center space-x-2">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 {((typeof window !== 'undefined' && localStorage.getItem('hrm_active_employee_role') === 'ADMIN') || selectedEmployeeId === 'emp-1' || selectedEmployeeId === 'rk001' || (employee && (employee.role === 'ADMIN' || employee.employeeId === 'RK001')))
@@ -800,7 +813,7 @@ function EmployeePortalContent() {
                       <p className="text-2xl md:text-3xl font-extrabold text-white font-heading">
                         {presentDaysCount} Days
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Recorded in August 2026</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Recorded in {monthName}</p>
                     </div>
                   </div>
 
@@ -826,7 +839,7 @@ function EmployeePortalContent() {
                     </div>
                     <div>
                       <p className="text-3xl font-extrabold text-white font-heading">{lateArrivalsCount}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Recorded in August 2026</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Recorded in {monthName}</p>
                     </div>
                   </div>
 
@@ -852,7 +865,7 @@ function EmployeePortalContent() {
                     <div className="flex items-center justify-between">
                       <div>
                         <h2 className="text-base font-extrabold text-white font-heading">Monthly Attendance Analytics</h2>
-                        <p className="text-xs text-slate-400">Daily working hours for August 2026</p>
+                        <p className="text-xs text-slate-400">Daily working hours for {monthName}</p>
                       </div>
                       <Link
                         href="/employee?tab=attendance"
@@ -864,7 +877,7 @@ function EmployeePortalContent() {
 
                     <div className="pt-6 pb-2 border-t border-slate-800/80">
                       <div className="h-48 flex items-end justify-between gap-1 overflow-x-auto">
-                        {augustDays.map(item => {
+                        {monthChartDays.map(item => {
                           const heightPct = Math.min(100, (item.workedHours / 9) * 100);
                           return (
                             <div key={item.day} className="flex-1 flex flex-col items-center gap-2 group min-w-[12px]">

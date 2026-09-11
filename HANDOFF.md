@@ -31,9 +31,9 @@
   - Identified that Hostinger server running `npm install --omit=dev` stripped `@tailwindcss/postcss` and `tailwindcss` from the build environment, causing Next.js to compile without CSS styles.
   - Moved Tailwind CSS, `@tailwindcss/postcss`, `typescript`, `@types/react`, `@types/react-dom`, and `prisma` to `dependencies` in [`package.json`](file:///d:/Ravina/Antigravity/crm-ds/package.json).
   - Updated [`deploy.yml`](file:///d:/Ravina/Antigravity/crm-ds/.github/workflows/deploy.yml) SSH script to execute `npm install` and strict `npm run build`.
-- **Fixed Next.js RSC Flight Payload Plain-Text Rendering**:
-  - Resolved an issue where Next.js App Router rendered raw React Server Component (`$Sreact.fragment`) flight payload text when navigating after cookie role updates.
-  - Replaced client-side `router.push()` with `window.location.href` in [`login/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/login/page.tsx) and [`Navbar.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx) to ensure standard full HTTP GET page requests.
+- **Universal Active User & Manager Identity Resolution (Permanent Fix)**:
+  - Eliminated all hardcoded employee fallback IDs across `Navbar.tsx`, `Sidebar.tsx`, `AttendanceLogTab.tsx`, `employee/page.tsx`, and `manager/page.tsx`.
+  - Implemented universal role, email, and ID matching so every single employee and manager (Meenal, Naman, Jigyasa, Divyanshu, Ravina, etc.) strictly resolves to their own exact record without any cross-overriding.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

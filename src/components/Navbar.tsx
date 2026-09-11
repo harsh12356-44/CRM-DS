@@ -54,28 +54,25 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
       let currentEmp: any = null;
 
       if (storedId) {
-        currentEmp = employeesList.find((e: any) => e.id === storedId || e.employeeId === storedId);
+        const cleanStoredId = storedId.toLowerCase().trim();
+        currentEmp = employeesList.find((e: any) => (e.id && e.id.toLowerCase().trim() === cleanStoredId) || (e.employeeId && e.employeeId.toLowerCase().trim() === cleanStoredId));
       }
 
       if (!currentEmp && storedEmail) {
         const cleanStoredEmail = storedEmail.toLowerCase().trim();
+        const prefix = cleanStoredEmail.split('@')[0];
         currentEmp = employeesList.find(
           (e: any) =>
             (e.email && e.email.toLowerCase().trim() === cleanStoredEmail) ||
-            (e.email && e.email.toLowerCase().split('@')[0] === cleanStoredEmail) ||
-            (e.name && e.name.toLowerCase().trim() === cleanStoredEmail)
+            (e.email && e.email.toLowerCase().split('@')[0] === prefix) ||
+            (e.name && e.name.toLowerCase().trim().includes(prefix))
         );
       }
 
       if (!currentEmp) {
         const effectiveRole = storedRole || currentRole;
-        if (effectiveRole === 'ADMIN') {
-          currentEmp = employeesList.find((e: any) => e.role === 'ADMIN') || employeesList[0];
-        } else if (effectiveRole === 'MANAGER') {
-          currentEmp = employeesList.find((e: any) => e.id === 'emp-5' || e.name.toLowerCase().includes('meenal')) || employeesList.find((e: any) => e.role === 'MANAGER') || employeesList[1];
-        } else {
-          currentEmp = employeesList.find((e: any) => e.employeeId === 'SG012' || e.name.toLowerCase().includes('sonu')) || employeesList[0];
-        }
+        const matchingRoleEmps = employeesList.filter((e: any) => e.role === effectiveRole);
+        currentEmp = matchingRoleEmps[0] || employeesList[0];
       }
 
       if (currentEmp) {

@@ -35,10 +35,11 @@ export default function ManagerPortalPage() {
         const storedId = localStorage.getItem('hrm_active_employee_id');
         const storedEmail = localStorage.getItem('hrm_active_employee_email');
         const mgr = empList.find(e =>
-          (storedId && (e.id === storedId || e.employeeId === storedId)) ||
+          (storedId && (e.id === storedId || e.employeeId === storedId || e.id.toLowerCase() === storedId.toLowerCase())) ||
           (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
-          (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim())
-        ) || empList.find(e => e.id === 'emp-5') || null;
+          (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim().split('@')[0]) ||
+          (storedEmail && e.name && e.name.toLowerCase().includes(storedEmail.toLowerCase().trim().split('@')[0]))
+        ) || empList.find(e => e.role === 'MANAGER') || null;
         setActiveManager(mgr);
       }
     } catch (err) {

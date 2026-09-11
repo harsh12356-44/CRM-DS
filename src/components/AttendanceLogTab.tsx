@@ -92,26 +92,23 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
         let found = null;
         if (targetId) {
           found = empsList.find((e: any) =>
-            (e.id && e.id.toLowerCase() === targetId) ||
-            (e.employeeId && e.employeeId.toLowerCase() === targetId) ||
+            (e.id && e.id.toLowerCase().trim() === targetId) ||
+            (e.employeeId && e.employeeId.toLowerCase().trim() === targetId) ||
             (e.name && e.name.toLowerCase().includes(targetId))
           );
         }
         if (!found && storedEmail) {
           const cleanEmail = storedEmail.toLowerCase().trim();
+          const prefix = cleanEmail.split('@')[0];
           found = empsList.find((e: any) =>
             (e.email && e.email.toLowerCase().trim() === cleanEmail) ||
-            (e.email && e.email.toLowerCase().split('@')[0] === cleanEmail)
+            (e.email && e.email.toLowerCase().split('@')[0] === prefix) ||
+            (e.name && e.name.toLowerCase().includes(prefix))
           );
         }
         if (!found) {
-          if (storedRole === 'ADMIN') {
-            found = empsList.find((e: any) => e.role === 'ADMIN') || empsList[0];
-          } else if (storedRole === 'MANAGER') {
-            found = empsList.find((e: any) => e.id === 'emp-5' || (e.name && e.name.toLowerCase().includes('meenal'))) || empsList.find((e: any) => e.role === 'MANAGER') || empsList[1];
-          } else {
-            found = empsList.find((e: any) => e.employeeId === 'SG012' || (e.name && e.name.toLowerCase().includes('sonu'))) || empsList[0];
-          }
+          const matchingEmps = empsList.filter((e: any) => e.role === storedRole);
+          found = matchingEmps[0] || empsList[0];
         }
         if (found) {
           empsList = [found];

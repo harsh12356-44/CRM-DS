@@ -203,20 +203,17 @@ function EmployeePortalContent() {
 
         let matched = employeesList.find(
           e =>
-            (storedId && (e.id === storedId || e.employeeId === storedId)) ||
+            (storedId && (e.id === storedId || e.employeeId === storedId || e.id.toLowerCase() === storedId.toLowerCase())) ||
             (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
-            (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim())
+            (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim().split('@')[0]) ||
+            (storedEmail && e.name && e.name.toLowerCase().includes(storedEmail.toLowerCase().trim().split('@')[0]))
         );
 
         if (matched) {
           activeTargetId = matched.id;
-        } else if (storedRole === 'ADMIN') {
-          const adm = employeesList.find(e => e.role === 'ADMIN');
-          activeTargetId = adm ? adm.id : 'emp-1';
-        } else if (storedRole === 'MANAGER') {
-          activeTargetId = storedId || 'emp-5';
         } else {
-          activeTargetId = storedId || 'emp-12';
+          const matchingRoleEmps = employeesList.filter(e => e.role === storedRole);
+          activeTargetId = matchingRoleEmps[0] ? matchingRoleEmps[0].id : employeesList[0].id;
         }
         localStorage.setItem('hrm_active_employee_id', activeTargetId);
       }

@@ -92,12 +92,13 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
             const data = await res.json();
             const employeesList: any[] = Array.isArray(data) ? data : data.employees || [];
             const emp = employeesList.find((e: any) =>
-              (storedId && (e.id === storedId || e.employeeId === storedId)) ||
+              (storedId && (e.id === storedId || e.employeeId === storedId || e.id.toLowerCase() === storedId.toLowerCase())) ||
               (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
-              (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim())
+              (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim().split('@')[0]) ||
+              (storedEmail && e.name && e.name.toLowerCase().includes(storedEmail.toLowerCase().trim().split('@')[0]))
             );
             setIsWfh(emp?.workMode === 'WFH');
-            const newCode = emp ? (emp.employeeId || emp.id) : (storedId || 'MN005');
+            const newCode = emp ? (emp.employeeId || emp.id) : (storedId || 'EMP');
             setEmpCodeDisplay(prev => prev === newCode ? prev : newCode);
           } catch (e) {}
         }

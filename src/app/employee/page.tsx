@@ -139,21 +139,31 @@ function EmployeePortalContent() {
       return;
     }
 
+    if (employee?.password && currentPassword && currentPassword !== employee.password) {
+      setPasswordError('Current password is incorrect.');
+      return;
+    }
+
     setPasswordLoading(true);
     try {
-      const activeEmpId = employee?.id || selectedEmployeeId || 'emp-12';
+      const storedEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : '';
+      const storedEmpEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : '';
+      const activeEmpId = employee?.id || storedEmpId || selectedEmployeeId || 'emp-5';
+      const activeEmpEmail = employee?.email || storedEmpEmail || '';
+
       const res = await fetch('/api/employees', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: activeEmpId,
+          email: activeEmpEmail,
           password: newPassword,
         }),
       });
 
       const data = await res.json();
       if (res.ok && data.success) {
-        setPasswordMsg('Password changed successfully! Updated live in Admin dashboard.');
+        setPasswordMsg('Password changed successfully! Saved directly in backend database.');
         if (employee) {
           setEmployee({ ...employee, password: newPassword });
         }

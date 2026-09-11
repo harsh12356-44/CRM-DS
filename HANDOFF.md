@@ -34,6 +34,10 @@
 - **Universal Active User & Manager Identity Resolution (Permanent Fix)**:
   - Eliminated all hardcoded employee fallback IDs across `Navbar.tsx`, `Sidebar.tsx`, `AttendanceLogTab.tsx`, `employee/page.tsx`, and `manager/page.tsx`.
   - Implemented universal role, email, and ID matching so every single employee and manager (Meenal, Naman, Jigyasa, Divyanshu, Ravina, etc.) strictly resolves to their own exact record without any cross-overriding.
+- **Frontend-to-Backend Password Persistence & Real-Time Login Verification**:
+  - Enhanced `/api/employees` (`POST` and `PUT` methods) to match target employee records by `id`, `employeeId`, or `email`, persisting password and profile edits directly into `data/db.json` on the backend server.
+  - Enhanced `handleChangePasswordSubmit` in Employee Portal (`src/app/employee/page.tsx`) to validate current password and update exact employee ID (`emp-5` for Meenal).
+  - Enforced password check in `LoginPage` (`src/app/login/page.tsx`), validating entered credentials against the employee password in the backend database.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

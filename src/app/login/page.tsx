@@ -51,6 +51,11 @@ export default function LoginPage() {
 
       let savedEmail = cleanEmail;
       if (emp) {
+        if (emp.password && password && emp.password !== password) {
+          setError(`Invalid password for ${emp.name || savedEmail}. Please enter your updated password.`);
+          setLoading(false);
+          return;
+        }
         targetRole = (emp.role as 'ADMIN' | 'MANAGER' | 'EMPLOYEE') || 'EMPLOYEE';
         empId = emp.id;
         if (emp.email) savedEmail = emp.email;

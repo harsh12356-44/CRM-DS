@@ -222,16 +222,16 @@ function EmployeePortalContent() {
         if (matched) {
           activeTargetId = matched.id;
         } else {
-          const matchingRoleEmps = employeesList.filter(e => e.role === storedRole);
-          activeTargetId = matchingRoleEmps[0] ? matchingRoleEmps[0].id : employeesList[0].id;
+          const matchingRoleEmps = employeesList.filter(e => e && e.role === storedRole);
+          activeTargetId = matchingRoleEmps[0] ? matchingRoleEmps[0].id : (employeesList[0]?.id || 'emp-5');
         }
         localStorage.setItem('hrm_active_employee_id', activeTargetId);
       }
 
       // Match selected employee by ID, employeeId, or name
       const currentEmp = employeesList.find(
-        e => e.id === activeTargetId || e.employeeId === activeTargetId || e.name.toLowerCase().includes(activeTargetId.toLowerCase())
-      ) || employeesList[0];
+        e => e && e.id && (e.id === activeTargetId || e.employeeId === activeTargetId || (e.name && activeTargetId && e.name.toLowerCase().includes(activeTargetId.toLowerCase())))
+      ) || employeesList[0] || null;
 
       setEmployee(currentEmp || null);
 
@@ -240,8 +240,8 @@ function EmployeePortalContent() {
           currentEmp.role === 'MANAGER' ||
           currentEmp.role === 'ADMIN' ||
           employeesList.some(e =>
-            (e.primaryManager && e.primaryManager.toLowerCase() === currentEmp.name.toLowerCase()) ||
-            (e.secondaryManager && e.secondaryManager.toLowerCase() === currentEmp.name.toLowerCase())
+            (e && e.primaryManager && currentEmp.name && e.primaryManager.toLowerCase() === currentEmp.name.toLowerCase()) ||
+            (e && e.secondaryManager && currentEmp.name && e.secondaryManager.toLowerCase() === currentEmp.name.toLowerCase())
           )
         );
 
@@ -445,8 +445,8 @@ function EmployeePortalContent() {
   };
 
   // Compute Employee Own & Team Statistics
-  const empName = employee ? employee.name.split(' ')[0] : 'Sonu';
-  const empId = employee?.employeeId || 'SG012';
+  const empName = employee?.name ? employee.name.trim().split(' ')[0] : 'Employee';
+  const empId = employee?.employeeId || 'EMP';
   const managerName = employee?.primaryManager || 'Ravina Khimani';
 
   const safeAttendance = Array.isArray(attendance) ? attendance : [];
@@ -458,22 +458,22 @@ function EmployeePortalContent() {
       employee.role === 'MANAGER' ||
       employee.role === 'ADMIN' ||
       safeAllEmployees.some(e =>
-        (e.primaryManager && e.primaryManager.toLowerCase() === employee.name.toLowerCase()) ||
-        (e.secondaryManager && e.secondaryManager.toLowerCase() === employee.name.toLowerCase())
+        (e && e.primaryManager && employee.name && e.primaryManager.toLowerCase() === employee.name.toLowerCase()) ||
+        (e && e.secondaryManager && employee.name && e.secondaryManager.toLowerCase() === employee.name.toLowerCase())
       )
     )
   );
 
   const teamSubordinates = safeAllEmployees.filter(
-    e => e.id !== employee?.id && (
-      (e.primaryManager && e.primaryManager.toLowerCase() === employee?.name.toLowerCase()) ||
-      (e.secondaryManager && e.secondaryManager.toLowerCase() === employee?.name.toLowerCase()) ||
+    e => e && e.id !== employee?.id && (
+      (e.primaryManager && employee?.name && e.primaryManager.toLowerCase() === employee.name.toLowerCase()) ||
+      (e.secondaryManager && employee?.name && e.secondaryManager.toLowerCase() === employee.name.toLowerCase()) ||
       employee?.role === 'ADMIN'
     )
   );
 
   const teamSubordinateIds = teamSubordinates.map(e => e.id);
-  const teamSubordinateNames = teamSubordinates.map(e => e.name.toLowerCase());
+  const teamSubordinateNames = teamSubordinates.map(e => (e.name || '').toLowerCase());
 
   const teamLeaves = (allLeaves || []).filter(l =>
     teamSubordinateIds.includes(l.employeeId) ||

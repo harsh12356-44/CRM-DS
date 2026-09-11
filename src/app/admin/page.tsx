@@ -178,8 +178,28 @@ export default function AdminDashboardPage() {
   });
 
   // Compute Employees Current Month Overview dynamically
+  const now = new Date();
+  const dynamicYear = now.getFullYear();
+  const dynamicMonth = String(now.getMonth() + 1).padStart(2, '0');
+  const currentMonthPrefix = `${dynamicYear}-${dynamicMonth}`;
+  
+  const hasDynamicLogs = attendance.some(a => a && a.date && a.date.startsWith(currentMonthPrefix));
+  const hasSeptemberLogs = attendance.some(a => a && a.date && a.date.startsWith('2026-09'));
+  const activeMonthPrefix = hasDynamicLogs ? currentMonthPrefix : (hasSeptemberLogs ? '2026-09' : '2026-08');
+
+  const [selYear, selMonth] = activeMonthPrefix.split('-').map(Number);
+  const activeMonthName = new Date(selYear, selMonth - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
   const monthOverviewList = employees.map((emp) => {
-    const empLogs = attendance.filter((a) => a.employeeId === emp.id || a.employeeId === emp.employeeId);
+    const empLogs = attendance.filter(
+      (a) =>
+        (a.employeeId === emp.id ||
+          a.employeeId === emp.employeeId ||
+          (a as any).employeeName === emp.name ||
+          (emp.name && (a as any).employeeName && (a as any).employeeName.toLowerCase() === emp.name.toLowerCase())) &&
+        a.date &&
+        a.date.startsWith(activeMonthPrefix)
+    );
     const totalWorkedMins = empLogs.reduce((sum, a) => sum + (a.workedMinutes || 0), 0);
     const totalShortMins = empLogs.reduce((sum, a) => sum + (a.shortMinutes || 0), 0);
     const totalExtraMins = empLogs.reduce((sum, a) => sum + (a.extraMinutes || 0), 0);
@@ -410,7 +430,7 @@ export default function AdminDashboardPage() {
             <div className="pb-3 border-b border-slate-800">
               <h2 className="text-lg font-extrabold text-white font-heading flex items-center space-x-2">
                 <Clock className="w-5 h-5 text-indigo-400" />
-                <span>Employees Current Month Overview</span>
+                <span>Employees {activeMonthName} Overview</span>
               </h2>
               <p className="text-xs text-slate-400">Autofetched monthly working hours compilation, short hours, overtime, and status</p>
             </div>

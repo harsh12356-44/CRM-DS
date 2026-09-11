@@ -8,8 +8,8 @@ import * as XLSX from 'xlsx';
 
 export default function AttendanceImportPage() {
   const [uploadType, setUploadType] = useState<'Monthly Punches Upload' | 'Completed Hours'>('Monthly Punches Upload');
-  const [selectedMonth, setSelectedMonth] = useState('8'); // August 2026 default
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState(() => String(new Date().getMonth() + 1));
+  const [selectedYear, setSelectedYear] = useState(() => String(new Date().getFullYear()));
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');

@@ -6,8 +6,8 @@ import { PayrollPreview } from '@/lib/types';
 import * as XLSX from 'xlsx';
 
 export default function PayrollTab() {
-  const [month, setMonth] = useState(7);
-  const [year, setYear] = useState(2026);
+  const [month, setMonth] = useState(() => new Date().getMonth() + 1);
+  const [year, setYear] = useState(() => new Date().getFullYear());
   const [previews, setPreviews] = useState<PayrollPreview[]>([]);
   const [loading, setLoading] = useState(true);
 

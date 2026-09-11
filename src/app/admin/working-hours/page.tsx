@@ -26,8 +26,8 @@ const YEARS = ['2024', '2025', '2026', '2027'];
 
 export default function WorkingHoursPage() {
   const [viewMode, setViewMode] = useState<'matrix' | 'daily'>('matrix');
-  const [selectedMonth, setSelectedMonth] = useState('8'); // August default
-  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedMonth, setSelectedMonth] = useState(() => String(new Date().getMonth() + 1));
+  const [selectedYear, setSelectedYear] = useState(() => String(new Date().getFullYear()));
   const [department, setDepartment] = useState('ALL');
 
   const [logs, setLogs] = useState<AttendanceLog[]>([]);
@@ -37,8 +37,8 @@ export default function WorkingHoursPage() {
 
   // Import Modal State
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
-  const [importMonth, setImportMonth] = useState('8');
-  const [importYear, setImportYear] = useState('2026');
+  const [importMonth, setImportMonth] = useState(() => String(new Date().getMonth() + 1));
+  const [importYear, setImportYear] = useState(() => String(new Date().getFullYear()));
   const [file, setFile] = useState<File | null>(null);
   const [objectRows, setObjectRows] = useState<any[]>([]);
   const [previewRows, setPreviewRows] = useState<any[]>([]);

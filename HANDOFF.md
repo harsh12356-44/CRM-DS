@@ -42,10 +42,11 @@
   - Configured a prominent **"💾 Save Database"** button in [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx), exclusively visible to Admin accounts.
   - Expanded `isAdminAccount` check (`isAdminPage || isAdminRole || isAdminUser`) so the button is guaranteed 100% visible on all `/admin` pages and Admin logins.
   - Clicking this button invokes `POST /api/admin/save-db` ([route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/admin/save-db/route.ts)), flushing all in-memory database changes, persisting `data/db.json` synchronously via `saveDbDataAsync(db)`, generating a timestamped backup in `/data/backups/db_backup_<timestamp>.json`, and displaying a live toast confirmation with synced record counts.
-- **Dynamic Current Month Employee Dashboard & Statistics**:
-  - Refactored `src/app/employee/page.tsx` dashboard to automatically derive the current month and year (`currentMonthPrefix`, `monthName`).
-  - Automatically calculates current month's **Present Days Count**, **Total Working Hours**, **Average Daily Working Hours**, and **Late Arrivals** (check-in after 09:15 AM).
-  - Replaced hardcoded August 2026 chart with dynamic current month bar chart rendering (`monthChartDays.map(...)`), showing exact daily working hours across all days of the current month.
+- **Dynamic Current Month Attendance Grid & Working Hours for Admin Account**:
+  - Configured [src/app/admin/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/page.tsx) (Admin Dashboard Overview) to calculate `activeMonthPrefix` dynamically for current month (`new Date().getMonth() + 1`, `new Date().getFullYear()`) and filter employee attendance logs accordingly for the **Employees Current Month Overview** table.
+  - Updated [src/app/admin/working-hours/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/working-hours/page.tsx) (Admin Working Hours tab) to dynamically default `selectedMonth`, `selectedYear`, `importMonth`, and `importYear` to the current month and year instead of hardcoded August 2026.
+  - Updated [src/app/admin/attendance-analytics/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/attendance-analytics/page.tsx) and [src/app/admin/attendance/import/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/attendance/import/page.tsx) to default month/year state initializers dynamically to the current month and year.
+  - Updated [src/components/PayrollTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/PayrollTab.tsx) to default `month` and `year` to the current month and year.
 - **Hostinger Server Data Protection & CI/CD Pipeline**:
   - Updated [.github/workflows/deploy.yml](file:///d:/Ravina/Antigravity/crm-ds/.github/workflows/deploy.yml) deployment script to back up server-side `data/db.json` to `/tmp/hrm_live_db_backup.json` prior to `git reset --hard origin/main`, and automatically restore it after deployment.
   - Prevents server-side edits (e.g. employee password updates, attendance additions, leave requests) from being overwritten during automated GitHub deployment pushes.

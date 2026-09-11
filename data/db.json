@@ -105,7 +105,8 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-03-01"
+      "dateOfJoining": "2024-03-01",
+      "password": "Meenal@MN005"
     },
     {
       "id": "emp-6",

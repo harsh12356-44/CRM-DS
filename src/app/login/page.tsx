@@ -27,6 +27,8 @@ export default function LoginPage() {
         employeesList = Array.isArray(data) ? data : data.employees || [];
       } catch (err) {}
 
+      const cleanPrefix = cleanEmail.split('@')[0];
+
       // Find matching employee by email, username prefix, employee ID, or name
       const emp = employeesList.find((e: any) => {
         if (!e) return false;
@@ -37,8 +39,9 @@ export default function LoginPage() {
         return (
           eEmail === cleanEmail ||
           (ePrefix && ePrefix === cleanEmail) ||
-          (eCode && eCode === cleanEmail) ||
-          (eName && eName === cleanEmail) ||
+          (ePrefix && cleanPrefix && ePrefix === cleanPrefix) ||
+          (eCode && (eCode === cleanEmail || eCode === cleanPrefix)) ||
+          (eName && (eName === cleanEmail || eName === cleanPrefix || cleanEmail.includes(eName) || eName.includes(cleanPrefix))) ||
           (cleanEmail.length > 2 && eEmail.startsWith(cleanEmail))
         );
       });
@@ -56,19 +59,19 @@ export default function LoginPage() {
         if (cleanEmail.includes('ravina') || cleanEmail.includes('admin') || cleanEmail.includes('harshit')) {
           targetRole = 'ADMIN';
           empId = 'emp-1';
-        } else if (cleanEmail.includes('naman')) {
-          targetRole = 'MANAGER';
-          empId = 'emp-2';
-        } else if (cleanEmail.includes('jigyasa')) {
-          targetRole = 'MANAGER';
-          empId = 'emp-3';
-        } else if (cleanEmail.includes('divyanshu')) {
-          targetRole = 'MANAGER';
-          empId = 'emp-4';
-        } else if (cleanEmail.includes('meenal')) {
+        } else if (cleanEmail.includes('meenal') || cleanEmail.includes('mn005') || cleanEmail.includes('seo')) {
           targetRole = 'MANAGER';
           empId = 'emp-5';
           savedEmail = 'meenal@hrmpilot.com';
+        } else if (cleanEmail.includes('naman') || cleanEmail.includes('nb002')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-2';
+        } else if (cleanEmail.includes('jigyasa') || cleanEmail.includes('js003')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-3';
+        } else if (cleanEmail.includes('divyanshu') || cleanEmail.includes('dv004')) {
+          targetRole = 'MANAGER';
+          empId = 'emp-4';
         } else if (cleanEmail.includes('nandini')) {
           targetRole = 'EMPLOYEE';
           empId = 'emp-6';
@@ -108,9 +111,6 @@ export default function LoginPage() {
         } else if (cleanEmail.includes('sudeshna')) {
           targetRole = 'EMPLOYEE';
           empId = 'emp-18';
-        } else if (cleanEmail.includes('manager')) {
-          targetRole = 'MANAGER';
-          empId = 'emp-2';
         } else {
           targetRole = 'EMPLOYEE';
           empId = 'emp-12';

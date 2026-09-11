@@ -12,6 +12,8 @@ export default function ManagerPortalPage() {
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState('');
 
+  const [activeManager, setActiveManager] = useState<Employee | null>(null);
+
   const fetchManagerData = useCallback(async (isSilent = false) => {
     try {
       if (!isSilent) setLoading(true);
@@ -24,9 +26,21 @@ export default function ManagerPortalPage() {
       const empData = await empRes.json();
 
       const serverLeaves: LeaveRecord[] = Array.isArray(leaveData) ? leaveData : leaveData.records || [];
+      const empList: Employee[] = Array.isArray(empData) ? empData : empData.employees || [];
 
       setLeaves(serverLeaves);
-      setEmployees(Array.isArray(empData) ? empData : empData.employees || []);
+      setEmployees(empList);
+
+      if (typeof window !== 'undefined') {
+        const storedId = localStorage.getItem('hrm_active_employee_id');
+        const storedEmail = localStorage.getItem('hrm_active_employee_email');
+        const mgr = empList.find(e =>
+          (storedId && (e.id === storedId || e.employeeId === storedId)) ||
+          (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
+          (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim())
+        ) || empList.find(e => e.id === 'emp-5') || null;
+        setActiveManager(mgr);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -157,7 +171,7 @@ export default function ManagerPortalPage() {
                 <span>Manager Approval & Subordinate Leave Desk</span>
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Review subordinate leave applications and monitor real-time HR final decisions.
+                Active Manager Account: <strong className="text-indigo-300 font-bold">{activeManager ? `${activeManager.name} (${activeManager.designation || 'Manager'})` : 'Meenal (SEO Manager)'}</strong> — Review subordinate leave applications and monitor real-time HR final decisions.
               </p>
             </div>
           </div>

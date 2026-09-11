@@ -69,6 +69,10 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
         );
       }
 
+      if (!currentEmp && storedEmail && (storedEmail.includes('meenal') || storedEmail.includes('mn005'))) {
+        currentEmp = employeesList.find((e: any) => e.id === 'emp-5' || e.employeeId === 'MN005' || e.name.toLowerCase().includes('meenal'));
+      }
+
       if (!currentEmp) {
         const effectiveRole = storedRole || currentRole;
         const matchingRoleEmps = employeesList.filter((e: any) => e.role === effectiveRole);

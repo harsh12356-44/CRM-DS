@@ -38,10 +38,10 @@
   - Enhanced `/api/employees` (`POST` and `PUT` methods) to match target employee records by `id`, `employeeId`, or `email`, persisting password and profile edits directly into `data/db.json` on the backend server.
   - Enhanced `handleChangePasswordSubmit` in Employee Portal (`src/app/employee/page.tsx`) to validate current password and update exact employee ID (`emp-5` for Meenal).
   - Enforced password check in `LoginPage` (`src/app/login/page.tsx`), validating entered credentials against the employee password in the backend database.
-  - Updated Meenal's account credentials in `data/db.json`, `src/lib/store.ts`, and `src/app/login/page.tsx` to `meenalmundra9@gmail.com` with password `Meenal@MN005`.
-- **Automatic Attendance Data Persistence**:
-  - Enhanced `/api/attendance` and `/api/attendance/punch` to support single and batch attendance updates (`action: 'MANUAL_EDIT'`, `'ADD'`, `'SAVE'`, `'UPDATE'`, `'EDIT'`, or direct payloads).
-  - Automatically writes all attendance entries added or edited from the frontend directly into `data/db.json` on the backend.
+- **Deployment Live Database Preservation Fix (Permanent Fix for Repeated Data Reset Bug)**:
+  - Identified the exact root cause why live data edits were repeatedly resetting: GitHub Actions deployment workflow executed `git reset --hard origin/main` on Hostinger, which wiped server-side `data/db.json` edits back to the git commit state on every push.
+  - Updated [.github/workflows/deploy.yml](file:///d:/Ravina/Antigravity/crm-ds/.github/workflows/deploy.yml) to back up `/data/db.json` to `/tmp/hrm_live_db_backup.json` prior to `git reset --hard` and restore it immediately after code update, guaranteeing that live passwords, attendance logs, and employee data edited by users on Hostinger are NEVER wiped by deployments.
+  - Updated active user resolution in `Navbar.tsx` and `manager/page.tsx` to explicitly target Meenal (`emp-5`) whenever `storedEmail` contains `meenal` or `mn005`, eliminating default fallback to Naman (`emp-2`).
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

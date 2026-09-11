@@ -332,7 +332,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, import: newImport, logs: enrichedLogs, totalEmployeesUpdated: importedCount });
     }
 
-    if (body.action === 'MANUAL_EDIT') {
+    const isSingleEntry =
+      body.action === 'MANUAL_EDIT' ||
+      body.action === 'ADD' ||
+      body.action === 'SAVE' ||
+      body.action === 'UPDATE' ||
+      body.action === 'EDIT' ||
+      (!body.action && (body.employeeId || body.date || body.attendanceCode));
+
+    if (isSingleEntry) {
       const targetId = body.id || body.logId;
       const { employeeId, date, attendanceCode, checkIn, checkOut } = body;
       const correctionReason = body.correctionReason || body.reason || '';
@@ -357,20 +365,22 @@ export async function POST(request: Request) {
         });
       }
 
-      let workedMinutes = 0;
-      if (attendanceCode === 'P' || attendanceCode === 'MP') {
-        workedMinutes = 480;
-        try {
-          if (checkIn && checkOut && checkIn.includes(':') && checkOut.includes(':')) {
-            const [inH, inM] = checkIn.split(':').map(Number);
-            const [outH, outM] = checkOut.split(':').map(Number);
-            if (!isNaN(inH) && !isNaN(outH)) {
-              workedMinutes = Math.max(0, (outH * 60 + outM) - (inH * 60 + inM));
+      let workedMinutes = body.workedMinutes ?? 0;
+      if (workedMinutes === 0) {
+        if (attendanceCode === 'P' || attendanceCode === 'MP') {
+          workedMinutes = 480;
+          try {
+            if (checkIn && checkOut && checkIn.includes(':') && checkOut.includes(':')) {
+              const [inH, inM] = checkIn.split(':').map(Number);
+              const [outH, outM] = checkOut.split(':').map(Number);
+              if (!isNaN(inH) && !isNaN(outH)) {
+                workedMinutes = Math.max(0, (outH * 60 + outM) - (inH * 60 + inM));
+              }
             }
-          }
-        } catch (e) {}
-      } else if (attendanceCode === 'HD') {
-        workedMinutes = 240;
+          } catch (e) {}
+        } else if (attendanceCode === 'HD') {
+          workedMinutes = 240;
+        }
       }
 
       const shortMinutes = Math.max(0, 480 - workedMinutes);
@@ -379,25 +389,25 @@ export async function POST(request: Request) {
       if (index !== -1) {
         const oldVal = JSON.stringify(db.attendanceLogs[index]);
         db.attendanceLogs[index].employeeId = canonicalEmpId;
-        db.attendanceLogs[index].attendanceCode = attendanceCode;
-        db.attendanceLogs[index].checkIn = checkIn;
-        db.attendanceLogs[index].checkOut = checkOut;
+        db.attendanceLogs[index].attendanceCode = attendanceCode || db.attendanceLogs[index].attendanceCode || 'P';
+        db.attendanceLogs[index].checkIn = checkIn || db.attendanceLogs[index].checkIn;
+        db.attendanceLogs[index].checkOut = checkOut || db.attendanceLogs[index].checkOut;
         db.attendanceLogs[index].workedMinutes = workedMinutes;
         db.attendanceLogs[index].shortMinutes = shortMinutes;
         db.attendanceLogs[index].extraMinutes = extraMinutes;
         db.attendanceLogs[index].isManual = true;
-        db.attendanceLogs[index].correctionReason = correctionReason;
+        db.attendanceLogs[index].correctionReason = correctionReason || db.attendanceLogs[index].correctionReason;
 
         logAudit('Manual Attendance Correction', 'AttendanceLog', db.attendanceLogs[index].id, oldVal, JSON.stringify(db.attendanceLogs[index]));
         await saveDbDataAsync(db);
 
-        return NextResponse.json({ success: true, log: db.attendanceLogs[index] });
+        return NextResponse.json({ success: true, log: db.attendanceLogs[index], logs: db.attendanceLogs });
       } else if (canonicalEmpId && date) {
         const newLog: AttendanceLog = {
           id: targetId || `att-${canonicalEmpId}-${date}`,
           employeeId: canonicalEmpId,
           date,
-          attendanceCode,
+          attendanceCode: attendanceCode || 'P',
           checkIn,
           checkOut,
           workedMinutes,
@@ -413,7 +423,7 @@ export async function POST(request: Request) {
         logAudit('Manual Attendance Entry', 'AttendanceLog', newLog.id, undefined, JSON.stringify(newLog));
         await saveDbDataAsync(db);
 
-        return NextResponse.json({ success: true, log: newLog });
+        return NextResponse.json({ success: true, log: newLog, logs: db.attendanceLogs });
       }
 
       return NextResponse.json({ error: 'Log entry or target employee date details not found' }, { status: 400 });

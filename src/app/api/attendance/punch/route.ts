@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDbData, saveDbData } from '@/lib/store';
+import { getDbData, saveDbDataAsync } from '@/lib/store';
 import { AttendanceLog } from '@/lib/types';
 
 export async function POST(request: Request) {
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       };
 
       db.attendanceLogs.push(newLog);
-      saveDbData(db);
+      await saveDbDataAsync(db);
       return NextResponse.json({ success: true, action: 'PUNCH_IN', log: newLog });
     } else {
       if (!existingLog) {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       existingLog.shortMinutes = Math.max(0, 480 - workedMins);
       existingLog.extraMinutes = Math.max(0, workedMins - 480);
 
-      saveDbData(db);
+      await saveDbDataAsync(db);
       return NextResponse.json({ success: true, action: 'PUNCH_OUT', log: existingLog });
     }
   } catch (error: any) {

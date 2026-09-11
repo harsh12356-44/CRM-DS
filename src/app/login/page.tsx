@@ -67,7 +67,7 @@ export default function LoginPage() {
         } else if (cleanEmail.includes('meenal') || cleanEmail.includes('mn005') || cleanEmail.includes('seo')) {
           targetRole = 'MANAGER';
           empId = 'emp-5';
-          savedEmail = 'meenal@hrmpilot.com';
+          savedEmail = 'meenalmundra9@gmail.com';
         } else if (cleanEmail.includes('naman') || cleanEmail.includes('nb002')) {
           targetRole = 'MANAGER';
           empId = 'emp-2';

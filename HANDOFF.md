@@ -27,10 +27,10 @@
   - Triggers `POST /api/admin/save-db`, which flushes in-memory data, saves `data/db.json`, generates a timestamped snapshot backup in `data/backups/db_backup_<timestamp>.json`, and displays a live toast confirmation with synced record counts.
 - **Reverted Auto-Seeded September Attendance**:
   - Reverted the 630 auto-generated September 2026 attendance records (`commit b6f36be`) per user request to restore original clean attendance state prior to monthly biometric Excel file upload.
-- **Fixed Manager Account Login & Identity Resolution**:
-  - Resolved an issue where logging into Meenal's account (`emp-5`) or other manager accounts defaulted to Naman Bangia (`emp-2`).
-  - Updated `src/app/login/page.tsx` to store exact employee email (`meenal@hrmpilot.com`) and ID (`emp-5`) in `localStorage` upon sign-in.
-  - Refactored `src/app/employee/page.tsx`, `Navbar.tsx`, `Sidebar.tsx`, and `AttendanceLogTab.tsx` fallback lookup logic to check stored user email and ID cleanly without defaulting to the first manager in the database array.
+- **Fixed Hostinger Unstyled Page / Tailwind CSS Production Build Bug**:
+  - Identified that Hostinger server running `npm install --omit=dev` stripped `@tailwindcss/postcss` and `tailwindcss` from the build environment, causing Next.js to compile without CSS styles.
+  - Moved Tailwind CSS, `@tailwindcss/postcss`, `typescript`, `@types/react`, `@types/react-dom`, and `prisma` to `dependencies` in [`package.json`](file:///d:/Ravina/Antigravity/crm-ds/package.json).
+  - Updated [`deploy.yml`](file:///d:/Ravina/Antigravity/crm-ds/.github/workflows/deploy.yml) SSH script to execute `npm install` and strict `npm run build`.
 - **Dependencies**: React 19, Next.js 15, Prisma Client v5.22.0, Tailwind CSS v4, Lucide React icons, and XLSX library for data export.
 - **Database Schema**: Full Prisma schema configured (`prisma/schema.prisma`) featuring models for `Employee` (with password field), `LeaveRecord`, `AttendanceLog`, `CompanySettings`, `Holiday`, `Department`, `Notification`, and `AuditLog`.
 

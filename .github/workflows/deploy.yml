@@ -42,9 +42,9 @@ jobs:
             git fetch --all
             git checkout -f main
             git reset --hard origin/main
-            npm install --omit=dev
+            npm install
             npx prisma generate
-            npm run build || true
+            npm run build
             mkdir -p tmp
             touch tmp/restart.txt
             echo "Deployment completed successfully!"

@@ -165,8 +165,8 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
       localStorage.removeItem('hrm_active_employee_id');
       localStorage.removeItem('hrm_active_employee_role');
       localStorage.removeItem('hrm_active_employee_is_manager');
+      window.location.href = '/login';
     }
-    router.push('/login');
   };
 
   const handleSaveDb = async () => {
@@ -214,7 +214,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     const val = e.target.value as 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
     setRoleCookie(val);
     const targetUrl = val === 'ADMIN' ? '/admin' : val === 'MANAGER' ? '/manager' : '/employee';
-    router.push(targetUrl);
+    window.location.href = targetUrl;
   };
 
   const activeEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;

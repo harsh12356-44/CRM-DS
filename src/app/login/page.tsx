@@ -135,11 +135,11 @@ export default function LoginPage() {
 
       // Perform strict role-based dashboard redirection
       if (targetRole === 'ADMIN') {
-        router.push('/admin');
+        window.location.href = '/admin';
       } else if (targetRole === 'MANAGER') {
-        router.push('/manager');
+        window.location.href = '/manager';
       } else {
-        router.push('/employee?tab=dashboard');
+        window.location.href = '/employee?tab=dashboard';
       }
     } catch (err: any) {
       console.error(err);

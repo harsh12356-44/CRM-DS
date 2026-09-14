@@ -276,15 +276,23 @@ export default function WorkingHoursPage() {
       logsMap[`${l.employeeId}_${normDate}`] = l;
       logsMap[`${l.employeeId}_${l.date}`] = l;
 
-      const emp = employees.find(
-        e => e.id === l.employeeId || e.employeeId === l.employeeId || (e.name && l.employeeId && e.name.toLowerCase() === l.employeeId.toLowerCase())
-      );
+      const lEmp = String(l.employeeId || '').toLowerCase().trim();
+      const emp = employees.find(e => {
+        const eId = String(e.id || '').toLowerCase().trim();
+        const eCode = String(e.employeeId || '').toLowerCase().trim();
+        const eName = String(e.name || '').toLowerCase().trim();
+        return lEmp && (eId === lEmp || eCode === lEmp || eName === lEmp || (lEmp.length >= 3 && eName.includes(lEmp)));
+      });
       if (emp) {
         logsMap[`${emp.id}_${normDate}`] = l;
         logsMap[`${emp.id}_${l.date}`] = l;
         if (emp.employeeId) {
           logsMap[`${emp.employeeId}_${normDate}`] = l;
           logsMap[`${emp.employeeId}_${l.date}`] = l;
+        }
+        if (emp.name) {
+          logsMap[`${emp.name.toLowerCase().trim()}_${normDate}`] = l;
+          logsMap[`${emp.name.toLowerCase().trim()}_${l.date}`] = l;
         }
       }
     }
@@ -531,7 +539,13 @@ export default function WorkingHoursPage() {
                       </tr>
                     ) : employees.map(emp => {
                       // Calculate employee total worked mins for the month
-                      const empLogs = logs.filter(l => l.employeeId === emp.id || l.employeeId === emp.employeeId || (l.employeeId && emp.name && l.employeeId.toLowerCase() === emp.name.toLowerCase()));
+                      const empLogs = logs.filter(l => {
+                        const lEmp = String(l.employeeId || '').toLowerCase().trim();
+                        const eId = String(emp.id || '').toLowerCase().trim();
+                        const eCode = String(emp.employeeId || '').toLowerCase().trim();
+                        const eName = String(emp.name || '').toLowerCase().trim();
+                        return lEmp && (eId === lEmp || eCode === lEmp || eName === lEmp || (lEmp.length >= 3 && eName.includes(lEmp)));
+                      });
                       const empTotalMins = empLogs.reduce((sum, l) => sum + getLogWorkedMins(l), 0);
 
                       return (
@@ -547,7 +561,7 @@ export default function WorkingHoursPage() {
                             const padDay = String(dayNum).padStart(2, '0');
                             const padMonth = String(selectedMonth).padStart(2, '0');
                             const dateStr = `${selectedYear}-${padMonth}-${padDay}`;
-                            const log = logsMap[`${emp.id}_${dateStr}`] || logsMap[`${emp.employeeId}_${dateStr}`];
+                            const log = logsMap[`${emp.id}_${dateStr}`] || logsMap[`${emp.employeeId}_${dateStr}`] || logsMap[`${emp.name.toLowerCase().trim()}_${dateStr}`];
 
                             const dateObj = new Date(dateStr);
                             const isSunday = dateObj.getDay() === 0;

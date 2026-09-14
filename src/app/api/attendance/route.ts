@@ -46,9 +46,17 @@ export async function GET(request: Request) {
   }
 
   const enrichedLogs = logs.map(l => {
-    const emp = db.employees.find(
-      e => e.id === l.employeeId || e.employeeId === l.employeeId || (e.name && l.employeeId && e.name.toLowerCase() === l.employeeId.toLowerCase())
-    );
+    const lEmp = String(l.employeeId || '').toLowerCase().trim();
+    const emp = db.employees.find(e => {
+      const eId = String(e.id || '').toLowerCase().trim();
+      const eCode = String(e.employeeId || '').toLowerCase().trim();
+      const eName = String(e.name || '').toLowerCase().trim();
+      const eEmail = String(e.email || '').toLowerCase().trim();
+
+      if (lEmp && (eId === lEmp || eCode === lEmp || eEmail === lEmp || eName === lEmp)) return true;
+      if (lEmp.length >= 3 && (eName.includes(lEmp) || lEmp.includes(eName.split(' ')[0]))) return true;
+      return false;
+    });
     return {
       ...l,
       employeeId: emp ? emp.id : l.employeeId, // Canonicalize to emp.id so Working Hours UI maps 1:1
@@ -345,11 +353,17 @@ export async function POST(request: Request) {
       const { employeeId, date, attendanceCode, checkIn, checkOut } = body;
       const correctionReason = body.correctionReason || body.reason || '';
 
-      const matchedEmp = db.employees.find(e =>
-        e.id === employeeId ||
-        e.employeeId === employeeId ||
-        (e.name && employeeId && e.name.toLowerCase().trim() === String(employeeId).toLowerCase().trim())
-      );
+      const searchEmp = String(employeeId || '').toLowerCase().trim();
+      const matchedEmp = db.employees.find(e => {
+        const eId = String(e.id || '').toLowerCase().trim();
+        const eCode = String(e.employeeId || '').toLowerCase().trim();
+        const eName = String(e.name || '').toLowerCase().trim();
+        const eEmail = String(e.email || '').toLowerCase().trim();
+
+        if (searchEmp && (eId === searchEmp || eCode === searchEmp || eEmail === searchEmp || eName === searchEmp)) return true;
+        if (searchEmp.length >= 3 && (eName.includes(searchEmp) || searchEmp.includes(eName.split(' ')[0]))) return true;
+        return false;
+      });
       const canonicalEmpId = matchedEmp ? matchedEmp.id : employeeId;
       
       let index = -1;
@@ -359,9 +373,14 @@ export async function POST(request: Request) {
       if (index === -1 && canonicalEmpId && date) {
         index = db.attendanceLogs.findIndex(l => {
           if (l.date !== date) return false;
-          if (l.employeeId === canonicalEmpId || l.employeeId === matchedEmp?.employeeId) return true;
-          if (matchedEmp && l.employeeId && matchedEmp.name.toLowerCase().trim() === l.employeeId.toLowerCase().trim()) return true;
-          return false;
+          const lEmp = String(l.employeeId || '').toLowerCase().trim();
+          const validIds = [
+            String(canonicalEmpId).toLowerCase().trim(),
+            matchedEmp ? String(matchedEmp.id).toLowerCase().trim() : '',
+            matchedEmp ? String(matchedEmp.employeeId).toLowerCase().trim() : '',
+            matchedEmp ? String(matchedEmp.name).toLowerCase().trim() : '',
+          ].filter(Boolean);
+          return validIds.includes(lEmp);
         });
       }
 

@@ -516,11 +516,20 @@ export function getDbData(): InitialState {
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
       const data = JSON.parse(raw);
       if (data && Array.isArray(data.employees) && data.employees.length > 0) {
-        const existingIds = new Set((data.employees || []).map((e: any) => e.id));
+        let dirty = false;
         const rawList = [...(data.employees || [])];
+
         DEFAULT_EMPLOYEES.forEach(def => {
-          if (!existingIds.has(def.id)) {
+          const idx = rawList.findIndex((e: any) => e.id === def.id || (e.employeeId && e.employeeId === def.employeeId));
+          if (idx === -1) {
             rawList.push(def);
+            dirty = true;
+          } else {
+            // Auto-heal Anup Sen email mismatch if present in old db.json
+            if (def.id === 'emp-7' && rawList[idx].email === 'anup@hrmpilot.com') {
+              rawList[idx].email = 'anupsen23012002@gmail.com';
+              dirty = true;
+            }
           }
         });
 
@@ -544,6 +553,12 @@ export function getDbData(): InitialState {
           departments: data.departments || [],
         };
         (globalThis as any)._inMemoryDbData = memoryDb;
+
+        if (dirty) {
+          try {
+            fs.writeFileSync(DB_FILE, JSON.stringify(memoryDb, null, 2));
+          } catch (e) {}
+        }
         return memoryDb;
       }
     }

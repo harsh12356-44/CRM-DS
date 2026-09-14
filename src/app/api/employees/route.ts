@@ -17,11 +17,21 @@ export async function POST(request: Request) {
 
     const targetId = body.id || body.employeeId;
     const targetEmail = body.email ? body.email.toLowerCase().trim() : '';
+    const targetName = body.name ? body.name.toLowerCase().trim() : '';
 
-    const index = db.employees.findIndex(e =>
-      (targetId && (e.id === targetId || e.employeeId === targetId || (e.email && e.email.toLowerCase().trim() === String(targetId).toLowerCase().trim()))) ||
-      (targetEmail && e.email && e.email.toLowerCase().trim() === targetEmail)
-    );
+    const index = db.employees.findIndex(e => {
+      const eId = String(e.id || '').toLowerCase().trim();
+      const eEmpId = String(e.employeeId || '').toLowerCase().trim();
+      const eEmail = String(e.email || '').toLowerCase().trim();
+      const eName = String(e.name || '').toLowerCase().trim();
+
+      const cleanTargetId = String(targetId || '').toLowerCase().trim();
+
+      if (cleanTargetId && (eId === cleanTargetId || eEmpId === cleanTargetId || eEmail === cleanTargetId)) return true;
+      if (targetEmail && eEmail === targetEmail) return true;
+      if (targetName && (eName === targetName || (targetName.length >= 3 && eName.includes(targetName)))) return true;
+      return false;
+    });
 
     if (index !== -1) {
       // Edit existing employee
@@ -71,12 +81,22 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { id, action, status } = body;
     const targetEmail = body.email ? body.email.toLowerCase().trim() : '';
+    const targetName = body.name ? body.name.toLowerCase().trim() : '';
 
     const db = getDbData();
-    const index = db.employees.findIndex(e =>
-      (id && (e.id === id || e.employeeId === id || (e.email && e.email.toLowerCase().trim() === String(id).toLowerCase().trim()))) ||
-      (targetEmail && e.email && e.email.toLowerCase().trim() === targetEmail)
-    );
+    const index = db.employees.findIndex(e => {
+      const eId = String(e.id || '').toLowerCase().trim();
+      const eEmpId = String(e.employeeId || '').toLowerCase().trim();
+      const eEmail = String(e.email || '').toLowerCase().trim();
+      const eName = String(e.name || '').toLowerCase().trim();
+
+      const cleanTargetId = String(id || body.employeeId || '').toLowerCase().trim();
+
+      if (cleanTargetId && (eId === cleanTargetId || eEmpId === cleanTargetId || eEmail === cleanTargetId)) return true;
+      if (targetEmail && eEmail === targetEmail) return true;
+      if (targetName && (eName === targetName || (targetName.length >= 3 && eName.includes(targetName)))) return true;
+      return false;
+    });
 
     if (index === -1) {
       return NextResponse.json({ error: 'Employee not found' }, { status: 404 });

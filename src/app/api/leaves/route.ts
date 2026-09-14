@@ -119,7 +119,13 @@ export async function POST(request: Request) {
     if (body.action === 'override') {
       const { employeeName, quarter, casualUsed, plannedUsed } = body;
       const db = getDbData();
-      const emp = db.employees.find(e => e.name === employeeName || e.id === employeeName || e.employeeId === employeeName);
+      const cleanSearch = String(employeeName || '').toLowerCase().trim();
+      const emp = db.employees.find(e =>
+        e.name.toLowerCase().trim() === cleanSearch ||
+        e.id.toLowerCase().trim() === cleanSearch ||
+        e.employeeId.toLowerCase().trim() === cleanSearch ||
+        (cleanSearch.length >= 3 && e.name.toLowerCase().includes(cleanSearch))
+      );
       if (!emp) {
         return NextResponse.json({ error: 'Employee not found' }, { status: 404 });
       }

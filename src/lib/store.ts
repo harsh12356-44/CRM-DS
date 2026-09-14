@@ -156,7 +156,7 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     id: 'emp-7',
     employeeId: 'AS007',
     name: 'Anup Sen',
-    email: 'anup@hrmpilot.com',
+    email: 'anupsen23012002@gmail.com',
     password: 'Employee@123',
     phone: '+91 98765 00007',
     department: 'Development',
@@ -526,9 +526,9 @@ export function getDbData(): InitialState {
 
         const employeesList = rawList.map((e: any) => ({
           ...e,
-          casualAllowance: 2,
-          plannedAllowance: 4,
-          sickAllowance: 4,
+          casualAllowance: e.casualAllowance ?? 2,
+          plannedAllowance: e.plannedAllowance ?? 4,
+          sickAllowance: e.sickAllowance ?? 4,
         }));
 
         memoryDb = {

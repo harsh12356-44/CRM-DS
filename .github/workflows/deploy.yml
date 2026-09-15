@@ -66,12 +66,11 @@ jobs:
             npm install
             npx prisma generate
 
-            # 5. Build Next.js with single-thread constraint to prevent CloudLinux thread limits
-            npm run build
+            # 5. Remove any conflicting public/_next folder if present
+            rm -rf public/_next
 
-            # 6. Populate public/_next/static so LiteSpeed web server serves CSS/JS directly
-            mkdir -p public/_next
-            rsync -a --delete .next/static/ public/_next/static/
+            # 6. Build Next.js
+            npm run build
 
             # 7. Set world-readable permissions for static assets
             chmod -R 755 .next public node_modules data || true

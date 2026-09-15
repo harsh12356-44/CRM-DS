@@ -218,16 +218,22 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     window.location.href = targetUrl;
   };
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const activeEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
   const storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
   const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
 
-  const isAdminPage = typeof window !== 'undefined' && pathname ? pathname.startsWith('/admin') : false;
+  const isAdminPage = pathname ? pathname.startsWith('/admin') : false;
   const isAdminRole = currentRole === 'ADMIN' || storedRole === 'ADMIN';
   const isAdminUser = activeEmpId === 'emp-1' || activeEmpId === 'rk001' || Boolean(storedEmail && (storedEmail.includes('ravina') || storedEmail.includes('admin') || storedEmail.includes('digitalsuncity') || storedEmail.includes('harshit')));
 
   const isRavinaUser = isAdminUser || isAdminRole;
-  const isAdminAccount = isAdminPage || isAdminRole || isAdminUser;
+  const isAdminAccount = isAdminPage || isAdminRole || isAdminUser || currentRole === 'ADMIN';
 
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 sticky top-0 z-40 px-6 py-3 flex items-center justify-between shadow-sm transition-colors duration-300">

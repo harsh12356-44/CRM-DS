@@ -121,6 +121,49 @@ export function parsePunchTimes(cellVal: any): ParsedPunchResult {
   return { checkIn: '', checkOut: '', workedMinutes: 0, attendanceCode: 'A' };
 }
 
+export function normalizeToISODate(dateInput: any, defaultMonthYear: string = '2026-09'): string {
+  if (!dateInput) return '';
+  const str = String(dateInput).trim();
+  if (!str) return '';
+
+  if (str.match(/^\d{4}-\d{2}-\d{2}$/)) return str;
+  if (str.match(/^\d{4}\/\d{2}\/\d{2}$/)) return str.replace(/\//g, '-');
+  if (str.match(/^\d{8}$/)) {
+    return `${str.substring(0, 4)}-${str.substring(4, 6)}-${str.substring(6, 8)}`;
+  }
+
+  const dmYMatch = str.match(/^(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](\d{2,4})$/);
+  if (dmYMatch) {
+    const day = String(dmYMatch[1]).padStart(2, '0');
+    const month = String(dmYMatch[2]).padStart(2, '0');
+    let year = dmYMatch[3];
+    if (year.length === 2) year = `20${year}`;
+    return `${year}-${month}-${day}`;
+  }
+
+  const monthMap: { [m: string]: string } = {
+    jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+    jul: '07', aug: '08', sep: '09', sept: '09', oct: '10', nov: '11', dec: '12'
+  };
+  const namedMatch = str.match(/^(\d{1,2})[\/\s\.\-]([a-zA-Z]{3,4})(?:[\/\s\.\-](\d{2,4}))?$/);
+  if (namedMatch) {
+    const day = String(namedMatch[1]).padStart(2, '0');
+    const mName = namedMatch[2].toLowerCase().substring(0, 3);
+    const month = monthMap[mName] || '09';
+    let year = namedMatch[3] || defaultMonthYear.split('-')[0] || '2026';
+    if (year.length === 2) year = `20${year}`;
+    return `${year}-${month}-${day}`;
+  }
+
+  const dayNum = parseInt(str, 10);
+  if (!isNaN(dayNum) && dayNum >= 1 && dayNum <= 31 && String(dayNum) === str) {
+    const [y, m] = defaultMonthYear.split('-');
+    return `${y || '2026'}-${String(m || '09').padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+  }
+
+  return str;
+}
+
 export function parseBiometricPunches(rawData: any[], employees: Employee[], monthYear: string = '2026-07'): AttendanceLog[] {
   if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
@@ -335,10 +378,7 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
 
       const dateVal = findKeyVal(['date', 'workdate', 'attendancedate', 'day']);
       if (dateVal) {
-        let dateStr = dateVal;
-        if (!dateStr.includes('-') && dateStr.length === 8) {
-          dateStr = `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`;
-        }
+        const dateStr = normalizeToISODate(dateVal, monthYear);
 
         const rawIn = findKeyVal(['intime', 'checkin', 'punchin', 'login', 'timein', 'entry', 'start']);
         const rawOut = findKeyVal(['outtime', 'checkout', 'punchout', 'logout', 'timeout', 'exit', 'end']);

@@ -57,10 +57,24 @@ jobs:
             npx prisma generate
             npm run build
 
-            # 5. Trigger official Hostinger Node restart
+            # 5. Test Node server startup and log output
+            echo "Testing Node server.js startup..."
+            node server.js > /tmp/node_startup.log 2>&1 &
+            SERVER_PID=$!
+            sleep 4
+            if kill -0 $SERVER_PID 2>/dev/null; then
+              echo "SUCCESS: Node server started cleanly!"
+              kill -9 $SERVER_PID || true
+            else
+              echo "ERROR: Node server failed to start! Startup log:"
+              cat /tmp/node_startup.log
+            fi
+
+            # 6. Trigger official Hostinger Node restart
             mkdir -p tmp
             touch tmp/restart.txt
             echo "Deployment Completed & Server Restarted Successfully!"
+
 
 
 

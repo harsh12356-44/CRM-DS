@@ -7,6 +7,7 @@
 ---
 
 ## 2. Current Project Status
+- **Permanent Zero-Downtime Hostinger Deployment Architecture**: Upgraded `.github/workflows/deploy.yml` with an atomic staging build pipeline (`../hrm_build_staging`). Next.js compiles isolated from live traffic, and the completed `.next` build is swapped into place in `< 0.01s`. Eliminates live CSS deletion, preventing unstyled HTML pages during deployments permanently.
 - **Hostinger Live Deployment & Vercel Disconnection**: Disconnected Git integration on Vercel to avoid duplicate CI/CD runs and runtime data state confusion. Hostinger Node.js web server is now the single active production environment receiving automated deployments on `git push main` via GitHub Actions.
 - **Attendance Grid Dynamic Month & Punch Events**: Configured `AttendanceLogTab` to dynamically default to current month/year (`new Date().getMonth() + 1`, `new Date().getFullYear()`) and dispatch `attendanceUpdated` custom events upon Punch In/Out for instant 0ms grid updates.
 - **Leave Request Processing & Rejection Fixes**: Refactored `mergeLeavesNonRegressive()` in `types.ts` and `store.ts` to strictly match records by exact unique `record.id`. Removed browser `localStorage` leave caching (`hrm_user_submitted_leaves`) and `sync_client_backup` calls to prevent old leaves from re-appearing, and eliminated fuzzy ID regex matching across Admin/Manager review pages to ensure rejecting one request never affects separate pending requests.

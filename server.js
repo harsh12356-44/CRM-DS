@@ -1,11 +1,12 @@
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
+const path = require('path');
 
 const dev = false;
 const port = process.env.PORT || 3000;
 
-const app = next({ dev });
+const app = next({ dev: false, dir: __dirname });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
@@ -21,4 +22,6 @@ app.prepare().then(() => {
   }).listen(port, () => {
     console.log(`Ready on port ${port}`);
   });
+}).catch((err) => {
+  console.error('Next prepare failed:', err);
 });

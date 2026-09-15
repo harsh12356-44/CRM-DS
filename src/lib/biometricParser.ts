@@ -337,42 +337,53 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
     if (!matchedEmp) return;
 
     const rowKeys = Object.keys(row);
+
+    // Detect if this row is a 31-day matrix row (has at least 3 distinct day number keys)
+    const dayKeysCount = rowKeys.filter(k => {
+      const cleanK = k.trim().toLowerCase();
+      if (cleanK.match(/^day\s*\d+$/)) return true;
+      const num = parseInt(cleanK, 10);
+      return !isNaN(num) && num >= 1 && num <= 31 && String(num) === cleanK;
+    }).length;
+
+    const isMatrixRow = dayKeysCount >= 3;
     let foundDayCols = false;
 
-    for (let dayNum = 1; dayNum <= 31; dayNum++) {
-      const padDayKey = String(dayNum).padStart(2, '0');
-      const cellVal = getCellForDay(row, rowKeys, dayNum);
+    if (isMatrixRow) {
+      for (let dayNum = 1; dayNum <= 31; dayNum++) {
+        const padDayKey = String(dayNum).padStart(2, '0');
+        const cellVal = getCellForDay(row, rowKeys, dayNum);
 
-      if (cellVal !== undefined && cellVal !== null) {
-        foundDayCols = true;
-        const cellText = String(cellVal).trim();
-        if (!cellText || cellText === 'NA') continue;
+        if (cellVal !== undefined && cellVal !== null) {
+          foundDayCols = true;
+          const cellText = String(cellVal).trim();
+          if (!cellText || cellText === 'NA') continue;
 
-        const dateStr = `${monthYear}-${padDayKey}`;
-        const parsed = parsePunchTimes(cellVal);
+          const dateStr = `${monthYear}-${padDayKey}`;
+          const parsed = parsePunchTimes(cellVal);
 
-        logs.push({
-          id: `att-${matchedEmp.id}-${dateStr}`,
-          employeeId: matchedEmp.id,
-          date: dateStr,
-          attendanceCode: parsed.attendanceCode as any,
-          checkIn: parsed.checkIn,
-          checkOut: parsed.checkOut,
-          workedMinutes: parsed.workedMinutes,
-          requiredMinutes: 480,
-          shortMinutes: Math.max(0, 480 - parsed.workedMinutes),
-          extraMinutes: Math.max(0, parsed.workedMinutes - 480),
-          sundayWorkedMinutes: 0,
-          isManual: false,
-        });
+          logs.push({
+            id: `att-${matchedEmp.id}-${dateStr}`,
+            employeeId: matchedEmp.id,
+            date: dateStr,
+            attendanceCode: parsed.attendanceCode as any,
+            checkIn: parsed.checkIn,
+            checkOut: parsed.checkOut,
+            workedMinutes: parsed.workedMinutes,
+            requiredMinutes: 480,
+            shortMinutes: Math.max(0, 480 - parsed.workedMinutes),
+            extraMinutes: Math.max(0, parsed.workedMinutes - 480),
+            sundayWorkedMinutes: 0,
+            isManual: false,
+          });
+        }
       }
     }
 
-    // 3. Process Flat Date Row Object (e.g. { Date: "2026-08-01", "In Time": "09:15 AM", "Out Time": "06:30 PM", ... })
+    // 3. Process Flat Date Row Object (e.g. { Date: "2026-09-01", "In Time": "09:15 AM", "Out Time": "06:30 PM", ... })
     if (!foundDayCols) {
-      const keys = Object.keys(row);
       const findKeyVal = (patterns: string[]) => {
-        const matchedKey = keys.find(k => patterns.some(p => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(p)));
+        const matchedKey = rowKeys.find(k => patterns.some(p => k.toLowerCase().replace(/[^a-z0-9]/g, '').includes(p)));
         return matchedKey ? String(row[matchedKey] || '').trim() : '';
       };
 
@@ -382,7 +393,7 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
 
         const rawIn = findKeyVal(['intime', 'checkin', 'punchin', 'login', 'timein', 'entry', 'start']);
         const rawOut = findKeyVal(['outtime', 'checkout', 'punchout', 'logout', 'timeout', 'exit', 'end']);
-        const rawStatus = findKeyVal(['status', 'attendancecode', 'code']);
+        const rawStatus = findKeyVal(['status', 'attendancecode', 'code', 'remark']);
 
         let parsed: ParsedPunchResult;
 
@@ -398,20 +409,22 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
           parsed = { checkIn: '09:00', checkOut: '18:00', workedMinutes: 480, attendanceCode: 'P' };
         }
 
-        logs.push({
-          id: `att-${matchedEmp.id}-${dateStr}-${idx}`,
-          employeeId: matchedEmp.id,
-          date: dateStr,
-          checkIn: parsed.checkIn,
-          checkOut: parsed.checkOut,
-          workedMinutes: parsed.workedMinutes,
-          requiredMinutes: 480,
-          shortMinutes: Math.max(0, 480 - parsed.workedMinutes),
-          extraMinutes: Math.max(0, parsed.workedMinutes - 480),
-          sundayWorkedMinutes: 0,
-          attendanceCode: parsed.attendanceCode as any,
-          isManual: false,
-        });
+        if (dateStr && dateStr.length >= 8) {
+          logs.push({
+            id: `att-${matchedEmp.id}-${dateStr}`,
+            employeeId: matchedEmp.id,
+            date: dateStr,
+            checkIn: parsed.checkIn || '09:00',
+            checkOut: parsed.checkOut || '18:00',
+            workedMinutes: parsed.workedMinutes || 480,
+            requiredMinutes: 480,
+            shortMinutes: Math.max(0, 480 - (parsed.workedMinutes || 480)),
+            extraMinutes: Math.max(0, (parsed.workedMinutes || 480) - 480),
+            sundayWorkedMinutes: 0,
+            attendanceCode: parsed.attendanceCode as any,
+            isManual: false,
+          });
+        }
       }
     }
   });

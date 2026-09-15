@@ -21,13 +21,13 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: 📦 Install Dependencies & Build locally to verify
+      - name: 📦 Build Next.js on GitHub Runner
         run: |
           npm ci
           npx prisma generate
           npm run build
 
-      - name: 🚀 Deploy & Restart Application on Hostinger via SSH
+      - name: 🚀 Update Source Code on Hostinger
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -36,49 +36,58 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
-            echo "Starting reliable Hostinger deployment..."
+            echo "Updating code on Hostinger..."
             export PATH=/opt/alt/alt-nodejs20/root/bin:$PATH
-            export RAYON_NUM_THREADS=1
-            export NEXT_CPU_COUNT=1
-            export UV_THREADPOOL_SIZE=1
-            export NODE_OPTIONS="--max-old-space-size=1536"
-
             cd ${{ secrets.TARGET_DIR }}
 
-            # 1. Back up live database
+            # 1. Back up live database and clean any invalid public/_next
             mkdir -p data
             if [ -f data/db.json ]; then
               cp data/db.json /tmp/hrm_live_db_backup.json
             fi
+            rm -rf public/_next
 
-            # 2. Pull latest code from GitHub main
+            # 2. Update source files
             git fetch --all
             git checkout -f main
             git reset --hard origin/main
 
-            # 3. Restore live database safely so no records are lost
-            mkdir -p data
+            # 3. Restore live database
             if [ -f /tmp/hrm_live_db_backup.json ]; then
               cp /tmp/hrm_live_db_backup.json data/db.json
             fi
 
-            # 4. Install dependencies and generate Prisma client
+            # 4. Install dependencies (no heavy compilation on Hostinger!)
             npm install
             npx prisma generate
 
-            # 5. Remove any conflicting public/_next folder if present
-            rm -rf public/_next
+      - name: 📤 Upload Pre-Built .next to Hostinger
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          source: ".next"
+          target: ${{ secrets.TARGET_DIR }}
+          overwrite: true
 
-            # 6. Build Next.js
-            npm run build
-
-            # 7. Set world-readable permissions for static assets
-            chmod -R 755 .next public node_modules data || true
-
-            # 8. Clean stale sockets and trigger Hostinger Passenger restart
+      - name: 🔄 Restart Application on Hostinger
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          password: ${{ secrets.HOSTINGER_PASSWORD }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT || 65002 }}
+          script: |
+            cd ${{ secrets.TARGET_DIR }}
+            chmod -R 755 .next public data || true
             mkdir -p tmp
             touch tmp/restart.txt
-            echo "Deployment Completed & Server Restarted Successfully!"
+            echo "Application updated and restarted successfully!"
+
 
 
 

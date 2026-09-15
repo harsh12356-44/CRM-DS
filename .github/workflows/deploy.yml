@@ -39,9 +39,11 @@ jobs:
             echo "Starting deployment on Hostinger..."
             export PATH=/opt/alt/alt-nodejs22/root/bin:$PATH
             cd ${{ secrets.TARGET_DIR }}
+            if [ -f data/db.json ]; then cp data/db.json /tmp/hrm_live_db_backup.json; fi
             git fetch --all
             git checkout -f main
             git reset --hard origin/main
+            if [ -f /tmp/hrm_live_db_backup.json ]; then cp /tmp/hrm_live_db_backup.json data/db.json; fi
             npm install
             npx prisma generate
             npm run build

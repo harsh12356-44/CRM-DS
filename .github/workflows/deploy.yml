@@ -37,7 +37,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             echo "Starting zero-downtime Hostinger deployment..."
-            export PATH=/opt/alt/alt-nodejs22/root/bin:$PATH
+            export PATH=/opt/alt/alt-nodejs20/root/bin:$PATH
 
             TARGET_PATH="${{ secrets.TARGET_DIR }}"
             STAGING_PATH="${TARGET_PATH}_build_staging"

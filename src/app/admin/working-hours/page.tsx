@@ -47,6 +47,62 @@ export default function WorkingHoursPage() {
   const [recalculating, setRecalculating] = useState(false);
   const [syncToast, setSyncToast] = useState('');
 
+  // Quick Edit Modal state
+  const [editLog, setEditLog] = useState<any | null>(null);
+  const [editCode, setEditCode] = useState('P');
+  const [editIn, setEditIn] = useState('09:00');
+  const [editOut, setEditOut] = useState('18:00');
+  const [editHours, setEditHours] = useState('8.0');
+  const [reason, setReason] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  const handleSaveEdit = async () => {
+    if (!editLog) return;
+    setSavingEdit(true);
+    try {
+      const parsedHours = parseFloat(editHours);
+      const workedMins = !isNaN(parsedHours) && parsedHours >= 0 ? Math.round(parsedHours * 60) : undefined;
+      const res = await fetch('/api/attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'MANUAL_EDIT',
+          id: editLog.id,
+          employeeId: editLog.employeeId,
+          date: editLog.date,
+          attendanceCode: editCode,
+          checkIn: editIn,
+          checkOut: editOut,
+          workedMinutes: workedMins,
+          correctionReason: reason,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEditLog(null);
+        await fetchWorkingHours();
+
+        if (typeof window !== 'undefined') {
+          const [editY, editM] = (editLog.date || '').split('-');
+          window.dispatchEvent(new CustomEvent('attendanceUpdated', {
+            detail: {
+              month: editM ? String(Number(editM)) : selectedMonth,
+              year: editY || selectedYear,
+              monthYear: editY && editM ? `${editY}-${editM}` : undefined
+            }
+          }));
+        }
+      } else {
+        alert(data.error || 'Failed to save attendance record');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating attendance grid');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
   const handleRecalculateSync = async () => {
     setRecalculating(true);
     setSyncToast('');
@@ -573,7 +629,16 @@ export default function WorkingHoursPage() {
                             return (
                               <td
                                 key={dayNum}
-                                className={`py-3 px-1 text-center border-r border-slate-800/60 transition ${
+                                onClick={() => {
+                                  setEditLog(log || { id: `att-${emp.id}-${dateStr}`, employeeId: emp.id, employeeName: emp.name, date: dateStr });
+                                  setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isSunday ? 'WO-I' : 'P'));
+                                  setEditIn(log ? log.checkIn || '09:00' : '09:00');
+                                  setEditOut(log ? log.checkOut || '18:00' : '18:00');
+                                  const mins = cellMins || (log ? getLogWorkedMins(log) : 0);
+                                  setEditHours(mins > 0 ? (mins / 60).toFixed(1) : '8.0');
+                                  setReason(log?.correctionReason || '');
+                                }}
+                                className={`py-3 px-1 text-center border-r border-slate-800/60 transition cursor-pointer hover:bg-blue-600/20 ${
                                   holiday ? 'bg-rose-500/10' : isSunday ? 'bg-amber-500/5' : ''
                                 }`}
                               >
@@ -827,6 +892,103 @@ export default function WorkingHoursPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK EDIT BIOMETRIC & WORKED HOURS MODAL */}
+      {editLog && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 animate-fadeIn">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white font-heading">
+                Edit Grid Cell for {editLog.employeeName || 'Employee'}
+              </h3>
+              <button onClick={() => setEditLog(null)} className="text-slate-400 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-400">Date: <strong className="text-slate-200">{editLog.date}</strong></p>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Attendance Code</label>
+                <select
+                  value={editCode}
+                  onChange={e => setEditCode(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="P">P - Full Present</option>
+                  <option value="HD">HD - Half Day</option>
+                  <option value="A">A - Absent</option>
+                  <option value="MP">MP - Missing Punch</option>
+                  <option value="WO-I">WO-I - Weekly Off</option>
+                  <option value="PL">PL - Planned Leave</option>
+                  <option value="UL">UL - Unplanned Leave</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Completed Hours (e.g. 8.0, 4.5, 9.0)</label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  max="24"
+                  value={editHours}
+                  onChange={e => setEditHours(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1">Check In Time</label>
+                  <input
+                    type="time"
+                    value={editIn}
+                    onChange={e => setEditIn(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-300 block mb-1">Check Out Time</label>
+                  <input
+                    type="time"
+                    value={editOut}
+                    onChange={e => setEditOut(e.target.value)}
+                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1">Reason for Override</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Manual shift adjustment"
+                  value={reason}
+                  onChange={e => setReason(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500 placeholder-slate-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-3 pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setEditLog(null)}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                disabled={savingEdit}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold transition shadow-md disabled:opacity-50"
+              >
+                {savingEdit ? 'Saving...' : 'Save Grid Override'}
+              </button>
+            </div>
           </div>
         </div>
       )}

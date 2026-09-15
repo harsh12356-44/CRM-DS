@@ -7,7 +7,7 @@
 ---
 
 ## 2. Current Project Status
-- **GitHub Repository**: Live and up to date at [https://github.com/harsh12356-44/CRM-DS](https://github.com/harsh12356-44/CRM-DS) (`main` branch).
+- **Hostinger Live Deployment & Vercel Disconnection**: Disconnected Git integration on Vercel to avoid duplicate CI/CD runs and runtime data state confusion. Hostinger Node.js web server is now the single active production environment receiving automated deployments on `git push main` via GitHub Actions.
 - **Attendance Grid Dynamic Month & Punch Events**: Configured `AttendanceLogTab` to dynamically default to current month/year (`new Date().getMonth() + 1`, `new Date().getFullYear()`) and dispatch `attendanceUpdated` custom events upon Punch In/Out for instant 0ms grid updates.
 - **Leave Request Processing & Rejection Fixes**: Refactored `mergeLeavesNonRegressive()` in `types.ts` and `store.ts` to strictly match records by exact unique `record.id`. Removed browser `localStorage` leave caching (`hrm_user_submitted_leaves`) and `sync_client_backup` calls to prevent old leaves from re-appearing, and eliminated fuzzy ID regex matching across Admin/Manager review pages to ensure rejecting one request never affects separate pending requests.
 - **Auto-Sync Leave Balance Adjustments**: Fully integrated Admin Leave Balance adjustments ("⚖️ Adjust Employee Leave" modal). When Admin records an adjustment for short hours or quarterly leave allowance coverage:

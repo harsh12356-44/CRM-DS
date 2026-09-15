@@ -185,71 +185,94 @@ export function detectMonthYearFromFile(rawData: any[], fallbackMonthYear: strin
   return fallbackMonthYear;
 }
 
-export function parseBiometricPunches(rawData: any[], employees: Employee[], monthYear: string = '2026-09'): AttendanceLog[] {
-  if (!Array.isArray(rawData) || rawData.length === 0) return [];
+// Robust Matcher prioritizing Full Employee Name across all row cells
+export function matchEmployeeByNameOrCode(rowCells: string[], employees: Employee[]): Employee | undefined {
+  if (!Array.isArray(rowCells) || rowCells.length === 0) return undefined;
 
-  const logs: AttendanceLog[] = [];
+  const cleanCells = rowCells.map(c => String(c || '').trim()).filter(Boolean);
+  const toCleanAlpha = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  // Robust Matcher prioritizing Employee Name across all row cells
-  function matchEmployeeByNameOrCode(rowCells: string[]): Employee | undefined {
-    if (!Array.isArray(rowCells) || rowCells.length === 0) return undefined;
+  // 1. PRIORITY 1: Exact Full Name or Clean Full Name Match across all cells
+  // (e.g. "Anup Sen", "Charu Siddhawat", "Charubhati", "Nandini Gupta", "Jigyasa Sen")
+  for (const cell of cleanCells) {
+    const normCell = cell.toLowerCase().trim();
+    if (!normCell) continue;
+    if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
 
-    const cleanCells = rowCells.map(c => String(c || '').trim()).filter(Boolean);
+    const cleanCell = toCleanAlpha(normCell);
 
-    for (const cell of cleanCells) {
-      const normCell = cell.toLowerCase().trim();
-      if (!normCell) continue;
+    for (const emp of employees) {
+      const normEmpName = emp.name.toLowerCase().trim();
+      const cleanEmpName = toCleanAlpha(normEmpName);
 
-      // Filter out header words, labels, status terms
-      if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
+      // Exact full name match or clean alphanumeric match (handles "charuBhati" === "charubhati", "charu Siddhawat" === "charusiddhawat")
+      if (normCell === normEmpName || cleanCell === cleanEmpName) {
+        return emp;
+      }
+    }
+  }
 
-      // 1. Direct Employee ID / System Code Match (e.g. RK001, NB002, emp-7, AS007, 7, 007, AS7)
-      for (const emp of employees) {
-        const eId = emp.id.toLowerCase();
-        const eCode = emp.employeeId.toLowerCase();
-        const eIdNum = eId.replace(/[^0-9]/g, '');
-        const eCodeNum = eCode.replace(/[^0-9]/g, '');
-        const normCellNum = normCell.replace(/[^0-9]/g, '');
-        const normCellClean = normCell.replace(/[^a-z0-9]/g, '');
+  // 2. PRIORITY 2: Exact CRM Employee ID / Code Match (e.g. "AS007", "emp-7", "RK001", "CB014", "CS017")
+  // NOTE: Pure numeric values (e.g. "1", "2", "6", "7") from biometric device enrollment columns are ignored here
+  // so machine device IDs never collide with CRM sequence numbers (e.g. device code 6 matching emp-6 Nandini Gupta)
+  for (const cell of cleanCells) {
+    const normCell = cell.toLowerCase().trim();
+    if (!normCell) continue;
+    if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
+    if (/^\d+$/.test(normCell)) continue; // Never treat pure numeric device ID as CRM employee ID
 
-        if (eId === normCell || eCode === normCell) return emp;
-        if (normCellClean === eId.replace(/[^a-z0-9]/g, '') || normCellClean === eCode.replace(/[^a-z0-9]/g, '')) return emp;
+    const cleanCell = toCleanAlpha(normCell);
 
-        // Match numeric ID e.g. "7" or "007" or "07" matching "emp-7" / "AS007"
-        if (normCellNum && (eIdNum === normCellNum || eCodeNum === normCellNum)) {
-          return emp;
-        }
+    for (const emp of employees) {
+      const eId = emp.id.toLowerCase();
+      const eCode = emp.employeeId.toLowerCase();
+
+      if (normCell === eId || normCell === eCode) return emp;
+      if (cleanCell === toCleanAlpha(eId) || cleanCell === toCleanAlpha(eCode)) return emp;
+    }
+  }
+
+  // 3. PRIORITY 3: Disambiguated First Name / Name Parts Match
+  // CRITICAL: If multiple employees share the same first name (e.g. two Charus: Charubhati and Charu Siddhawat),
+  // we do NOT match by first name alone to prevent false cross-assignments.
+  for (const cell of cleanCells) {
+    const normCell = cell.toLowerCase().trim();
+    if (!normCell || /^\d+$/.test(normCell)) continue;
+    if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
+
+    const inputParts = normCell.split(/[\s,._\-]+/).filter(Boolean);
+    const inputFirstName = inputParts[0] || '';
+
+    if (inputFirstName && inputFirstName.length >= 3) {
+      const matchingEmps = employees.filter(e => {
+        const sysFirst = e.name.toLowerCase().trim().split(/[\s,._\-]+/)[0] || '';
+        return sysFirst === inputFirstName || toCleanAlpha(e.name).startsWith(inputFirstName);
+      });
+
+      // If exactly ONE employee has this first name, it is safe to match (e.g. "ravina khemani" -> Ravina Khimani, "shweta dadich" -> Shweta dadhich)
+      if (matchingEmps.length === 1) {
+        return matchingEmps[0];
       }
 
-      // 2. Name Matching
-      const inputParts = normCell.split(/[\s,._\-]+/).filter(Boolean);
-      const inputFirstName = inputParts[0] || '';
-
-      for (const emp of employees) {
-        const normName = emp.name.toLowerCase().trim();
-        const sysParts = normName.split(/[\s,._\-]+/).filter(Boolean);
-        const sysFirstName = sysParts[0] || '';
-
-        // Exact full name match (e.g. "Anup Sen" === "anup sen")
-        if (normName === normCell) return emp;
-        if (normName.replace(/[^a-z0-9]/g, '') === normCell.replace(/[^a-z0-9]/g, '')) return emp;
-
-        // First Name match (e.g. "Anup", "Anupsen", "Anup S")
-        if (inputFirstName && inputFirstName.length >= 3 && (sysFirstName === inputFirstName || sysFirstName.includes(inputFirstName) || inputFirstName.includes(sysFirstName))) {
-          return emp;
-        }
-
-        // Full name parts match
-        if (inputParts.length >= 1 && sysParts.length >= 1) {
-          if (sysParts.some(p => p.length >= 3 && inputParts.some(ip => ip.length >= 3 && (p.includes(ip) || ip.includes(p))))) {
-            return emp;
+      // If MULTIPLE employees share the first name (e.g. two Charus), require last name / other parts to confirm
+      if (matchingEmps.length > 1 && inputParts.length >= 2) {
+        for (const cand of matchingEmps) {
+          const candParts = cand.name.toLowerCase().trim().split(/[\s,._\-]+/).filter(Boolean);
+          if (candParts.slice(1).some(cp => inputParts.slice(1).some(ip => cp.includes(ip) || ip.includes(cp)))) {
+            return cand;
           }
         }
       }
     }
-
-    return undefined;
   }
+
+  return undefined;
+}
+
+export function parseBiometricPunches(rawData: any[], employees: Employee[], monthYear: string = '2026-09'): AttendanceLog[] {
+  if (!Array.isArray(rawData) || rawData.length === 0) return [];
+
+  const logs: AttendanceLog[] = [];
 
   // Helper to dynamically extract cell value for day numbers 1..31 from row object
   function getCellForDay(rowObj: any, rowKeys: string[], dayNum: number) {
@@ -312,7 +335,7 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
         if (!Array.isArray(row) || row.length < 2) continue;
 
         const rowTextCells = row.slice(0, 8).map(c => String(c || '').trim());
-        const matchedEmp = matchEmployeeByNameOrCode(rowTextCells);
+        const matchedEmp = matchEmployeeByNameOrCode(rowTextCells, employees);
 
         if (!matchedEmp) continue;
 
@@ -353,7 +376,7 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
     if (!row || Array.isArray(row)) return;
 
     const rowTextCells = Object.values(row).map(c => String(c || '').trim());
-    const matchedEmp = matchEmployeeByNameOrCode(rowTextCells);
+    const matchedEmp = matchEmployeeByNameOrCode(rowTextCells, employees);
 
     if (!matchedEmp) return;
 

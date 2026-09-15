@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from 'next/server';
 import { getDbData, saveDbData, saveDbDataAsync, logAudit, ensureCloudSync } from '@/lib/store';
 import { AttendanceLog, AttendanceImport } from '@/lib/types';
-import { parseBiometricPunches, parsePunchTimes, detectMonthYearFromFile } from '@/lib/biometricParser';
+import { parseBiometricPunches, parsePunchTimes, detectMonthYearFromFile, matchEmployeeByNameOrCode } from '@/lib/biometricParser';
 
 export async function GET(request: Request) {
   await ensureCloudSync();
@@ -205,23 +205,7 @@ export async function POST(request: Request) {
           if (rawEmpCode.toLowerCase().includes('code') || rawEmpName.toLowerCase().includes('name') || rawEmpCode.toLowerCase().includes('employee')) return;
           if (!rawEmpName && !rawEmpCode) return;
 
-          const matchedEmp = db.employees.find(e => {
-            if (rawEmpCode && (
-              e.id.toLowerCase() === rawEmpCode.toLowerCase() || 
-              e.employeeId.toLowerCase() === rawEmpCode.toLowerCase() ||
-              (rawEmpCode.replace(/[^0-9]/g, '') && e.id.replace(/[^0-9]/g, '') === rawEmpCode.replace(/[^0-9]/g, ''))
-            )) return true;
-
-            if (rawEmpName) {
-              const sysName = e.name.toLowerCase().trim();
-              const inputName = rawEmpName.toLowerCase().trim();
-              if (sysName.includes(inputName) || inputName.includes(sysName)) return true;
-              const inputFirst = inputName.split(' ')[0];
-              const sysFirst = sysName.split(' ')[0];
-              if (inputFirst.length >= 3 && sysFirst === inputFirst) return true;
-            }
-            return false;
-          });
+          const matchedEmp = matchEmployeeByNameOrCode([rawEmpName, rawEmpCode], db.employees);
 
           if (matchedEmp) {
             importedCount++;

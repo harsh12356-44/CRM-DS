@@ -67,6 +67,12 @@ jobs:
             rsync -a --delete "$STAGING_PATH/node_modules/" "$TARGET_PATH/node_modules/"
             rsync -a --delete --exclude='.next' --exclude='node_modules' --exclude='data' "$STAGING_PATH/" "$TARGET_PATH/"
 
+            # 5. Fix file permissions so Hostinger web server can read all CSS/JS static assets
+            chmod -R 755 "$TARGET_PATH/.next" || true
+            chmod -R 755 "$TARGET_PATH/public" || true
+            chmod -R 755 "$TARGET_PATH/node_modules" || true
+
+
             # 5. Restore live database safely into TARGET_PATH/data/
             mkdir -p "$TARGET_PATH/data"
             if [ -f /tmp/hrm_live_db_backup.json ]; then

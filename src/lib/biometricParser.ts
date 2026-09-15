@@ -134,14 +134,25 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
 
     for (const cell of cleanCells) {
       const normCell = cell.toLowerCase().trim();
-      if (!normCell || normCell.length < 2) continue;
+      if (!normCell) continue;
 
-      // Filter out header words, labels, status terms, and pure numbers
+      // Filter out header words, labels, status terms
       if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
 
-      // 1. Direct Employee ID / System Code Match (e.g. RK001, NB002, emp-1, LG008, BB011, SG012)
+      // 1. Direct Employee ID / System Code Match (e.g. RK001, NB002, emp-7, AS007, 7, 007, AS7)
       for (const emp of employees) {
-        if (emp.id.toLowerCase() === normCell || emp.employeeId.toLowerCase() === normCell) {
+        const eId = emp.id.toLowerCase();
+        const eCode = emp.employeeId.toLowerCase();
+        const eIdNum = eId.replace(/[^0-9]/g, '');
+        const eCodeNum = eCode.replace(/[^0-9]/g, '');
+        const normCellNum = normCell.replace(/[^0-9]/g, '');
+        const normCellClean = normCell.replace(/[^a-z0-9]/g, '');
+
+        if (eId === normCell || eCode === normCell) return emp;
+        if (normCellClean === eId.replace(/[^a-z0-9]/g, '') || normCellClean === eCode.replace(/[^a-z0-9]/g, '')) return emp;
+
+        // Match numeric ID e.g. "7" or "007" or "07" matching "emp-7" / "AS007"
+        if (normCellNum && (eIdNum === normCellNum || eCodeNum === normCellNum)) {
           return emp;
         }
       }
@@ -155,17 +166,18 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
         const sysParts = normName.split(/[\s,._\-]+/).filter(Boolean);
         const sysFirstName = sysParts[0] || '';
 
-        // Exact full name match (e.g. "Ravina Khimani" === "ravina khimani")
+        // Exact full name match (e.g. "Anup Sen" === "anup sen")
         if (normName === normCell) return emp;
+        if (normName.replace(/[^a-z0-9]/g, '') === normCell.replace(/[^a-z0-9]/g, '')) return emp;
 
-        // First Name match (e.g. "Lochita", "Bulbul", "Sonu", "Naman", "Ravina", "Jigyasa", "Divyanshu", "Meenal", "Anup", "Rajvardhan", "Mudita", "Shweta", "Charubhati", "Shryanshu", "Garv", "Charu")
-        if (inputFirstName && inputFirstName.length >= 3 && sysFirstName === inputFirstName) {
+        // First Name match (e.g. "Anup", "Anupsen", "Anup S")
+        if (inputFirstName && inputFirstName.length >= 3 && (sysFirstName === inputFirstName || sysFirstName.includes(inputFirstName) || inputFirstName.includes(sysFirstName))) {
           return emp;
         }
 
-        // Full name parts match (e.g. "Ravina K" or "Khimani Ravina" or "Sonu G")
-        if (inputParts.length >= 2 && sysParts.length >= 2) {
-          if (sysParts.some(p => inputParts.includes(p)) && (sysParts[0] === inputParts[0] || sysParts[sysParts.length - 1] === inputParts[inputParts.length - 1])) {
+        // Full name parts match
+        if (inputParts.length >= 1 && sysParts.length >= 1) {
+          if (sysParts.some(p => p.length >= 3 && inputParts.some(ip => ip.length >= 3 && (p.includes(ip) || ip.includes(p))))) {
             return emp;
           }
         }
@@ -185,6 +197,13 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
       if (cleanK === dayStr || cleanK === padDayStr) return true;
       if (cleanK === `day ${dayStr}` || cleanK === `day ${padDayStr}`) return true;
       if (cleanK === `day${dayStr}` || cleanK === `day${padDayStr}`) return true;
+
+      // Match date formats like "01-Sep", "1-Sep", "01/09", "1/9", "01-09-2026", "Sep 1", "Sep 01"
+      if (cleanK.includes('sep') || cleanK.includes('09') || cleanK.includes('sept')) {
+        const nums = cleanK.match(/\d+/g);
+        if (nums && nums.some(n => parseInt(n, 10) === dayNum)) return true;
+      }
+
       const numVal = parseInt(cleanK, 10);
       return !isNaN(numVal) && numVal === dayNum && String(numVal) === cleanK;
     });

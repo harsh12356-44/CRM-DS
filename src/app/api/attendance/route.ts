@@ -108,9 +108,13 @@ export async function POST(request: Request) {
     // 1. Monthly Punches Upload
     if (body.action === 'IMPORT' || body.action === 'IMPORT_MONTHLY_PUNCHES') {
       const rawRows = body.rows || [];
+      const fullRaw = body.fullRawRows || [];
       const monthYear = body.monthYear || '2026-07';
 
-      const parsedLogs = parseBiometricPunches(rawRows, db.employees, monthYear);
+      let parsedLogs = parseBiometricPunches(rawRows, db.employees, monthYear);
+      if (parsedLogs.length === 0 && Array.isArray(fullRaw) && fullRaw.length > 0) {
+        parsedLogs = parseBiometricPunches(fullRaw, db.employees, monthYear);
+      }
 
       if (parsedLogs.length > 0) {
         parsedLogs.forEach(newLog => {

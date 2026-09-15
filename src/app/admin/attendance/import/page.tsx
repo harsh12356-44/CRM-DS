@@ -68,6 +68,7 @@ export default function AttendanceImportPage() {
           filename: file ? file.name : `${uploadType.toLowerCase().replace(/ /g, '_')}.csv`,
           monthYear,
           rows: payloadRows,
+          fullRawRows: fullRawRows,
         }),
       });
 

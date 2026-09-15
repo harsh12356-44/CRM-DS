@@ -57,10 +57,12 @@ jobs:
             npx prisma generate
             npm run build
 
-            # 5. Trigger official Hostinger Node restart
+            # 5. Clean stale tmp files and trigger official Hostinger Node restart
+            rm -rf tmp/*
             mkdir -p tmp
             touch tmp/restart.txt
             echo "Deployment Completed & Server Restarted Successfully!"
+
 
 
 

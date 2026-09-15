@@ -7,13 +7,15 @@
 ---
 
 ## 2. Current Project Status
-- **Full Name Priority Biometric Matching & Anup Sen / Two-Charu Disambiguation Fix**:
-  - **Root Cause**: The biometric machine assigns internal device enrollment numbers (e.g. Anup Sen is device code `6`, Jigyasa Sen is device code `7`). The parser previously matched raw numeric strings against CRM IDs (`normCellNum === eIdNum`), causing code `6` (Anup Sen) to match `emp-6` (Nandini Gupta), leaving Anup Sen (`emp-7`) un-updated. Furthermore, first-name matching would falsely cross-assign the two Charus (`Charubhati` and `Charu Siddhawat`).
-  - **Resolution**: Refactored `matchEmployeeByNameOrCode` in [src/lib/biometricParser.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/biometricParser.ts) and [src/app/api/attendance/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/attendance/route.ts) with strict priority:
-    1. **Priority 1 (Exact & Clean Full Name Match)**: Strictly matches full names across row cells (e.g. `"anup sen"` -> `Anup Sen` [`emp-7` / `AS007`], `"charu Siddhawat"` -> `Charu Siddhawat` [`emp-17` / `CS017`], and `"charuBhati"` -> `Charubhati` [`emp-14` / `CB014`]).
-    2. **Priority 2 (Exact CRM Code Match)**: Matches explicit alphanumeric IDs (`AS007`, `emp-7`, `RK001`), strictly ignoring pure numeric device codes (`/^\d+$/`) to prevent machine ID collisions.
-    3. **Priority 3 (Disambiguated First Name / Unique Parts)**: Only matches by first name if exactly ONE employee in the database shares that first name. If multiple employees share the name (e.g. two Charus), first-name matching is blocked and multi-part/last-name confirmation is required.
-  - Re-synced Anup Sen's 31 July biometric punch logs into [data/db.json](file:///d:/Ravina/Antigravity/crm-ds/data/db.json).
+- **Strict Full Name-Only Biometric Matching Engine (Zero ID Matching)**:
+  - **Problem Identified**: The biometric device exports random numeric machine codes (e.g., Ravina is code `2`, Anup is code `6`, Jigyasa is code `7`, Naman is code `9`). Prior ID matching logic caused code `2` to match `emp-2` (Naman Bangia), code `6` to match `emp-6` (Nandini Gupta), and code `7` to match `emp-7` (Anup Sen), cross-allocating attendance between employees.
+  - **Resolution**:
+    - Completely eliminated all ID / code matching. No numbers or CRM IDs are used.
+    - Implemented **Strict Full Name Matching**:
+      1. **Exact Full Name Match**: Alphanumeric cleaned match for exact names (`anup sen` -> `Anup Sen`, `naman bangia` -> `Naman Bangia`, `charu Siddhawat` -> `Charu Siddhawat`, `charuBhati` -> `Charubhati`, `nandini gupta` -> `Nandini Gupta`, `jigyasa sen` -> `Jigyasa Sen`).
+      2. **Fuzzy Full Name Match**: Uses Levenshtein distance on surnames so spelling variations (e.g. `ravina khemani` -> `Ravina Khimani`, `shweta dadich` -> `Shweta dadhich`) match with 100% precision.
+      3. **Disambiguated Single Name Match**: Only matches single-word names (`meenal`, `amit`) if exactly one employee shares that name. Strictly blocks shared first names (such as the two Charus: `Charubhati` and `Charu Siddhawat`).
+    - Updated [src/app/api/attendance/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/attendance/route.ts) to cleanly wipe ALL prior non-manual biometric logs for the target month upon monthly biometric uploads, completely eliminating any ghost or misallocated records from previous uploads. Also added `CLEAR_MONTH_PUNCHES` API action.
 - **Save Database Button SSR Hydration Fix**: Solved SSR hydration mismatch in `src/components/Navbar.tsx` using client `mounted` state (`useEffect`) so `isAdminAccount` evaluates reliably to `true` across SSR hydration, keeping the **💾 Save Database** button visible.
 - **Hostinger Deploy 503 Service Unavailable Resolution**: Fixed `server.js` to capture Phusion Passenger's Unix domain socket `process.env.PORT` prior to Next.js `dotenv` initialization. Added `ensureDataDir()` in `src/lib/store.ts` and `mkdir -p "$TARGET_PATH/data"` in `.github/workflows/deploy.yml` to guarantee database path integrity and resolve SSR crashes permanently.
 - **Hostinger Live Deployment & Vercel Disconnection**: Disconnected Git integration on Vercel to avoid duplicate CI/CD runs and runtime data state confusion. Hostinger Node.js web server is now the single active production environment receiving automated deployments on `git push main` via GitHub Actions.

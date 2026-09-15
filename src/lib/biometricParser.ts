@@ -185,84 +185,94 @@ export function detectMonthYearFromFile(rawData: any[], fallbackMonthYear: strin
   return fallbackMonthYear;
 }
 
-// Robust Matcher prioritizing Full Employee Name across all row cells
+function levenshteinDistance(s1: string, s2: string): number {
+  const m = s1.length;
+  const n = s2.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (s1[i - 1] === s2[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+      else dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Strict Employee Matcher: MATCHES ONLY BY FULL NAME (FORGET ALL IDs / CODES)
 export function matchEmployeeByNameOrCode(rowCells: string[], employees: Employee[]): Employee | undefined {
   if (!Array.isArray(rowCells) || rowCells.length === 0) return undefined;
 
-  const cleanCells = rowCells.map(c => String(c || '').trim()).filter(Boolean);
-  const toCleanAlpha = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const toAlpha = (s: string) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  // 1. PRIORITY 1: Exact Full Name or Clean Full Name Match across all cells
-  // (e.g. "Anup Sen", "Charu Siddhawat", "Charubhati", "Nandini Gupta", "Jigyasa Sen")
-  for (const cell of cleanCells) {
-    const normCell = cell.toLowerCase().trim();
-    if (!normCell) continue;
-    if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
+  // Extract candidate cells: strictly skip empty cells, header keywords, and pure numeric device IDs (e.g. 1, 2, 6, 7)
+  const candidateCells = rowCells
+    .map(c => String(c || '').trim())
+    .filter(c => {
+      if (!c) return false;
+      // Strictly ignore pure numbers, device IDs, timestamps, or short codes (< 3 letters)
+      const letters = c.replace(/[^a-zA-Z]/g, '');
+      if (letters.length < 3) return false;
+      if (c.includes(':')) return false;
 
-    const cleanCell = toCleanAlpha(normCell);
+      const lower = c.toLowerCase();
+      if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page', 'wo', 'wo-i', 'half'].some(k => lower.includes(k))) return false;
+      return true;
+    });
 
+  // 1. PRIORITY 1: Exact Full Name Match (alphanumeric clean)
+  // Handles "anup sen", "naman bangia", "charu Siddhawat", "charuBhati", "nandini gupta", "jigyasa sen", etc.
+  for (const cell of candidateCells) {
+    const cleanCell = toAlpha(cell);
     for (const emp of employees) {
-      const normEmpName = emp.name.toLowerCase().trim();
-      const cleanEmpName = toCleanAlpha(normEmpName);
-
-      // Exact full name match or clean alphanumeric match (handles "charuBhati" === "charubhati", "charu Siddhawat" === "charusiddhawat")
-      if (normCell === normEmpName || cleanCell === cleanEmpName) {
+      const cleanEmpName = toAlpha(emp.name);
+      if (cleanCell === cleanEmpName) {
         return emp;
       }
     }
   }
 
-  // 2. PRIORITY 2: Exact CRM Employee ID / Code Match (e.g. "AS007", "emp-7", "RK001", "CB014", "CS017")
-  // NOTE: Pure numeric values (e.g. "1", "2", "6", "7") from biometric device enrollment columns are ignored here
-  // so machine device IDs never collide with CRM sequence numbers (e.g. device code 6 matching emp-6 Nandini Gupta)
-  for (const cell of cleanCells) {
-    const normCell = cell.toLowerCase().trim();
-    if (!normCell) continue;
-    if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
-    if (/^\d+$/.test(normCell)) continue; // Never treat pure numeric device ID as CRM employee ID
+  // 2. PRIORITY 2: Fuzzy Full Name Match for spelling differences
+  // Handles variations like "ravina khemani" vs "Ravina Khimani", "shweta dadich" vs "Shweta dadhich"
+  for (const cell of candidateCells) {
+    const inputParts = cell.toLowerCase().trim().split(/[\s,._\-]+/).filter(Boolean);
+    if (inputParts.length < 2) continue;
 
-    const cleanCell = toCleanAlpha(normCell);
+    const inputFirst = inputParts[0];
+    const inputLast = inputParts[inputParts.length - 1];
 
     for (const emp of employees) {
-      const eId = emp.id.toLowerCase();
-      const eCode = emp.employeeId.toLowerCase();
+      const sysParts = emp.name.toLowerCase().trim().split(/[\s,._\-]+/).filter(Boolean);
+      if (sysParts.length < 2) continue;
 
-      if (normCell === eId || normCell === eCode) return emp;
-      if (cleanCell === toCleanAlpha(eId) || cleanCell === toCleanAlpha(eCode)) return emp;
+      const sysFirst = sysParts[0];
+      const sysLast = sysParts[sysParts.length - 1];
+
+      // First names match exactly, and last names are within 2 characters typo distance
+      if (inputFirst === sysFirst) {
+        const dist = levenshteinDistance(inputLast, sysLast);
+        if (dist <= 2) {
+          return emp;
+        }
+      }
     }
   }
 
-  // 3. PRIORITY 3: Disambiguated First Name / Name Parts Match
-  // CRITICAL: If multiple employees share the same first name (e.g. two Charus: Charubhati and Charu Siddhawat),
-  // we do NOT match by first name alone to prevent false cross-assignments.
-  for (const cell of cleanCells) {
-    const normCell = cell.toLowerCase().trim();
-    if (!normCell || /^\d+$/.test(normCell)) continue;
-    if (['generated', 'total', 'summary', 'present', 'absent', 'weekly', 'department', 'designation', 'status', 'code', 'name', 's.no', 'sno', 'sl.no', 'slno', 'date', 'hours', 'time', 'shift', 'page'].some(k => normCell.includes(k))) continue;
+  // 3. PRIORITY 3: Single-Word Unique Name Match (e.g. "meenal", "mudita", "divyanshu", "bulbul", "amit", "garv", "rajvardhan")
+  // CRITICAL: NEVER match if multiple employees share the first name (e.g. the two Charus: Charubhati vs Charu Siddhawat)!
+  for (const cell of candidateCells) {
+    const inputParts = cell.toLowerCase().trim().split(/[\s,._\-]+/).filter(Boolean);
+    const firstName = inputParts[0] || '';
+    if (firstName.length < 3) continue;
 
-    const inputParts = normCell.split(/[\s,._\-]+/).filter(Boolean);
-    const inputFirstName = inputParts[0] || '';
+    const matches = employees.filter(emp => {
+      const sysFirst = emp.name.toLowerCase().trim().split(/[\s,._\-]+/)[0] || '';
+      return sysFirst === firstName || toAlpha(emp.name) === firstName;
+    });
 
-    if (inputFirstName && inputFirstName.length >= 3) {
-      const matchingEmps = employees.filter(e => {
-        const sysFirst = e.name.toLowerCase().trim().split(/[\s,._\-]+/)[0] || '';
-        return sysFirst === inputFirstName || toCleanAlpha(e.name).startsWith(inputFirstName);
-      });
-
-      // If exactly ONE employee has this first name, it is safe to match (e.g. "ravina khemani" -> Ravina Khimani, "shweta dadich" -> Shweta dadhich)
-      if (matchingEmps.length === 1) {
-        return matchingEmps[0];
-      }
-
-      // If MULTIPLE employees share the first name (e.g. two Charus), require last name / other parts to confirm
-      if (matchingEmps.length > 1 && inputParts.length >= 2) {
-        for (const cand of matchingEmps) {
-          const candParts = cand.name.toLowerCase().trim().split(/[\s,._\-]+/).filter(Boolean);
-          if (candParts.slice(1).some(cp => inputParts.slice(1).some(ip => cp.includes(ip) || ip.includes(cp)))) {
-            return cand;
-          }
-        }
-      }
+    if (matches.length === 1) {
+      return matches[0];
     }
   }
 
@@ -330,11 +340,13 @@ export function parseBiometricPunches(rawData: any[], employees: Employee[], mon
     }
 
     if (headerRowIdx !== -1) {
+      const minDayCol = Object.keys(dayColumns).length > 0 ? Math.min(...Object.values(dayColumns)) : 4;
+
       for (let r = headerRowIdx + 1; r < rawData.length; r++) {
         const row = rawData[r];
         if (!Array.isArray(row) || row.length < 2) continue;
 
-        const rowTextCells = row.slice(0, 8).map(c => String(c || '').trim());
+        const rowTextCells = row.slice(0, minDayCol).map(c => String(c || '').trim());
         const matchedEmp = matchEmployeeByNameOrCode(rowTextCells, employees);
 
         if (!matchedEmp) continue;

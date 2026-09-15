@@ -118,16 +118,11 @@ export async function POST(request: Request) {
       }
 
       if (parsedLogs.length > 0) {
-        parsedLogs.forEach(newLog => {
-          const existingIdx = db.attendanceLogs.findIndex(
-            l => (l.employeeId === newLog.employeeId || l.employeeId === newLog.employeeId) && l.date === newLog.date
-          );
-          if (existingIdx !== -1) {
-            db.attendanceLogs[existingIdx] = newLog;
-          } else {
-            db.attendanceLogs.push(newLog);
-          }
-        });
+        // Wipe ALL prior non-manual biometric logs for this monthYear so that no ghost/misallocated records linger
+        db.attendanceLogs = db.attendanceLogs.filter(
+          l => !(l.date && l.date.startsWith(monthYear) && !l.isManual)
+        );
+        db.attendanceLogs.push(...parsedLogs);
       }
 
       const uniqueEmps = new Set(parsedLogs.map(l => l.employeeId)).size;
@@ -149,6 +144,23 @@ export async function POST(request: Request) {
       await saveDbDataAsync(db);
 
       return NextResponse.json({ success: true, import: newImport, logs: db.attendanceLogs, totalLogsParsed: parsedLogs.length });
+    }
+
+    // 1b. Clear Monthly Biometric Punches Action
+    if (body.action === 'CLEAR_MONTH_PUNCHES') {
+      const targetMonthYear = body.monthYear || '2026-09';
+      const beforeCount = db.attendanceLogs.length;
+      db.attendanceLogs = db.attendanceLogs.filter(
+        l => !(l.date && l.date.startsWith(targetMonthYear) && !l.isManual)
+      );
+      await saveDbDataAsync(db);
+      logAudit('Clear Monthly Biometric Punches', 'AttendanceLog', targetMonthYear, undefined, `Purged ${beforeCount - db.attendanceLogs.length} records`);
+      return NextResponse.json({
+        success: true,
+        message: `Cleared biometric punches for ${targetMonthYear}`,
+        removedCount: beforeCount - db.attendanceLogs.length,
+        logs: db.attendanceLogs,
+      });
     }
 
     // 2. Completed Hours Import

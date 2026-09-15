@@ -164,7 +164,28 @@ export function normalizeToISODate(dateInput: any, defaultMonthYear: string = '2
   return str;
 }
 
-export function parseBiometricPunches(rawData: any[], employees: Employee[], monthYear: string = '2026-07'): AttendanceLog[] {
+export function detectMonthYearFromFile(rawData: any[], fallbackMonthYear: string = '2026-09'): string {
+  if (!Array.isArray(rawData) || rawData.length === 0) return fallbackMonthYear;
+
+  const rawStr = JSON.stringify(rawData.slice(0, 50)).toLowerCase();
+  
+  if (rawStr.includes('sep') || rawStr.includes('september') || rawStr.includes('-09-') || rawStr.includes('/09/')) {
+    return '2026-09';
+  }
+  if (rawStr.includes('aug') || rawStr.includes('august') || rawStr.includes('-08-') || rawStr.includes('/08/')) {
+    return '2026-08';
+  }
+  if (rawStr.includes('jul') || rawStr.includes('july') || rawStr.includes('-07-') || rawStr.includes('/07/')) {
+    return '2026-07';
+  }
+  if (rawStr.includes('oct') || rawStr.includes('october') || rawStr.includes('-10-') || rawStr.includes('/10/')) {
+    return '2026-10';
+  }
+
+  return fallbackMonthYear;
+}
+
+export function parseBiometricPunches(rawData: any[], employees: Employee[], monthYear: string = '2026-09'): AttendanceLog[] {
   if (!Array.isArray(rawData) || rawData.length === 0) return [];
 
   const logs: AttendanceLog[] = [];

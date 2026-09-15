@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from 'next/server';
 import { getDbData, saveDbData, saveDbDataAsync, logAudit, ensureCloudSync } from '@/lib/store';
 import { AttendanceLog, AttendanceImport } from '@/lib/types';
-import { parseBiometricPunches, parsePunchTimes } from '@/lib/biometricParser';
+import { parseBiometricPunches, parsePunchTimes, detectMonthYearFromFile } from '@/lib/biometricParser';
 
 export async function GET(request: Request) {
   await ensureCloudSync();
@@ -109,7 +109,8 @@ export async function POST(request: Request) {
     if (body.action === 'IMPORT' || body.action === 'IMPORT_MONTHLY_PUNCHES') {
       const rawRows = body.rows || [];
       const fullRaw = body.fullRawRows || [];
-      const monthYear = body.monthYear || '2026-07';
+      const fallbackMonthYear = body.monthYear || '2026-09';
+      const monthYear = detectMonthYearFromFile(fullRaw.length > 0 ? fullRaw : rawRows, fallbackMonthYear);
 
       let parsedLogs = parseBiometricPunches(rawRows, db.employees, monthYear);
       if (parsedLogs.length === 0 && Array.isArray(fullRaw) && fullRaw.length > 0) {

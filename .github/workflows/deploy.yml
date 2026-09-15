@@ -52,23 +52,15 @@ jobs:
             # 3. Restore live database so no user records are lost
             if [ -f /tmp/hrm_live_db_backup.json ]; then cp /tmp/hrm_live_db_backup.json data/db.json; fi
 
-            # 4. Build in staging folder to keep live site intact while building
-            STAGING_DIR="../hrm_build_staging"
-            mkdir -p $STAGING_DIR
-            rsync -a --delete --exclude='.next' --exclude='node_modules' --exclude='data/db.json' ./ $STAGING_DIR/
-            cd $STAGING_DIR
+            # 4. Install dependencies, generate client, build project
             npm install
             npx prisma generate
             npm run build
 
-            # 5. Sync compiled build & dependencies into TARGET_DIR safely
-            cd ${{ secrets.TARGET_DIR }}
-            rsync -a --delete $STAGING_DIR/node_modules/ ./node_modules/
-            rsync -a --delete $STAGING_DIR/.next/ ./.next/
-
-            # 6. Trigger official Hostinger Node restart
+            # 5. Trigger official Hostinger Node restart
             mkdir -p tmp
             touch tmp/restart.txt
             echo "Deployment Completed & Server Restarted Successfully!"
+
 
 

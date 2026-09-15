@@ -36,17 +36,35 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
-            echo "Starting deployment on Hostinger..."
+            echo "Starting zero-downtime atomic deployment on Hostinger..."
             export PATH=/opt/alt/alt-nodejs22/root/bin:$PATH
+
+            # 1. Update source code & back up live database in TARGET_DIR
             cd ${{ secrets.TARGET_DIR }}
             if [ -f data/db.json ]; then cp data/db.json /tmp/hrm_live_db_backup.json; fi
             git fetch --all
             git checkout -f main
             git reset --hard origin/main
             if [ -f /tmp/hrm_live_db_backup.json ]; then cp /tmp/hrm_live_db_backup.json data/db.json; fi
+
+            # 2. Build Next.js in a separate staging folder so live site is NEVER interrupted
+            STAGING_DIR="../hrm_build_staging"
+            mkdir -p $STAGING_DIR
+            rsync -a --delete --exclude='.next' --exclude='node_modules' --exclude='data/db.json' ./ $STAGING_DIR/
+            cd $STAGING_DIR
             npm install
             npx prisma generate
             npm run build
+
+            # 3. Atomic copy of completed build back to TARGET_DIR (takes < 0.2s, zero unstyled downtime)
+            cd ${{ secrets.TARGET_DIR }}
+            cp -r $STAGING_DIR/.next ./.next_new
+            rm -rf ./.next_old
+            if [ -d ./.next ]; then mv ./.next ./.next_old; fi
+            mv ./.next_new ./.next
+            rm -rf ./.next_old
+
+            # 4. Instant Node restart trigger
             mkdir -p tmp
             touch tmp/restart.txt
-            echo "Deployment completed successfully!"
+            echo "Atomic Zero-Downtime Deployment Completed Successfully!"

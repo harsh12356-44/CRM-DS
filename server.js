@@ -3,10 +3,9 @@ const { parse } = require('url');
 const next = require('next');
 
 const dev = false;
-const hostname = process.env.HOSTNAME || '0.0.0.0';
-const port = parseInt(process.env.PORT, 10) || 3000;
+const port = process.env.PORT || 3000;
 
-const app = next({ dev, hostname, port });
+const app = next({ dev });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
@@ -21,6 +20,9 @@ app.prepare().then(() => {
     }
   }).listen(port, (err) => {
     if (err) throw err;
-    console.log(`> Ready on http://${hostname}:${port}`);
+    console.log(`> Ready on port/socket ${port}`);
   });
+}).catch((err) => {
+  console.error('Failed to prepare Next app:', err);
+  process.exit(1);
 });

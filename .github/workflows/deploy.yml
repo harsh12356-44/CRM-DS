@@ -36,62 +36,51 @@ jobs:
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
-            echo "Starting zero-downtime Hostinger deployment..."
+            echo "Starting reliable Hostinger deployment..."
             export PATH=/opt/alt/alt-nodejs20/root/bin:$PATH
+            export RAYON_NUM_THREADS=1
+            export NEXT_CPU_COUNT=1
+            export UV_THREADPOOL_SIZE=1
+            export NODE_OPTIONS="--max-old-space-size=1536"
 
-            TARGET_PATH="${{ secrets.TARGET_DIR }}"
-            STAGING_PATH="${TARGET_PATH}_build_staging"
+            cd ${{ secrets.TARGET_DIR }}
 
             # 1. Back up live database
-            if [ -f "$TARGET_PATH/data/db.json" ]; then
-              cp "$TARGET_PATH/data/db.json" /tmp/hrm_live_db_backup.json
+            mkdir -p data
+            if [ -f data/db.json ]; then
+              cp data/db.json /tmp/hrm_live_db_backup.json
             fi
 
-            # 2. Prepare staging build directory
-            mkdir -p "$STAGING_PATH"
-            cd "$STAGING_PATH"
-            if [ ! -d .git ]; then
-              git clone https://github.com/harsh12356-44/CRM-DS.git .
-            fi
+            # 2. Pull latest code from GitHub main
             git fetch --all
             git checkout -f main
             git reset --hard origin/main
 
-            # 3. Build inside staging directory (keeps live site 100% active with zero 503 errors)
-            npm install
-            npx prisma generate
-            npm run build
-
-            # 4. Atomically sync completed build artifacts to live TARGET_PATH
-            rsync -a --delete "$STAGING_PATH/.next/" "$TARGET_PATH/.next/"
-            rsync -a --delete "$STAGING_PATH/node_modules/" "$TARGET_PATH/node_modules/"
-            rsync -a --delete --exclude='.next' --exclude='node_modules' --exclude='data' "$STAGING_PATH/" "$TARGET_PATH/"
-
-            # 5. Sync .next/static into public/_next/static so Hostinger LiteSpeed serves all CSS/JS directly
-            mkdir -p "$TARGET_PATH/public/_next"
-            rsync -a --delete "$STAGING_PATH/.next/static/" "$TARGET_PATH/public/_next/static/"
-
-            # 6. Fix file permissions so Hostinger web server can read all CSS/JS static assets
-            chmod -R 755 "$TARGET_PATH/.next" || true
-            chmod -R 755 "$TARGET_PATH/public" || true
-            chmod -R 755 "$TARGET_PATH/node_modules" || true
-
-
-
-            # 5. Restore live database safely into TARGET_PATH/data/
-            mkdir -p "$TARGET_PATH/data"
+            # 3. Restore live database safely so no records are lost
+            mkdir -p data
             if [ -f /tmp/hrm_live_db_backup.json ]; then
-              cp /tmp/hrm_live_db_backup.json "$TARGET_PATH/data/db.json"
-            elif [ -f "$STAGING_PATH/data/db.json" ]; then
-              cp "$STAGING_PATH/data/db.json" "$TARGET_PATH/data/db.json"
+              cp /tmp/hrm_live_db_backup.json data/db.json
             fi
 
+            # 4. Install dependencies and generate Prisma client
+            npm install
+            npx prisma generate
 
-            # 6. Signal Hostinger Passenger to restart Node process
-            cd "$TARGET_PATH"
+            # 5. Build Next.js with single-thread constraint to prevent CloudLinux thread limits
+            npm run build
+
+            # 6. Populate public/_next/static so LiteSpeed web server serves CSS/JS directly
+            mkdir -p public/_next
+            rsync -a --delete .next/static/ public/_next/static/
+
+            # 7. Set world-readable permissions for static assets
+            chmod -R 755 .next public node_modules data || true
+
+            # 8. Clean stale sockets and trigger Hostinger Passenger restart
             mkdir -p tmp
             touch tmp/restart.txt
-            echo "Zero-Downtime Deployment Completed Successfully!"
+            echo "Deployment Completed & Server Restarted Successfully!"
+
 
 
 

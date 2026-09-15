@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
   devIndicators: false,
   eslint: {
     ignoreDuringBuilds: true,
@@ -12,3 +11,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

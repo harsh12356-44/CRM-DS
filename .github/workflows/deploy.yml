@@ -21,11 +21,12 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: 📦 Build Next.js on GitHub Runner
+      - name: 📦 Build Next.js on GitHub Runner & Package
         run: |
           npm ci
           npx prisma generate
           npm run build
+          tar -czf next_build.tar.gz .next
 
       - name: 🚀 Update Source Code on Hostinger
         uses: appleboy/ssh-action@v1.0.3
@@ -61,7 +62,7 @@ jobs:
             npm install
             npx prisma generate
 
-      - name: 📤 Upload Pre-Built .next to Hostinger
+      - name: 📤 Upload Pre-Built Archive to Hostinger
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -69,11 +70,11 @@ jobs:
           password: ${{ secrets.HOSTINGER_PASSWORD }}
           key: ${{ secrets.HOSTINGER_SSH_KEY }}
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
-          source: ".next"
+          source: "next_build.tar.gz"
           target: ${{ secrets.TARGET_DIR }}
           overwrite: true
 
-      - name: 🔄 Restart Application on Hostinger
+      - name: 🔄 Extract Build & Restart Application
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.HOSTINGER_HOST }}
@@ -83,10 +84,14 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.TARGET_DIR }}
+            rm -rf .next
+            tar -xzf next_build.tar.gz
+            rm -f next_build.tar.gz
             chmod -R 755 .next public data || true
             mkdir -p tmp
             touch tmp/restart.txt
-            echo "Application updated and restarted successfully!"
+            echo "Application updated and restarted successfully with all chunks!"
+
 
 
 

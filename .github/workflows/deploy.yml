@@ -37,7 +37,7 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             echo "Starting deployment on Hostinger..."
-            export PATH=/opt/alt/alt-nodejs20/root/bin:$PATH
+            export PATH=/opt/alt/alt-nodejs22/root/bin:$PATH
 
             cd ${{ secrets.TARGET_DIR }}
             
@@ -57,14 +57,11 @@ jobs:
             npx prisma generate
             npm run build
 
-            # 5. Clean kill any background node processes so sockets are released cleanly
-            pkill -u $(whoami) -f node || true
-            sleep 2
-
-            # 6. Trigger official Hostinger Node restart
+            # 5. Trigger official Hostinger Node restart
             mkdir -p tmp
             touch tmp/restart.txt
             echo "Deployment Completed & Server Restarted Successfully!"
+
 
 
 

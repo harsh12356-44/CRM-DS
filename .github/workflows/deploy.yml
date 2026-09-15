@@ -67,10 +67,14 @@ jobs:
             rsync -a --delete "$STAGING_PATH/node_modules/" "$TARGET_PATH/node_modules/"
             rsync -a --delete --exclude='.next' --exclude='node_modules' --exclude='data' "$STAGING_PATH/" "$TARGET_PATH/"
 
-            # 5. Restore live database safely
+            # 5. Restore live database safely into TARGET_PATH/data/
+            mkdir -p "$TARGET_PATH/data"
             if [ -f /tmp/hrm_live_db_backup.json ]; then
               cp /tmp/hrm_live_db_backup.json "$TARGET_PATH/data/db.json"
+            elif [ -f "$STAGING_PATH/data/db.json" ]; then
+              cp "$STAGING_PATH/data/db.json" "$TARGET_PATH/data/db.json"
             fi
+
 
             # 6. Signal Hostinger Passenger to restart Node process
             cd "$TARGET_PATH"

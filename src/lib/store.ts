@@ -510,6 +510,7 @@ export function clearMemoryDbCache() {
 }
 
 export function getDbData(): InitialState {
+  ensureDataDir();
   // Always read persistent data store data/db.json to ensure real-time accuracy
   try {
     if (fs.existsSync(DB_FILE)) {

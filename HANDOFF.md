@@ -13,6 +13,7 @@
     1. Added `export const dynamic = 'force-dynamic'` in [src/app/layout.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/layout.tsx), ensuring all routes are dynamically rendered and never statically baked with 1-year stale cache lifetimes.
     2. Configured HTTP `headers()` in [next.config.ts](file:///d:/Ravina/Antigravity/crm-ds/next.config.ts) to send `Cache-Control: no-store, no-cache, must-revalidate` for all HTML pages, while preserving `public, max-age=31536000, immutable` for static assets (`/_next/static/*`).
     3. Guarantees that clients and edge proxies always receive fresh HTML with the exact matching CSS/JS chunk hashes on every deployment.
+    4. Updated [.github/workflows/deploy.yml](file:///d:/Ravina/Antigravity/crm-ds/.github/workflows/deploy.yml) to back up and retain previous `.next/static/css` files alongside new builds so open tabs in any browser never hit 404s, and automatically send `X-LiteSpeed-Purge: *` on every deployment.
 - **Strict Full Name-Only Biometric Matching Engine (Zero ID Matching)**:
   - **Problem Identified**: The biometric device exports random numeric machine codes (e.g., Ravina is code `2`, Anup is code `6`, Jigyasa is code `7`, Naman is code `9`). Prior ID matching logic caused code `2` to match `emp-2` (Naman Bangia), code `6` to match `emp-6` (Nandini Gupta), and code `7` to match `emp-7` (Anup Sen), cross-allocating attendance between employees.
   - **Resolution**:

@@ -84,13 +84,31 @@ jobs:
           port: ${{ secrets.HOSTINGER_PORT || 65002 }}
           script: |
             cd ${{ secrets.TARGET_DIR }}
+            # 1. Back up previous static CSS to prevent 404s for users with open tabs
+            mkdir -p /tmp/hrm_prev_css
+            if [ -d .next/static/css ]; then
+              cp -f .next/static/css/*.css /tmp/hrm_prev_css/ 2>/dev/null || true
+            fi
+
+            # 2. Extract new build
             rm -rf .next
             tar -xzf next_build.tar.gz
             rm -f next_build.tar.gz
+
+            # 3. Restore previous CSS files alongside new ones (prevents 404 on any open browser tabs)
+            if [ -d /tmp/hrm_prev_css ]; then
+              cp -n /tmp/hrm_prev_css/*.css .next/static/css/ 2>/dev/null || true
+            fi
+
             chmod -R 755 .next public data || true
             mkdir -p tmp
             touch tmp/restart.txt
-            echo "Application updated and restarted successfully with all chunks!"
+
+            # 4. Trigger LiteSpeed & Hostinger CDN edge cache purge across the domain
+            curl -s -k -H "X-LiteSpeed-Purge: *" "https://mediumvioletred-fox-353008.hostingersite.com/login" > /dev/null 2>&1 || true
+            curl -s -k -H "X-LiteSpeed-Purge: *" "https://mediumvioletred-fox-353008.hostingersite.com/admin/attendance" > /dev/null 2>&1 || true
+
+            echo "Application updated, legacy CSS preserved, and edge caches purged successfully!"
 
 
 

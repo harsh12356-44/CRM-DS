@@ -100,6 +100,15 @@ jobs:
               cp -n /tmp/hrm_prev_css/*.css .next/static/css/ 2>/dev/null || true
             fi
 
+            # 4. Mirror active stylesheet to known legacy hashes for 100% backward compatibility
+            if [ -d .next/static/css ]; then
+              ACTIVE_CSS=$(ls -1 .next/static/css/*.css | head -n 1)
+              if [ -n "$ACTIVE_CSS" ]; then
+                cp -f "$ACTIVE_CSS" .next/static/css/2da7aa25cea25e6a.css 2>/dev/null || true
+                cp -f "$ACTIVE_CSS" .next/static/css/150ca88616e07aba.css 2>/dev/null || true
+              fi
+            fi
+
             chmod -R 755 .next public data || true
             mkdir -p tmp
             touch tmp/restart.txt

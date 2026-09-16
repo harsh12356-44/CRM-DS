@@ -7,6 +7,13 @@
 ---
 
 ## 2. Current Project Status
+- **Client Auto-Update Guard & Server-Side Universal CSS/JS Chunk Fallback**:
+  - **Problem Identified**: Employees who kept tabs open from prior deployments or whose browsers retained older cached HTML referencing deleted CSS/JS chunk hashes (`2da7aa25cea25e6a.css` / `150ca88616e07aba.css`) saw unstyled pages or remained on outdated versions without manually hard-refreshing.
+  - **Resolution**:
+    1. **VersionGuard Auto-Updater**: Created [src/components/VersionGuard.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/VersionGuard.tsx) and [src/app/api/version/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/version/route.ts). When employees switch to the tab or wake their computers, VersionGuard automatically checks the server build timestamp and reloads to the latest version seamlessly. Also catches `ChunkLoadError` events to automatically self-heal.
+    2. **Universal CSS Fallback in server.js**: Updated [server.js](file:///d:/Ravina/Antigravity/crm-ds/server.js) so if ANY browser or proxy requests an old/missing `.css` file, it immediately streams the active production stylesheet with `HTTP 200 OK`, preventing unstyled text permanently.
+    3. **Obsolete JS Chunk Auto-Reload in server.js**: If an obsolete JS chunk is requested by a stale client, `server.js` sends an auto-refresh script that refreshes the browser directly to the newest build.
+    4. **Legacy Hash Mirroring in deploy.yml**: Updated [.github/workflows/deploy.yml](file:///d:/Ravina/Antigravity/crm-ds/.github/workflows/deploy.yml) to automatically mirror active stylesheets to known legacy hashes (`2da7aa25cea25e6a.css`, `150ca88616e07aba.css`) and retain prior CSS files during deployments.
 - **Hostinger Deployment Stale HTML Cache & CSS 404 Prevention**:
   - **Problem Identified**: When updates were pushed to Hostinger, static routes (such as `/admin/attendance`) were prerendered with `s-maxage=31536000`. Browsers and Hostinger's LiteSpeed CDN cached the HTML referencing old CSS hashes. When `.next` was rebuilt with new chunk hashes, the old CSS file was deleted, causing the browser to receive a 404 for the stylesheet and render unstyled plain HTML.
   - **Resolution**:

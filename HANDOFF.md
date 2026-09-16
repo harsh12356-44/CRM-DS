@@ -7,6 +7,12 @@
 ---
 
 ## 2. Current Project Status
+- **Hostinger Deployment Stale HTML Cache & CSS 404 Prevention**:
+  - **Problem Identified**: When updates were pushed to Hostinger, static routes (such as `/admin/attendance`) were prerendered with `s-maxage=31536000`. Browsers and Hostinger's LiteSpeed CDN cached the HTML referencing old CSS hashes. When `.next` was rebuilt with new chunk hashes, the old CSS file was deleted, causing the browser to receive a 404 for the stylesheet and render unstyled plain HTML.
+  - **Resolution**:
+    1. Added `export const dynamic = 'force-dynamic'` in [src/app/layout.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/layout.tsx), ensuring all routes are dynamically rendered and never statically baked with 1-year stale cache lifetimes.
+    2. Configured HTTP `headers()` in [next.config.ts](file:///d:/Ravina/Antigravity/crm-ds/next.config.ts) to send `Cache-Control: no-store, no-cache, must-revalidate` for all HTML pages, while preserving `public, max-age=31536000, immutable` for static assets (`/_next/static/*`).
+    3. Guarantees that clients and edge proxies always receive fresh HTML with the exact matching CSS/JS chunk hashes on every deployment.
 - **Strict Full Name-Only Biometric Matching Engine (Zero ID Matching)**:
   - **Problem Identified**: The biometric device exports random numeric machine codes (e.g., Ravina is code `2`, Anup is code `6`, Jigyasa is code `7`, Naman is code `9`). Prior ID matching logic caused code `2` to match `emp-2` (Naman Bangia), code `6` to match `emp-6` (Nandini Gupta), and code `7` to match `emp-7` (Anup Sen), cross-allocating attendance between employees.
   - **Resolution**:

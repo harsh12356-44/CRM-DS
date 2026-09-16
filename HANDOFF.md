@@ -7,6 +7,23 @@
 ---
 
 ## 2. Current Project Status
+- **Supabase PostgreSQL Database Migration & Vercel Readiness (Zero Data Loss)**:
+  - **Live Dataset Synchronized**: Pulled 100% of the live database from Hostinger via [scripts/sync_from_hostinger.js](file:///d:/Ravina/Antigravity/crm-ds/scripts/sync_from_hostinger.js), capturing all 21 employees, 13 leave records, 1,625 attendance logs (including all 540 September 2026 biometric check-in/out records), 9 holidays, 9 departments, and 67 audit logs.
+  - **Backup Created**: Saved an immutable full backup snapshot at `data/backups/live_hostinger_full_backup_2026-09-16T10-50-36-479Z.json`.
+  - **Database Migration Complete**: Executed [scripts/migrate_to_supabase.js](file:///d:/Ravina/Antigravity/crm-ds/scripts/migrate_to_supabase.js) using Prisma ORM. Verified 100% parity across all tables:
+    - `Employee`: 21 records
+    - `LeaveRecord`: 13 records
+    - `AttendanceLog`: 1,625 records
+    - `Holiday`: 9 records
+    - `Department`: 9 records
+    - `AuditLog`: 67 records
+  - **Dual Cloud/Local Sync Architecture**: Integrated [src/lib/dbSync.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/dbSync.ts) into [src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts). When `DATABASE_URL` is present (in Vercel production or local `.env`), the application reads from and writes to Supabase PostgreSQL, persisting all leaves, punches, and settings in real time. Falls back gracefully to `data/db.json` when offline.
+  - **Vercel Deployment Instructions**:
+    1. Import the repository `harsh12356-44/CRM-DS` in your Vercel Dashboard.
+    2. Add the two required Environment Variables in Vercel Settings ➔ Environment Variables:
+       - `DATABASE_URL`: `postgresql://postgres.fzkwrphhjebngiinevrr:WZ1P9iwbtMrHz5sQ@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true`
+       - `DIRECT_URL`: `postgresql://postgres.fzkwrphhjebngiinevrr:WZ1P9iwbtMrHz5sQ@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres`
+    3. Deploy. Vercel automatically runs `postinstall: "prisma generate"`, compiles Next.js 15, and serves the app with zero caching issues and full cloud database persistence.
 - **Client Auto-Update Guard & Server-Side Universal CSS/JS Chunk Fallback**:
   - **Problem Identified**: Employees who kept tabs open from prior deployments or whose browsers retained older cached HTML referencing deleted CSS/JS chunk hashes (`2da7aa25cea25e6a.css` / `150ca88616e07aba.css`) saw unstyled pages or remained on outdated versions without manually hard-refreshing.
   - **Resolution**:

@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:sync-hostinger": "node scripts/sync_from_hostinger.js",
+    "db:migrate-supabase": "node scripts/migrate_to_supabase.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

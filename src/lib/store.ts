@@ -13,6 +13,7 @@ import {
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { loadDataFromPrisma, persistDataToPrisma } from './dbSync';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
@@ -605,6 +606,19 @@ export function getDbData(): InitialState {
 
 export async function ensureCloudSync() {
   try {
+    // 1. Prioritize reading directly from Supabase PostgreSQL in cloud/Vercel environments
+    const cloudData = await loadDataFromPrisma();
+    if (cloudData && cloudData.employees && cloudData.employees.length > 0) {
+      memoryDb = cloudData;
+      (globalThis as any)._inMemoryDbData = cloudData;
+      return;
+    }
+  } catch (e) {
+    console.warn('[store] Supabase cloud sync failed, using file fallback:', e);
+  }
+
+  // 2. Fallback to /tmp and local db.json
+  try {
     const db = getDbData();
     if (fs.existsSync(TMP_DB_FILE)) {
       try {
@@ -628,8 +642,11 @@ export async function ensureCloudSync() {
 }
 
 async function syncCloudStorageAsync(data: InitialState) {
-  // Local storage save is handled directly via saveDbData / saveDbDataAsync
-  return;
+  try {
+    await persistDataToPrisma(data);
+  } catch (e) {
+    console.warn('[store] Failed to sync to cloud database:', e);
+  }
 }
 
 export async function saveDbDataAsync(data: InitialState): Promise<void> {

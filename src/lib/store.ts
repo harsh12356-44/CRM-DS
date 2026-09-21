@@ -542,9 +542,13 @@ export function getDbData(): InitialState {
           sickAllowance: e.sickAllowance ?? 4,
         }));
 
+        const rawLeaves = Array.isArray(data.leaveRecords) ? data.leaveRecords : [];
+        const cleanedLeaves = rawLeaves.filter((l: any) => l.id !== 'l-1789898879360');
+        if (cleanedLeaves.length !== rawLeaves.length) dirty = true;
+
         memoryDb = {
           employees: employeesList,
-          leaveRecords: Array.isArray(data.leaveRecords) ? data.leaveRecords : [],
+          leaveRecords: cleanedLeaves,
           attendanceLogs: Array.isArray(data.attendanceLogs) ? data.attendanceLogs : DEFAULT_ATTENDANCE,
           settings: data.settings || DEFAULT_SETTINGS,
           payrollPreviews: data.payrollPreviews || [],

@@ -26,6 +26,15 @@ export async function GET(request: Request) {
 
     const db = getDbData();
     let dbModified = false;
+
+    // Auto-purge duplicate record #360 (l-1789898879360) for Mudita on 2026-09-21
+    const beforeFilterLen = (db.leaveRecords || []).length;
+    db.leaveRecords = (db.leaveRecords || []).filter(l => l.id !== 'l-1789898879360');
+    if (db.leaveRecords.length !== beforeFilterLen) {
+      dbModified = true;
+      logAudit('Delete Duplicate Leave', 'LeaveRecord', 'l-1789898879360', undefined, 'Purged duplicate leave record #360 for Mudita');
+    }
+
     (db.leaveRecords || []).forEach(l => {
       if (
         (l.employeeId === 'emp-13' || l.employeeId === 'SD013' || (l.employeeName && l.employeeName.toLowerCase().includes('shweta'))) &&
@@ -71,6 +80,24 @@ export async function POST(request: Request) {
   try {
     await ensureCloudSync();
     const body = await request.json();
+
+    // 0a. Delete Single Leave Record Action
+    if (body.action === 'delete' || body.action === 'delete_record') {
+      const targetId = body.id;
+      if (!targetId) {
+        return NextResponse.json({ error: 'Missing leave record id to delete' }, { status: 400 });
+      }
+      const db = getDbData();
+      const initialCount = (db.leaveRecords || []).length;
+      db.leaveRecords = (db.leaveRecords || []).filter(l => l.id !== targetId);
+      if (db.leaveRecords.length !== initialCount) {
+        saveDbData(db);
+        logAudit('Delete Leave Record', 'LeaveRecord', targetId, undefined, `Deleted leave record ${targetId}`);
+      }
+      const targetQ = body.quarter || 'Q3';
+      const summaries = getQuarterlyLeaveSummaries(targetQ, 'ALL');
+      return NextResponse.json({ success: true, message: `Deleted leave record ${targetId}`, summaries, records: db.leaveRecords });
+    }
 
     // 0. Clear All Leaves Action (for testing & reset)
     if (body.action === 'clear' || body.action === 'clear_all') {
@@ -351,8 +378,23 @@ export async function POST(request: Request) {
     const start = new Date(startDate);
     const end = endDate ? new Date(endDate) : start;
 
-    // Optional Overlap Check (bypassed to allow multiple leave submissions for testing)
-    // if (!body.allowOverlap) { ... }
+    // Prevent duplicate/overlapping leave applications for the same employee
+    const targetStart = startDate;
+    const targetEnd = endDate || startDate;
+    const hasOverlap = (db.leaveRecords || []).some(l => {
+      if (l.employeeId !== emp.id && l.employeeName !== emp.name) return false;
+      if (l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected') return false;
+      const lStart = l.startDate;
+      const lEnd = l.endDate || l.startDate;
+      return targetStart <= lEnd && targetEnd >= lStart;
+    });
+
+    if (hasOverlap && !body.allowOverlap && !body.isAdjustment) {
+      return NextResponse.json(
+        { error: `A leave request for ${emp.name} already exists for ${targetStart}${targetEnd !== targetStart ? ' to ' + targetEnd : ''}. Duplicate leave applications are not permitted.` },
+        { status: 400 }
+      );
+    }
 
     let daysCount = calculateWorkingDaysCount(startDate, endDate, dayType);
     if (typeof body.daysCount === 'number') {
@@ -441,9 +483,8 @@ export async function PUT(request: Request) {
       const isExact = l.id === id;
       const lClean = l.id.replace(/[^0-9]/g, '');
       const isCleanMatch = cleanId.length >= 3 && (lClean.endsWith(cleanId) || cleanId.endsWith(lClean));
-      const isRecordMatch = record && (l.employeeId === record.employeeId || l.employeeId === record.employeeName) && l.startDate === record.startDate;
       
-      if (isExact || isCleanMatch || isRecordMatch) {
+      if (isExact || isCleanMatch) {
         matchingIndices.push(idx);
       }
     });
@@ -544,7 +585,20 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
     const db = getDbData();
+
+    if (id) {
+      const initialCount = (db.leaveRecords || []).length;
+      db.leaveRecords = (db.leaveRecords || []).filter(l => l.id !== id);
+      if (db.leaveRecords.length !== initialCount) {
+        saveDbData(db);
+        logAudit('Delete Leave Record', 'LeaveRecord', id, undefined, `Deleted leave record ${id}`);
+      }
+      return NextResponse.json({ success: true, message: `Leave record ${id} deleted successfully`, records: db.leaveRecords });
+    }
+
     db.leaveRecords = [];
     saveDbData(db);
 

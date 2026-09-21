@@ -53,10 +53,11 @@ jobs:
             git checkout -f main
             git reset --hard origin/main
 
-            # 3. Restore live database
+            # 3. Restore live database and sanitize duplicate records
             if [ -f /tmp/hrm_live_db_backup.json ]; then
               cp /tmp/hrm_live_db_backup.json data/db.json
             fi
+            node -e "if (require('fs').existsSync('data/db.json')) { const f = 'data/db.json'; const d = JSON.parse(require('fs').readFileSync(f)); d.leaveRecords = (d.leaveRecords || []).filter(l => l.id !== 'l-1789898879360'); require('fs').writeFileSync(f, JSON.stringify(d, null, 2)); }"
 
             # 4. Install dependencies (no heavy compilation on Hostinger!)
             npm install

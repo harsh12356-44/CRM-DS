@@ -140,6 +140,35 @@ export default function LeaveRecordsAdminPage() {
     }
   };
 
+  const handleDeleteRecord = async (id: string) => {
+    if (!confirm(`Are you sure you want to delete leave record #${id.slice(-4)}? This cannot be undone.`)) {
+      return;
+    }
+    setActionStatusMsg('Deleting leave record...');
+    try {
+      const res = await fetch('/api/leaves', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete_record', id }),
+      });
+      if (res.ok) {
+        setLeaves(prev => prev.filter(l => l.id !== id));
+        setActionStatusMsg(`Leave record #${id.slice(-4)} deleted successfully.`);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('leaveDataUpdated'));
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setActionStatusMsg(errData.error || 'Failed to delete leave record.');
+      }
+      setTimeout(() => setActionStatusMsg(''), 4000);
+    } catch (err) {
+      console.error('Error deleting leave record:', err);
+      setActionStatusMsg('Error deleting leave record.');
+      setTimeout(() => setActionStatusMsg(''), 4000);
+    }
+  };
+
   // Helper formatting functions matching workflow
   const getManagerStatusLabel = (l: LeaveRecord, emp?: Employee) => {
     if (l.managerStatus === 'Approved' || l.status === 'APPROVED') return 'Approved ✓';
@@ -425,6 +454,13 @@ export default function LeaveRecordsAdminPage() {
                                 <XCircle className="w-3.5 h-3.5" />
                                 <span>Reject</span>
                               </button>
+                              <button
+                                onClick={() => handleDeleteRecord(l.id)}
+                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
+                                title="Delete this leave request"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -609,15 +645,24 @@ export default function LeaveRecordsAdminPage() {
 
                           {/* Action */}
                           <td className="py-3.5 px-4 text-center">
-                            {l.status === 'APPROVED' || l.hrStatus === 'Approved' ? (
-                              <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
-                                HR AND MANAGER HAVE APPROVED ✓
-                              </span>
-                            ) : (
-                              <span className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
-                                REJECTED ✗
-                              </span>
-                            )}
+                            <div className="flex items-center justify-center space-x-2">
+                              {l.status === 'APPROVED' || l.hrStatus === 'Approved' ? (
+                                <span className="px-3 py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
+                                  HR AND MANAGER HAVE APPROVED ✓
+                                </span>
+                              ) : (
+                                <span className="px-3 py-1.5 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
+                                  REJECTED ✗
+                                </span>
+                              )}
+                              <button
+                                onClick={() => handleDeleteRecord(l.id)}
+                                className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition"
+                                title="Delete this leave record"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

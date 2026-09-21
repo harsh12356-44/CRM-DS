@@ -7,6 +7,17 @@
 ---
 
 ## 2. Current Project Status
+- **Resolution of Duplicate Leave Record for Mudita & Date Overlap Guard**:
+  - **Problem Identified**: Mudita requested leave for a single day (`2026-09-21`), but two entries appeared in the Admin Leave Requests register (`#880` with note `"Due to family event "` and `#360` with note `"For a family event "`, submitted 24 seconds apart). Because both duplicate entries were approved, the Leave Tracker in Q3 calculated 2 Casual Leaves Used and 4 Remaining instead of 1 Used and 5 Remaining.
+  - **Root Causes**:
+    1. **Accidental Re-submission**: On the Employee Portal, submitting a leave cleared the input fields without redirecting away, causing the user to re-submit with revised wording.
+    2. **Disabled Overlap Check**: In `/api/leaves/route.ts`, the duplicate/overlap date check was previously commented out for testing.
+    3. **Cross-Approval in PUT**: In `/api/leaves/route.ts` `PUT` handler, matching records by identical employee and start date caused approving one leave to automatically approve both.
+  - **Resolution**:
+    1. **Live Database Cleanup**: Purged duplicate record `#360` (`l-1789898879360`) from `data/db.json` and added auto-purging logic across `store.ts`, `deploy.yml`, and `GET /api/leaves`. Mudita's Q3 leave tracker now strictly calculates 1 Casual Leave Used and 5 Remaining.
+    2. **Duplicate & Overlap Validation Guard**: Re-enabled strict date-range overlap checking in `POST /api/leaves`. Submitting a duplicate request for already-booked dates now rejects with HTTP 400 and a clear user-facing error message.
+    3. **Auto-Redirect to Leave History**: Updated `src/app/employee/page.tsx` to automatically navigate employees to the **Leave History** tab immediately upon successful leave submission, displaying their live pending request.
+    4. **Single Record Deletion Capability**: Added `delete_record` action in `POST /api/leaves`, query parameter support in `DELETE /api/leaves?id=...`, and interactive Trash icon buttons in `src/app/admin/leave-records/page.tsx` for Admins.
 - **Supabase PostgreSQL Database Migration & Vercel Readiness (Zero Data Loss)**:
   - **Live Dataset Synchronized**: Pulled 100% of the live database from Hostinger via [scripts/sync_from_hostinger.js](file:///d:/Ravina/Antigravity/crm-ds/scripts/sync_from_hostinger.js), capturing all 21 employees, 13 leave records, 1,625 attendance logs (including all 540 September 2026 biometric check-in/out records), 9 holidays, 9 departments, and 67 audit logs.
   - **Backup Created**: Saved an immutable full backup snapshot at `data/backups/live_hostinger_full_backup_2026-09-16T10-50-36-479Z.json`.

@@ -425,16 +425,18 @@ function EmployeePortalContent() {
           }
         }
 
-        setFormMsg(`Leave application (${computedDays} ${computedDays === 1 ? 'day' : 'days'}) submitted successfully! Check live status under Leave History tab.`);
+        setFormMsg(`Leave application (${computedDays} ${computedDays === 1 ? 'day' : 'days'}) submitted successfully!`);
         setFromDate('');
         setToDate('');
         setReason('');
+        setActiveTab('leave-history');
         fetchEmployeeDashboardData(true);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('leaveDataUpdated'));
         }
       } else {
-        setFormMsg('Failed to submit leave application.');
+        const errData = await res.json().catch(() => ({}));
+        setFormMsg(errData.error || 'Failed to submit leave application.');
       }
     } catch (err) {
       console.error(err);

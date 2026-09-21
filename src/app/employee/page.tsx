@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import Link from 'next/link';
@@ -74,8 +74,16 @@ function getLiveStatusBadge(l: LeaveRecord) {
 }
 
 function EmployeePortalContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const activeTab = searchParams ? searchParams.get('tab') || 'dashboard' : 'dashboard';
+  const tabFromUrl = searchParams ? searchParams.get('tab') || 'dashboard' : 'dashboard';
+  const [tabOverride, setTabOverride] = useState<string | null>(null);
+
+  useEffect(() => {
+    setTabOverride(null);
+  }, [tabFromUrl]);
+
+  const activeTab = tabOverride || tabFromUrl;
 
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('emp-12'); // Default: Sonu Goswami (SG012)
@@ -429,7 +437,11 @@ function EmployeePortalContent() {
         setFromDate('');
         setToDate('');
         setReason('');
-        setActiveTab('leave-history');
+        setTabOverride('leave-history');
+        router.push('/employee?tab=leave-history');
+        if (typeof window !== 'undefined') {
+          window.history.pushState(null, '', '/employee?tab=leave-history');
+        }
         fetchEmployeeDashboardData(true);
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event('leaveDataUpdated'));

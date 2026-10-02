@@ -361,7 +361,8 @@ export default function LeaveRecordsAdminPage() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-300">
                   <thead className="bg-slate-950 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800">
                     <tr>
@@ -469,6 +470,103 @@ export default function LeaveRecordsAdminPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Vertical Items View (< md) */}
+              <div className="md:hidden space-y-3">
+                {pendingApprovals.map(l => {
+                  const emp = employees.find(
+                    e => e.id === l.employeeId || e.employeeId === l.employeeId || e.name === l.employeeId
+                  );
+                  const isSingle = !l.endDate || l.endDate === l.startDate;
+                  const countNum = l.daysCount || (isSingle ? 1 : 2);
+                  const reqId = l.id.replace(/[^0-9]/g, '').slice(-3) || l.id.slice(-3);
+
+                  return (
+                    <div
+                      key={l.id}
+                      className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 shadow-md"
+                    >
+                      {/* Top: Employee & Request ID */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-pink-600 flex items-center justify-center text-white font-black text-xs shrink-0 shadow">
+                            {emp?.name?.charAt(0) || 'E'}
+                          </div>
+                          <div className="min-w-0">
+                            <strong className="text-white text-xs font-bold block truncate">{emp ? emp.name : l.employeeId}</strong>
+                            <span className="text-[10px] text-slate-400 font-mono block truncate">
+                              ID: {emp?.employeeId || l.employeeId} • {emp?.department || 'Staff'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-mono text-xs font-bold text-rose-300 bg-rose-500/10 px-2 py-0.5 rounded-lg border border-rose-500/20 shrink-0">
+                          #{reqId}
+                        </span>
+                      </div>
+
+                      {/* Leave Type & Dates */}
+                      <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-xs text-rose-300 block">{l.leaveType}</span>
+                          <span className="font-mono text-slate-300 text-[11px] block mt-0.5">
+                            {isSingle ? l.startDate : `${l.startDate} → ${l.endDate}`}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-extrabold shrink-0">
+                          {countNum === 0.5 ? '0.5 Day' : `${countNum} Day${countNum > 1 ? 's' : ''}`}
+                        </span>
+                      </div>
+
+                      {/* Reason / Notes */}
+                      {l.note && (
+                        <div className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Reason:</span>
+                          <p className="line-clamp-2 leading-relaxed">{l.note}</p>
+                        </div>
+                      )}
+
+                      {/* Statuses Grid */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Manager Review</span>
+                          <span className="font-bold text-white text-[11px] mt-0.5 block">{getManagerStatusLabel(l, emp)}</span>
+                        </div>
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Final Status</span>
+                          <div className="mt-0.5">{getFinalStatusBadge(l)}</div>
+                        </div>
+                      </div>
+
+                      {/* HR Final Actions */}
+                      <div className="pt-2 border-t border-slate-800/80 grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleUpdateStatus(l.id, 'APPROVED')}
+                          className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center justify-center space-x-1.5 min-h-[44px] cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4 shrink-0" />
+                          <span>Approve (HR)</span>
+                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleUpdateStatus(l.id, 'REJECTED')}
+                            className="flex-1 py-2.5 px-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 font-bold text-xs transition flex items-center justify-center space-x-1.5 min-h-[44px] cursor-pointer"
+                          >
+                            <XCircle className="w-4 h-4 shrink-0" />
+                            <span>Reject</span>
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRecord(l.id)}
+                            className="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition flex items-center justify-center min-h-[44px] min-w-[44px] cursor-pointer"
+                            title="Delete this leave request"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -483,16 +581,16 @@ export default function LeaveRecordsAdminPage() {
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5">
                 {/* Search Bar */}
-                <div className="relative">
+                <div className="relative flex-1 sm:flex-initial">
                   <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                   <input
                     type="text"
                     placeholder="Search name, ID or subject..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="pl-9 pr-4 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-rose-500 transition w-48 md:w-60"
+                    className="w-full sm:w-60 pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-rose-500 transition min-h-[40px]"
                   />
                 </div>
 
@@ -500,7 +598,7 @@ export default function LeaveRecordsAdminPage() {
                 <select
                   value={departmentFilter}
                   onChange={e => setDepartmentFilter(e.target.value)}
-                  className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-rose-500 transition"
+                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-rose-500 transition min-h-[40px]"
                 >
                   <option value="ALL">All Departments</option>
                   {departmentsList.map(d => (
@@ -514,7 +612,7 @@ export default function LeaveRecordsAdminPage() {
                 <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
-                  className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-rose-500 transition"
+                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-200 focus:outline-none focus:border-rose-500 transition min-h-[40px]"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="APPROVED">Approved</option>
@@ -525,7 +623,7 @@ export default function LeaveRecordsAdminPage() {
 
                 <button
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold text-xs transition flex items-center space-x-1.5"
+                  className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-semibold text-xs transition flex items-center justify-center space-x-1.5 min-h-[40px]"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Print Roster</span>
@@ -533,8 +631,8 @@ export default function LeaveRecordsAdminPage() {
               </div>
             </div>
 
-            {/* Table Content - Matches 1:1 Screenshot Columns */}
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-950/60 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -670,6 +768,109 @@ export default function LeaveRecordsAdminPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Vertical Items View (< md) */}
+            <div className="md:hidden space-y-3 p-4">
+              {loading ? (
+                <p className="py-8 text-center text-slate-500 text-xs">Loading leave requests...</p>
+              ) : filteredLeaves.length === 0 ? (
+                <p className="py-8 text-center text-slate-500 text-xs">No leave records found matching criteria.</p>
+              ) : (
+                filteredLeaves.map(l => {
+                  const emp = employees.find(
+                    e => e.id === l.employeeId || e.employeeId === l.employeeId || e.name === l.employeeId
+                  );
+                  const isSingle = !l.endDate || l.endDate === l.startDate;
+                  const countNum = l.daysCount || (isSingle ? 1 : 2);
+                  const reqId = l.id.replace(/[^0-9]/g, '').slice(-3) || l.id.slice(-3);
+                  const isApproved = l.status === 'APPROVED' || l.hrStatus === 'Approved';
+
+                  return (
+                    <div
+                      key={l.id}
+                      className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 shadow-md"
+                    >
+                      {/* Top: Employee & Request ID */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-700 to-slate-800 flex items-center justify-center text-white font-black text-xs shrink-0 shadow">
+                            {emp?.name?.charAt(0) || 'E'}
+                          </div>
+                          <div className="min-w-0">
+                            <strong className="text-white text-xs font-bold block truncate">{emp ? emp.name : l.employeeId}</strong>
+                            <span className="text-[10px] text-slate-400 font-mono block truncate">
+                              ID: {emp?.employeeId || l.employeeId} • {emp?.department || 'Staff'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-mono text-xs font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-lg border border-slate-700 shrink-0">
+                          #{reqId}
+                        </span>
+                      </div>
+
+                      {/* Leave Type & Dates */}
+                      <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-xs text-white block">{l.leaveType}</span>
+                          <span className="font-mono text-slate-300 text-[11px] block mt-0.5">
+                            {isSingle ? l.startDate : `${l.startDate} → ${l.endDate}`}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-slate-800 text-purple-300 border border-slate-700 text-[10px] font-extrabold shrink-0">
+                          {countNum === 0.5 ? '0.5 Day' : `${countNum} Day${countNum > 1 ? 's' : ''}`}
+                        </span>
+                      </div>
+
+                      {/* Reason / Notes */}
+                      {l.note && (
+                        <div className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Reason:</span>
+                          <p className="line-clamp-2 leading-relaxed">{l.note}</p>
+                        </div>
+                      )}
+
+                      {/* Review Breakdown */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Manager Review</span>
+                          <span className="font-bold text-white text-[11px] mt-0.5 block">{getManagerStatusLabel(l, emp)}</span>
+                        </div>
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Admin / HR Status</span>
+                          <span className="font-bold text-white text-[11px] mt-0.5 block">{getAdminStatusLabel(l)}</span>
+                        </div>
+                      </div>
+
+                      {/* Final Status Banner & Actions */}
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {isApproved ? (
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
+                              HR & MGR APPROVED ✓
+                            </span>
+                          ) : (
+                            <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-extrabold text-[10px] uppercase tracking-wider inline-block">
+                              REJECTED ✗
+                            </span>
+                          )}
+                          <span className="block text-[10px] text-slate-500 font-mono mt-1 truncate">
+                            Submitted: {l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '29 Jul 2026'}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteRecord(l.id)}
+                          className="p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 transition flex items-center justify-center min-h-[44px] min-w-[44px] cursor-pointer shrink-0"
+                          title="Delete this leave record"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </main>

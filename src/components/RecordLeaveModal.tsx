@@ -114,7 +114,7 @@ export default function RecordLeaveModal({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-300 mb-1">
                 Leave Type: <span className="text-red-400">*</span>
@@ -122,7 +122,7 @@ export default function RecordLeaveModal({
               <select
                 value={leaveType}
                 onChange={e => setLeaveType(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white focus:outline-none focus:border-blue-500"
               >
                 <option value="Casual Leave">Casual Leave</option>
                 <option value="Planned Leave">Planned Leave</option>
@@ -136,7 +136,7 @@ export default function RecordLeaveModal({
               <select
                 value={dayType}
                 onChange={e => setDayType(e.target.value as any)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white focus:outline-none focus:border-blue-500"
               >
                 <option value="full">Full Day (1.0)</option>
                 <option value="first_half">First Half (0.5)</option>
@@ -145,7 +145,7 @@ export default function RecordLeaveModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-300 mb-1">
                 Start Date: <span className="text-red-400">*</span>
@@ -154,7 +154,7 @@ export default function RecordLeaveModal({
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white focus:outline-none focus:border-blue-500"
                 required
               />
             </div>
@@ -167,12 +167,12 @@ export default function RecordLeaveModal({
                 type="date"
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block font-semibold text-slate-300 mb-1">Handover Note</label>
               <input
@@ -180,7 +180,7 @@ export default function RecordLeaveModal({
                 placeholder="e.g. Work handed to Priya"
                 value={handoverNote}
                 onChange={e => setHandoverNote(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white"
               />
             </div>
             <div>
@@ -190,7 +190,7 @@ export default function RecordLeaveModal({
                 placeholder="+91 98765 00000"
                 value={emergencyContact}
                 onChange={e => setEmergencyContact(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white"
               />
             </div>
           </div>

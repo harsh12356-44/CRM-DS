@@ -7,6 +7,16 @@
 ---
 
 ## 2. Current Project Status
+- **Vertical Mobile Responsive Items for Leave Requests & Team Approvals Desks**:
+  - **Requirement Addressed**: On mobile phones, wide tables for leave requests (e.g. 7-column Pending Approvals and 11-column Historical Leave Requests Register) forced cumbersome horizontal scrolling and tiny text. All leave request items now render **vertically down the screen** as responsive, structured cards on mobile screens (`< md`), fitting comfortably within the screen with zero horizontal scrolling.
+  - **Leave Requests Desk ([src/app/admin/leave-records/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/leave-records/page.tsx))**:
+    - **Pending Leave Approvals**: Desktop table preserved in `hidden md:block`; mobile view (`md:hidden space-y-3`) displays each pending request as an item card with employee initials avatar, department, request ID, leave type, date range with duration pill, reason/notes, manager status, final status, and 44px+ touch-friendly `Approve (HR)` / `Reject` / `Delete` actions.
+    - **Historical Leave Requests Register**: Desktop table preserved in `hidden md:block`; mobile view (`md:hidden space-y-3 p-4`) displays each historical record vertically with employee info, dates, duration, manager/admin review breakdown, final status pill (`HR & MGR APPROVED ✓` or `REJECTED ✗`), submission date, and delete action.
+    - **Responsive Filter Controls**: Search bar and dropdowns (Department, Status, Print Roster) stack vertically and adapt to full mobile width (`w-full sm:w-60`).
+  - **Subordinate Team Approvals Desk ([src/app/admin/team-approvals/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/team-approvals/page.tsx))**:
+    - Added responsive vertical mobile card feed for team leave applications with employee details, leave type, dates, reason, status breakdown, and direct decision action buttons.
+  - **Record Leave Application Modal ([src/components/RecordLeaveModal.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/RecordLeaveModal.tsx))**:
+    - Changed 2-column grid to responsive `grid-cols-1 sm:grid-cols-2` with `min-h-[44px]` inputs so all fields (Leave Type, Duration, Start/End Dates, Handover, Contact) stack vertically on mobile phones.
 - **Vertical Mobile Responsive Calendar & Timeline View for Attendance Grid & Working Hours**:
   - **Requirement Addressed**: On mobile smartphones, horizontal 31-day table matrices (requiring ~1300px width) previously forced awkward horizontal scrolling and cramped columns. The attendance grid and working hours tabs have been transformed so that on mobile screens, instead of horizontal scrolling, the schedule renders **vertically down the screen** as a clean daily timeline, completely fitting mobile screen sizes without horizontal cramping or overflow.
   - **Desktop vs. Mobile Experience**:

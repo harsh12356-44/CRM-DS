@@ -221,9 +221,10 @@ export default function HRTeamApprovalsPage() {
             </div>
           </div>
 
-          {/* Leave Requests Table */}
+          {/* Leave Requests Table (Responsive: Desktop Table + Mobile Vertical Cards) */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="bg-slate-950/80 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
@@ -331,6 +332,121 @@ export default function HRTeamApprovalsPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Vertical Items View (< md) */}
+            <div className="md:hidden space-y-3 p-4">
+              {loading ? (
+                <p className="py-8 text-center text-slate-500 text-xs">Loading leave requests...</p>
+              ) : filteredLeaves.length === 0 ? (
+                <p className="py-8 text-center text-slate-500 text-xs">No leave applications match the selected filter.</p>
+              ) : (
+                filteredLeaves.map((l, index) => {
+                  const emp = employees.find(
+                    (e) => e.id === l.employeeId || e.employeeId === l.employeeId || e.name.toLowerCase() === (l.employeeId || '').toLowerCase()
+                  );
+                  const reqId = l.id && typeof l.id === 'string' ? `#${l.id.replace(/[^0-9]/g, '').slice(-3) || l.id.slice(-3)}` : `#${index + 1}`;
+                  const isReviewed = l.hrStatus === 'Approved' || l.hrStatus === 'Rejected' || l.status === 'APPROVED' || l.status === 'REJECTED';
+
+                  return (
+                    <div
+                      key={l.id || index}
+                      className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl space-y-3 shadow-md"
+                    >
+                      {/* Top: Employee & Request ID */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center space-x-2.5 min-w-0">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white font-black text-xs shrink-0 shadow">
+                            {emp?.name?.charAt(0) || 'E'}
+                          </div>
+                          <div className="min-w-0">
+                            <strong className="text-white text-xs font-bold block truncate">{emp ? emp.name : l.employeeId}</strong>
+                            <span className="text-[10px] text-slate-400 font-mono block truncate">
+                              ID: {emp?.employeeId || l.employeeId} • {emp?.department || 'Employee'}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="font-mono text-xs font-bold text-purple-300 bg-purple-500/10 px-2 py-0.5 rounded-lg border border-purple-500/20 shrink-0">
+                          {reqId}
+                        </span>
+                      </div>
+
+                      {/* Leave Type & Dates */}
+                      <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex items-center justify-between gap-2">
+                        <div>
+                          <span className="font-bold text-xs text-purple-300 block">{l.leaveType}</span>
+                          <span className="font-mono text-slate-300 text-[11px] block mt-0.5">
+                            {l.startDate} to {l.endDate || l.startDate}
+                          </span>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-extrabold shrink-0">
+                          {l.daysCount} {l.daysCount === 1 ? 'day' : 'days'}
+                        </span>
+                      </div>
+
+                      {/* Reason / Notes */}
+                      {l.note && (
+                        <div className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Reason:</span>
+                          <p className="line-clamp-2 leading-relaxed">{l.note}</p>
+                        </div>
+                      )}
+
+                      {/* Review Breakdown */}
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Manager Status</span>
+                          <span className="font-bold text-white text-[11px] mt-0.5 block">{l.managerStatus || 'Pending'}</span>
+                        </div>
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">HR Final Status</span>
+                          <span className={`inline-block font-bold text-[11px] mt-0.5 ${
+                            l.hrStatus === 'Approved' || l.status === 'APPROVED' ? 'text-emerald-400' : l.hrStatus === 'Rejected' || l.status === 'REJECTED' ? 'text-red-400' : 'text-amber-400'
+                          }`}>
+                            {l.hrStatus === 'Approved' || l.status === 'APPROVED' ? 'Approved ✓' : l.hrStatus === 'Rejected' || l.status === 'REJECTED' ? 'Rejected ✗' : 'Pending HR'}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* HR Final Actions */}
+                      <div className="pt-2 border-t border-slate-800/80">
+                        {!isReviewed ? (
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => handleHRReview(l.id, 'APPROVED')}
+                              className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center justify-center space-x-1.5 min-h-[44px] cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-4 h-4 shrink-0" />
+                              <span>Approve (HR)</span>
+                            </button>
+                            <button
+                              onClick={() => handleHRReview(l.id, 'REJECTED')}
+                              className="py-2.5 px-3 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 font-bold text-xs transition flex items-center justify-center space-x-1.5 min-h-[44px] cursor-pointer"
+                            >
+                              <XCircle className="w-4 h-4 shrink-0" />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                              l.hrStatus === 'Approved' || l.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-red-500/10 text-red-300 border-red-500/30'
+                            }`}>
+                              {l.hrStatus === 'Approved' || l.status === 'APPROVED' ? '✓ HR Approved' : '✗ HR Rejected'}
+                            </span>
+                            <button
+                              onClick={() => handleHRReview(l.id, l.hrStatus === 'Approved' || l.status === 'APPROVED' ? 'REJECTED' : 'APPROVED')}
+                              className="text-xs text-blue-400 hover:text-blue-300 font-bold underline py-2 px-2 cursor-pointer"
+                            >
+                              Change Decision
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </main>

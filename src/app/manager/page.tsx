@@ -239,7 +239,8 @@ export default function ManagerPortalPage() {
               </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-950/60 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
@@ -304,14 +305,14 @@ export default function ManagerPortalPage() {
                               <div className="flex items-center justify-end space-x-1.5">
                                 <button
                                   onClick={() => handleManagerAction(l.id, 'APPROVED')}
-                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition shadow flex items-center space-x-1"
+                                  className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition shadow flex items-center space-x-1 cursor-pointer"
                                 >
                                   <CheckCircle2 className="w-3.5 h-3.5" />
                                   <span>Approve</span>
                                 </button>
                                 <button
                                   onClick={() => handleManagerAction(l.id, 'REJECTED')}
-                                  className="px-2 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-[11px] font-bold rounded-lg transition flex items-center space-x-1"
+                                  className="px-2 py-1 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-[11px] font-bold rounded-lg transition flex items-center space-x-1 cursor-pointer"
                                 >
                                   <XCircle className="w-3.5 h-3.5" />
                                   <span>Reject</span>
@@ -326,7 +327,7 @@ export default function ManagerPortalPage() {
                                 </span>
                                 <button
                                   onClick={() => handleManagerAction(l.id, l.managerStatus === 'Approved' || l.status === 'APPROVED' ? 'REJECTED' : 'APPROVED')}
-                                  className="text-[10px] text-blue-400 hover:text-blue-300 font-bold underline ml-1"
+                                  className="text-[10px] text-blue-400 hover:text-blue-300 font-bold underline ml-1 cursor-pointer"
                                 >
                                   Change
                                 </button>
@@ -339,6 +340,105 @@ export default function ManagerPortalPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card Feed View */}
+            <div className="md:hidden space-y-3">
+              {loading ? (
+                <div className="py-8 text-center text-slate-500 text-xs">
+                  Loading team leave requests...
+                </div>
+              ) : displayedLeaves.length === 0 ? (
+                <div className="py-8 text-center text-slate-500 text-xs bg-slate-950/40 rounded-xl border border-slate-800 p-6">
+                  No team leave applications found for {filterMode === 'MY_TEAM' ? 'your direct team' : 'this selection'}.
+                </div>
+              ) : (
+                displayedLeaves.map(l => {
+                  const emp = employees.find(
+                    e => e.id === l.employeeId || e.employeeId === l.employeeId || e.name === l.employeeId
+                  );
+                  const isPending = l.managerStatus !== 'Approved' && l.managerStatus !== 'Rejected' && l.status !== 'APPROVED' && l.status !== 'REJECTED';
+
+                  return (
+                    <div key={l.id} className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono font-bold text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                            #{l.id.replace(/[^0-9]/g, '').slice(-3) || l.id.slice(-3)}
+                          </span>
+                          <span className="font-bold text-xs text-white">{emp ? emp.name : l.employeeId}</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono">ID: {emp?.employeeId || l.employeeId}</span>
+                      </div>
+
+                      <div className="bg-slate-900/90 rounded-xl p-2.5 border border-slate-800/80 flex items-center justify-between">
+                        <div>
+                          <span className="font-bold text-xs text-purple-300 block">{l.leaveType}</span>
+                          <span className="font-mono text-slate-300 text-[11px]">
+                            {l.startDate === l.endDate || !l.endDate ? l.startDate : `${l.startDate} to ${l.endDate}`}
+                          </span>
+                        </div>
+                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
+                          {l.daysCount || 1} {l.daysCount === 1 ? 'day' : 'days'}
+                        </span>
+                      </div>
+
+                      {l.note && (
+                        <div className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/50">
+                          <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Reason:</span>
+                          <p className="line-clamp-2 leading-relaxed">{l.note}</p>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-2 text-xs py-1">
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Your Status:</span>
+                          <span className="font-bold text-white text-[11px]">{l.managerStatus || (l.status === 'APPROVED' ? 'Approved' : 'Pending')}</span>
+                        </div>
+                        <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                          <span className="text-[10px] text-slate-400 block font-semibold">HR Status:</span>
+                          <span className="font-bold text-white text-[11px]">{getAdminStatusText(l)}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800">
+                        {isPending ? (
+                          <div className="grid grid-cols-2 gap-2">
+                            <button
+                              onClick={() => handleManagerAction(l.id, 'APPROVED')}
+                              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow flex items-center justify-center space-x-1 min-h-[44px] cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                              <span>Approve</span>
+                            </button>
+                            <button
+                              onClick={() => handleManagerAction(l.id, 'REJECTED')}
+                              className="w-full py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1 min-h-[44px] border border-red-500/30 cursor-pointer"
+                            >
+                              <XCircle className="w-4 h-4" />
+                              <span>Reject</span>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                              l.managerStatus === 'Approved' || l.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-red-500/10 text-red-300 border-red-500/30'
+                            }`}>
+                              {l.managerStatus === 'Approved' || l.status === 'APPROVED' ? '✓ Manager Approved' : '✗ Manager Rejected'}
+                            </span>
+                            <button
+                              onClick={() => handleManagerAction(l.id, l.managerStatus === 'Approved' || l.status === 'APPROVED' ? 'REJECTED' : 'APPROVED')}
+                              className="text-xs text-blue-400 hover:text-blue-300 font-bold underline py-2 px-2 cursor-pointer"
+                            >
+                              Change Decision
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </main>

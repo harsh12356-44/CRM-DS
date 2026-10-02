@@ -28,6 +28,10 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Menu,
+  LayoutDashboard,
+  CalendarCheck,
+  History,
 } from 'lucide-react';
 import AttendanceLogTab from '@/components/AttendanceLogTab';
 import HolidaysTab from '@/components/HolidaysTab';
@@ -786,7 +790,7 @@ function EmployeePortalContent() {
       <Navbar currentRole="EMPLOYEE" />
       <div className="flex flex-1">
         <Sidebar currentTab={activeTab} role="EMPLOYEE" />
-        <main className="flex-1 p-4 md:p-8 w-full space-y-6 overflow-y-auto overflow-x-hidden">
+        <main className="flex-1 p-3 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6 overflow-y-auto overflow-x-hidden pb-24 md:pb-8">
           {/* Top Date Header & Active View Indicator (Strictly restricted dropdown for HR Admin Ravina Khimani) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 border-b border-slate-800 pb-3">
             <span>{now.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })} • Live HRM Portal</span>
@@ -836,11 +840,11 @@ function EmployeePortalContent() {
 
           {/* TAB 1: DASHBOARD */}
           {activeTab === 'dashboard' && (
-            <div className="space-y-6">
+            <div className="space-y-5 sm:space-y-6">
               {/* Purple / Blue Hero Banner */}
-              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 md:p-7 text-white shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-4 sm:p-6 md:p-7 text-white shadow-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight font-heading flex items-center space-x-2">
+                  <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight font-heading flex items-center space-x-2">
                     <span>Hello, {employee ? employee.name : 'Employee'}</span>
                     <span className="animate-bounce inline-block">👋</span>
                   </h1>
@@ -858,21 +862,80 @@ function EmployeePortalContent() {
                     </div>
                   )}
 
-                  <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-xs font-semibold text-white whitespace-nowrap shadow-inner">
+                  <div className="bg-white/10 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/20 text-xs font-semibold text-white whitespace-nowrap shadow-inner">
                     <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2"></span>
-                    <span>ID: {empId} • Manager: {managerName}</span>
+                    <span>ID: {empId} • Mgr: {managerName.split(' ')[0]}</span>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleOpenChangePasswordModal}
-                    className="px-3.5 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 backdrop-blur-md rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-md"
+                    className="px-3 sm:px-3.5 py-1.5 sm:py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/30 backdrop-blur-md rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-md active:scale-95 cursor-pointer"
                   >
                     <Lock className="w-3.5 h-3.5 text-amber-300" />
                     <span>Change Password</span>
                   </button>
                 </div>
               </div>
+
+              {/* Mobile-Friendly Live Punch Clock Widget (Office Employees) */}
+              {employee?.workMode !== 'WFH' && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center space-x-3.5">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg shrink-0 ${
+                      punchedIn
+                        ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-emerald-500/10'
+                        : 'bg-slate-800 border border-slate-700 text-slate-400'
+                    }`}>
+                      <Clock className={`w-6 h-6 ${punchedIn ? 'animate-pulse text-emerald-400' : 'text-slate-400'}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${punchedIn ? 'bg-emerald-400 animate-ping' : 'bg-slate-500'}`} />
+                        <h3 className="font-extrabold text-sm sm:text-base text-white font-heading">
+                          {punchedIn ? 'Currently Clocked In' : 'Not Clocked In Today'}
+                        </h3>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        {punchedIn && punchTime
+                          ? `Clocked in at ${new Date(punchTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} • Active Duration: ${duration}`
+                          : 'Tap below to mark your shift punch attendance.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 self-stretch sm:self-center">
+                    {punchedIn ? (
+                      <button
+                        type="button"
+                        onClick={() => handlePunch('OUT')}
+                        disabled={loading}
+                        className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 active:scale-95 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-rose-600/30 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Punch Out</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handlePunch('IN')}
+                        disabled={loading}
+                        className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span>Punch In Now</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {punchMsg && (
+                <div className="p-3.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs font-semibold text-blue-300 flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span>{punchMsg}</span>
+                </div>
+              )}
 
               {/* Metric Cards Grid */}
               {employee?.workMode === 'WFH' ? (
@@ -1259,8 +1322,8 @@ function EmployeePortalContent() {
                       </div>
                     </div>
 
-                    {/* Table */}
-                    <div className="overflow-x-auto">
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
                           <tr className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
@@ -1362,13 +1425,78 @@ function EmployeePortalContent() {
                             })
                           ) : (
                             <tr>
-                              <td colSpan={5} className="py-8 text-center text-slate-500">
+                              <td colSpan={6} className="py-8 text-center text-slate-500">
                                 No leave records found for {dashboardQuarterFilter === 'ALL' ? 'any quarter' : dashboardQuarterFilter}.
                               </td>
                             </tr>
                           )}
                         </tbody>
                       </table>
+                    </div>
+
+                    {/* Mobile Card Feed (Screens < md) */}
+                    <div className="md:hidden space-y-3">
+                      {filteredDashboardLeaves.length > 0 ? (
+                        filteredDashboardLeaves.map((l, index) => {
+                          const isShort = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+                          const isAdjustment = Boolean(l.isAdjustment);
+
+                          const isMgrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.managerStatus === 'Approved' || (l.managerStatus && l.managerStatus.includes('Approved'));
+                          const isHrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.hrStatus === 'Approved' || (l.hrStatus && l.hrStatus.includes('Approved'));
+
+                          const isMgrRej = l.managerStatus === 'Rejected' || (l.status === 'REJECTED' && !isHrApp);
+                          const isHrRej = l.hrStatus === 'Rejected' || (l.status === 'REJECTED' && !isMgrApp);
+
+                          const isBothApproved = (isMgrApp && isHrApp) || l.status === 'APPROVED' || isShort || isAdjustment;
+
+                          const reqQuarter = l.quarter || getQuarterFromDate(l.startDate);
+                          const startStr = l.startDate || new Date().toISOString().split('T')[0];
+                          const endStr = l.endDate || startStr;
+                          const daysNum = l.daysCount || 1;
+
+                          return (
+                            <div key={l.id || index} className="p-4 bg-slate-950/70 rounded-xl border border-slate-800 space-y-2.5 shadow-sm">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-sm text-purple-300">{l.leaveType || 'Casual Leave'}</span>
+                                <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-purple-300 border border-slate-700 font-mono text-[10px] font-bold">
+                                  {reqQuarter}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-mono text-slate-300 text-[11px] font-medium">{startStr === endStr ? startStr : `${startStr} → ${endStr}`}</span>
+                                <span className="font-extrabold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 text-[11px]">
+                                  {daysNum} {daysNum === 1 ? 'Day' : 'Days'}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 pt-2 border-t border-slate-800/80 text-[11px] flex-wrap">
+                                <span className="text-slate-400 font-medium">Mgr:</span>
+                                {isMgrRej ? (
+                                  <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-semibold text-[10px]">Rejected ✗</span>
+                                ) : isMgrApp ? (
+                                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">Approved ✓</span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold text-[10px]">Pending</span>
+                                )}
+                                <span className="text-slate-600">•</span>
+                                <span className="text-slate-400 font-medium">HR:</span>
+                                {isHrRej ? (
+                                  <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 font-semibold text-[10px]">Rejected ✗</span>
+                                ) : isHrApp ? (
+                                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">Approved ✓</span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-semibold text-[10px]">Pending</span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        <div className="p-4 text-center text-slate-500 text-xs">
+                          No leave records found for {dashboardQuarterFilter === 'ALL' ? 'any quarter' : dashboardQuarterFilter}.
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -1398,7 +1526,7 @@ function EmployeePortalContent() {
                       <select
                         value={leaveType}
                         onChange={e => setLeaveType(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white font-medium focus:outline-none focus:border-blue-500"
                       >
                         <option value="Casual Leave">Casual Leave</option>
                         <option value="Planned Leave">Planned Leave</option>
@@ -1411,7 +1539,7 @@ function EmployeePortalContent() {
                         type="text"
                         readOnly
                         value="Full Day Leave"
-                        className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-300 font-semibold cursor-not-allowed"
+                        className="w-full bg-slate-800/80 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-slate-300 font-semibold cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -1424,7 +1552,7 @@ function EmployeePortalContent() {
                         required
                         value={fromDate}
                         onChange={e => setFromDate(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white font-medium focus:outline-none focus:border-blue-500"
                       />
                     </div>
 
@@ -1434,7 +1562,7 @@ function EmployeePortalContent() {
                         type="date"
                         value={toDate}
                         onChange={e => setToDate(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-medium"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[44px] text-white font-medium focus:outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1489,14 +1617,14 @@ function EmployeePortalContent() {
                       value={reason}
                       onChange={e => setReason(e.target.value)}
                       placeholder="Briefly explain the reason for leave"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-medium"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-base sm:text-xs min-h-[110px] text-white font-medium focus:outline-none focus:border-blue-500 leading-relaxed"
                     ></textarea>
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-blue-600/30 transition flex items-center justify-center space-x-2"
+                    className="w-full py-3 min-h-[48px] bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-sm sm:text-xs shadow-lg shadow-blue-600/30 transition flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
                     <span>Submit Leave Application</span>
@@ -1566,7 +1694,8 @@ function EmployeePortalContent() {
               </div>
 
               {/* Leave Applications Table with Manager & HR / Admin Status */}
-              <div className="overflow-x-auto">
+              {/* Desktop Table View */}
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
@@ -1700,6 +1829,141 @@ function EmployeePortalContent() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile Card Feed View */}
+              <div className="md:hidden space-y-3">
+                {safeLeaves.length > 0 ? (
+                  safeLeaves.map((l, index) => {
+                    if (!l) return null;
+                    const reqId = l.id && typeof l.id === 'string' ? `#${l.id.replace(/[^0-9]/g, '').slice(-3) || l.id.slice(-3)}` : `#${index + 1}`;
+                    const leaveTypeStr = l.leaveType || 'Leave Application';
+                    const startStr = l.startDate || '2026-08-06';
+                    const endStr = l.endDate || startStr;
+                    const daysNum = l.daysCount || 1;
+                    const noteStr = l.note || 'Leave application';
+                    
+                    const isShort = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+                    const isAdjustment = Boolean(l.isAdjustment);
+
+                    const isMgrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.managerStatus === 'Approved' || (l.managerStatus && l.managerStatus.includes('Approved'));
+                    const isHrApp = isShort || isAdjustment || l.status === 'APPROVED' || l.hrStatus === 'Approved' || (l.hrStatus && l.hrStatus.includes('Approved'));
+
+                    const isMgrRej = l.managerStatus === 'Rejected' || (l.status === 'REJECTED' && !isHrApp);
+                    const isHrRej = l.hrStatus === 'Rejected' || (l.status === 'REJECTED' && !isMgrApp);
+
+                    const isBothApproved = (isMgrApp && isHrApp) || l.status === 'APPROVED' || isShort || isAdjustment;
+
+                    // Manager Status Badge
+                    let mgrBadge = null;
+                    if (isMgrRej) {
+                      mgrBadge = (
+                        <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold text-[10px] inline-block">
+                          Rejected ✗
+                        </span>
+                      );
+                    } else if (isMgrApp) {
+                      mgrBadge = (
+                        <span className={`px-2.5 py-1 rounded-full border text-[10px] inline-block ${
+                          isBothApproved
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                            : 'bg-slate-800 text-slate-300 border-slate-700 font-semibold'
+                        }`}>
+                          Approved ✓
+                        </span>
+                      );
+                    } else {
+                      mgrBadge = (
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold text-[10px] inline-block">
+                          Pending
+                        </span>
+                      );
+                    }
+
+                    // HR / Admin Status Badge
+                    let hrBadge = null;
+                    if (isHrRej) {
+                      hrBadge = (
+                        <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 border border-red-500/40 font-semibold text-[10px] inline-block">
+                          Rejected ✗
+                        </span>
+                      );
+                    } else if (isHrApp) {
+                      hrBadge = (
+                        <span className={`px-2.5 py-1 rounded-full border text-[10px] inline-block ${
+                          isBothApproved
+                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                            : 'bg-slate-800 text-slate-300 border-slate-700 font-semibold'
+                        }`}>
+                          Approved ✓
+                        </span>
+                      );
+                    } else {
+                      hrBadge = (
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 font-semibold text-[10px] inline-block">
+                          Pending HR
+                        </span>
+                      );
+                    }
+
+                    let dateStr = '06 Aug 2026';
+                    try {
+                      if (l.createdAt) {
+                        dateStr = new Date(l.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                      }
+                    } catch (e) {}
+
+                    return (
+                      <div key={l.id || index} className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono font-bold text-xs text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">{reqId}</span>
+                            <span className="font-bold text-xs text-purple-300">{leaveTypeStr}</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-slate-400">{dateStr}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between bg-slate-900/90 rounded-xl p-2.5 border border-slate-800/80">
+                          <div className="flex items-center space-x-2 text-xs text-slate-300">
+                            <Calendar className="w-4 h-4 text-purple-400 shrink-0" />
+                            <span>
+                              {!endStr || startStr === endStr ? (
+                                <strong className="text-white">{startStr}</strong>
+                              ) : (
+                                <span><strong className="text-white">{startStr}</strong> to <strong className="text-white">{endStr}</strong></span>
+                              )}
+                            </span>
+                          </div>
+                          <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
+                            {daysNum} {daysNum === 1 ? 'day' : 'days'}
+                          </span>
+                        </div>
+
+                        {noteStr && (
+                          <div className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/50">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Reason:</span>
+                            <p className="line-clamp-2 leading-relaxed">{noteStr}</p>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-800/60">
+                          <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Manager Status:</span>
+                            {mgrBadge}
+                          </div>
+                          <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                            <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">HR / Admin Status:</span>
+                            {hrBadge}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-6 text-center text-slate-500 text-xs">
+                    No leave applications submitted yet.
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1758,7 +2022,8 @@ function EmployeePortalContent() {
                 </div>
 
                 {/* Team Leave Applications Table */}
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
@@ -1846,6 +2111,96 @@ function EmployeePortalContent() {
                       )}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Card Feed View */}
+                <div className="md:hidden space-y-3">
+                  {teamLeaves.length > 0 ? (
+                    teamLeaves.map((l, index) => {
+                      const subEmp = safeAllEmployees.find(e => e.id === l.employeeId || e.employeeId === l.employeeId || e.name.toLowerCase() === (l.employeeId || '').toLowerCase());
+                      const reqId = l.id && typeof l.id === 'string' ? `#${l.id.replace(/[^0-9]/g, '').slice(-3) || l.id.slice(-3)}` : `#${index + 1}`;
+                      const isReviewed = l.managerStatus === 'Approved' || l.managerStatus === 'Rejected' || l.status === 'APPROVED' || l.status === 'REJECTED';
+
+                      return (
+                        <div key={l.id || index} className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-3 shadow-md">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-mono font-bold text-xs text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">{reqId}</span>
+                              <span className="font-bold text-xs text-white">{subEmp?.name || l.employeeId}</span>
+                            </div>
+                            <span className="text-[10px] text-slate-400">{subEmp?.department || 'Team'}</span>
+                          </div>
+
+                          <div className="bg-slate-900/90 rounded-xl p-2.5 border border-slate-800/80 flex items-center justify-between">
+                            <div>
+                              <span className="font-bold text-xs text-purple-300 block">{l.leaveType}</span>
+                              <span className="font-mono text-slate-300 text-[11px]">{l.startDate}</span>
+                            </div>
+                            <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[10px] font-bold">
+                              {l.daysCount} {l.daysCount !== 1 ? 'days' : 'day'}
+                            </span>
+                          </div>
+
+                          {l.note && (
+                            <div className="text-xs text-slate-300 bg-slate-900/50 p-2.5 rounded-xl border border-slate-800/50">
+                              <span className="text-[10px] uppercase font-bold text-slate-500 block mb-0.5">Note:</span>
+                              <p className="line-clamp-2 leading-relaxed">{l.note}</p>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-2 text-xs py-1">
+                            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                              <span className="text-[10px] text-slate-400 block font-semibold">Your Review:</span>
+                              <span className="font-bold text-white text-[11px]">{l.managerStatus || (l.status === 'APPROVED' ? 'Approved' : 'Pending')}</span>
+                            </div>
+                            <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/60">
+                              <span className="text-[10px] text-slate-400 block font-semibold">HR Status:</span>
+                              <span className="font-bold text-white text-[11px]">{l.hrStatus || (l.status === 'APPROVED' ? 'Approved' : 'Pending HR')}</span>
+                            </div>
+                          </div>
+
+                          <div className="pt-2 border-t border-slate-800">
+                            {!isReviewed ? (
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => handleManagerReview(l.id, 'APPROVED')}
+                                  className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow flex items-center justify-center space-x-1 min-h-[44px] cursor-pointer"
+                                >
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  <span>Approve</span>
+                                </button>
+                                <button
+                                  onClick={() => handleManagerReview(l.id, 'REJECTED')}
+                                  className="w-full py-2.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 text-xs font-bold rounded-xl transition flex items-center justify-center space-x-1 min-h-[44px] border border-red-500/30 cursor-pointer"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                  <span>Reject</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-between">
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                                  l.managerStatus === 'Approved' || l.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30' : 'bg-red-500/10 text-red-300 border-red-500/30'
+                                }`}>
+                                  {l.managerStatus === 'Approved' || l.status === 'APPROVED' ? '✓ Manager Approved' : '✗ Manager Rejected'}
+                                </span>
+                                <button
+                                  onClick={() => handleManagerReview(l.id, l.managerStatus === 'Approved' || l.status === 'APPROVED' ? 'REJECTED' : 'APPROVED')}
+                                  className="text-xs text-blue-400 hover:text-blue-300 font-bold underline py-2 px-2 cursor-pointer"
+                                >
+                                  Change Decision
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="bg-slate-950/40 border border-slate-800 rounded-2xl p-6 text-center text-slate-500 text-xs">
+                      No leave applications submitted by your team members.
+                    </div>
+                  )}
                 </div>
               </div>
             )
@@ -2043,12 +2398,12 @@ function EmployeePortalContent() {
                         value={currentPassword}
                         onChange={e => setCurrentPassword(e.target.value)}
                         placeholder="Enter current password"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-white font-mono focus:border-amber-500 focus:outline-none"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-base sm:text-xs min-h-[44px] text-white font-mono focus:border-amber-500 focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowCurrentPass(!showCurrentPass)}
-                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white transition"
+                        className="absolute right-3 top-3 text-slate-400 hover:text-white transition cursor-pointer"
                         title={showCurrentPass ? 'Hide' : 'Show'}
                       >
                         {showCurrentPass ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-blue-400" />}
@@ -2065,12 +2420,12 @@ function EmployeePortalContent() {
                         value={newPassword}
                         onChange={e => setNewPassword(e.target.value)}
                         placeholder="Enter new password"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-white font-mono focus:border-amber-500 focus:outline-none"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-base sm:text-xs min-h-[44px] text-white font-mono focus:border-amber-500 focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowNewPass(!showNewPass)}
-                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white transition"
+                        className="absolute right-3 top-3 text-slate-400 hover:text-white transition cursor-pointer"
                         title={showNewPass ? 'Hide' : 'Show'}
                       >
                         {showNewPass ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-blue-400" />}
@@ -2087,12 +2442,12 @@ function EmployeePortalContent() {
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}
                         placeholder="Confirm new password"
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-white font-mono focus:border-amber-500 focus:outline-none"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-4 pr-10 py-2.5 text-base sm:text-xs min-h-[44px] text-white font-mono focus:border-amber-500 focus:outline-none"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPass(!showConfirmPass)}
-                        className="absolute right-3 top-2.5 text-slate-400 hover:text-white transition"
+                        className="absolute right-3 top-3 text-slate-400 hover:text-white transition cursor-pointer"
                         title={showConfirmPass ? 'Hide' : 'Show'}
                       >
                         {showConfirmPass ? <EyeOff className="w-4 h-4 text-amber-400" /> : <Eye className="w-4 h-4 text-blue-400" />}
@@ -2104,14 +2459,14 @@ function EmployeePortalContent() {
                     <button
                       type="button"
                       onClick={() => setIsChangePasswordModalOpen(false)}
-                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
+                      className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer min-h-[44px]"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={passwordLoading}
-                      className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-amber-500/20 transition disabled:opacity-50 flex items-center space-x-2"
+                      className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-amber-500/20 transition disabled:opacity-50 flex items-center space-x-2 cursor-pointer min-h-[44px]"
                     >
                       <Lock className="w-3.5 h-3.5" />
                       <span>{passwordLoading ? 'Updating Password...' : 'Save New Password'}</span>
@@ -2121,6 +2476,73 @@ function EmployeePortalContent() {
               </div>
             </div>
           )}
+
+          {/* NATIVE-FEEL MOBILE BOTTOM NAVIGATION BAR */}
+          <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+            <div className="grid grid-cols-5 h-16 items-center px-1">
+              {/* 1. Dashboard */}
+              <button
+                type="button"
+                onClick={() => router.push('/employee?tab=dashboard')}
+                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                  activeTab === 'dashboard' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <LayoutDashboard className="w-5 h-5 mb-0.5" />
+                <span className="text-[10px] tracking-tight">Home</span>
+              </button>
+
+              {/* 2. Attendance */}
+              <button
+                type="button"
+                onClick={() => router.push('/employee?tab=attendance-log')}
+                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                  activeTab === 'attendance-log' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <CalendarCheck className="w-5 h-5 mb-0.5" />
+                <span className="text-[10px] tracking-tight">Attendance</span>
+              </button>
+
+              {/* 3. Apply Leave (Elevated Primary CTA Button) */}
+              <button
+                type="button"
+                onClick={() => router.push('/employee?tab=apply-leave')}
+                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                  activeTab === 'apply-leave' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className={`p-2 rounded-xl mb-0.5 -mt-3 shadow-lg transition-transform active:scale-95 ${
+                  activeTab === 'apply-leave' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/40 ring-2 ring-blue-400/30' : 'bg-slate-800 text-blue-400 border border-slate-700'
+                }`}>
+                  <Plane className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] tracking-tight font-semibold">Apply</span>
+              </button>
+
+              {/* 4. History */}
+              <button
+                type="button"
+                onClick={() => router.push('/employee?tab=leave-history')}
+                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                  activeTab === 'leave-history' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <History className="w-5 h-5 mb-0.5" />
+                <span className="text-[10px] tracking-tight">History</span>
+              </button>
+
+              {/* 5. Menu Drawer Trigger */}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('toggleMobileSidebar'))}
+                className="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 transition-all cursor-pointer"
+              >
+                <Menu className="w-5 h-5 mb-0.5" />
+                <span className="text-[10px] tracking-tight">Menu</span>
+              </button>
+            </div>
+          </div>
         </main>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import VersionGuard from "@/components/VersionGuard";
@@ -13,9 +13,26 @@ const outfit = Outfit({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: "cover",
+  themeColor: "#0f172a",
+};
+
 export const metadata: Metadata = {
   title: "HRM Pilot Web App - Enterprise HR & Attendance Management",
   description: "Comprehensive Human Resource & Biometric Attendance Management System",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "HRM Portal",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const dynamic = 'force-dynamic';

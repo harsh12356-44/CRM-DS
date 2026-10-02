@@ -182,28 +182,28 @@ export default function LoginPage() {
   const hasSavedAccountOnThisDevice = isClientMounted && !!savedAccount && !useDifferentAccount;
 
   return (
-    <main className="min-h-screen bg-slate-950 light:bg-slate-100 text-slate-100 light:text-slate-900 flex items-center justify-center p-4 font-sans relative overflow-hidden">
+    <main className="min-h-screen bg-slate-950 light:bg-slate-100 text-slate-100 light:text-slate-900 flex items-center justify-center p-3 sm:p-4 font-sans relative overflow-hidden">
       {/* Background Ambience */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-md w-full space-y-6 z-10">
+      <div className="max-w-md w-full space-y-5 sm:space-y-6 z-10">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-xl shadow-blue-500/20 text-white font-extrabold text-2xl mx-auto">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-xl shadow-blue-500/20 text-white font-extrabold text-xl sm:text-2xl mx-auto">
             H
           </div>
-          <h1 className="text-3xl font-black text-white light:text-slate-900 tracking-tight">HRM Pilot Portal</h1>
-          <p className="text-xs text-slate-400 light:text-slate-600 font-medium">Enterprise Attendance, Leave Management & Payroll SaaS v2.0</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-white light:text-slate-900 tracking-tight">HRM Pilot Portal</h1>
+          <p className="text-[11px] sm:text-xs text-slate-400 light:text-slate-600 font-medium">Enterprise Attendance, Leave Management & Payroll SaaS v2.0</p>
         </div>
 
         {/* Container */}
-        <div className="bg-slate-900/90 light:bg-white border border-slate-800 light:border-slate-300 backdrop-blur-xl rounded-3xl p-7 shadow-2xl space-y-5">
+        <div className="bg-slate-900/90 light:bg-white border border-slate-800 light:border-slate-300 backdrop-blur-xl rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5">
           {/* Header Bar */}
           <div className="flex items-center justify-between border-b border-slate-800 light:border-slate-200 pb-4">
             <div className="flex items-center space-x-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <h2 className="font-bold text-sm text-white light:text-slate-900">
+              <h2 className="font-bold text-xs sm:text-sm text-white light:text-slate-900">
                 {hasSavedAccountOnThisDevice ? 'Device Access Verified' : 'Sign In to Your Workspace'}
               </h2>
             </div>
@@ -261,7 +261,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleQuickLoginSaved}
                   disabled={loading}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+                  className="w-full py-3 min-h-[48px] rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
                 >
                   <UserCheck className="w-4 h-4" />
                   <span>{loading ? 'Authenticating...' : `Sign in as ${savedAccount.name.split(' ')[0]}`}</span>
@@ -273,7 +273,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowCredentialEditor(!showCredentialEditor)}
-                    className="text-slate-400 hover:text-white transition font-medium flex items-center space-x-1 cursor-pointer"
+                    className="text-slate-400 hover:text-white transition font-medium flex items-center space-x-1 cursor-pointer py-1"
                   >
                     <span>{showCredentialEditor ? '▲ Hide Details' : '▼ View / Edit Password'}</span>
                   </button>
@@ -281,7 +281,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleForgetDevice}
-                    className="text-rose-400/80 hover:text-rose-300 transition font-medium flex items-center space-x-1 cursor-pointer"
+                    className="text-rose-400/80 hover:text-rose-300 transition font-medium flex items-center space-x-1 cursor-pointer py-1"
                     title="Remove saved password from this device"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -296,12 +296,12 @@ export default function LoginPage() {
                   <div>
                     <label className="block font-bold text-slate-300 mb-1.5">Email Address</label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                      <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
                       <input
                         type="text"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white font-medium focus:outline-none focus:border-blue-500 transition"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 sm:py-2.5 text-base sm:text-xs min-h-[46px] text-white font-medium focus:outline-none focus:border-blue-500 transition"
                         required
                       />
                     </div>
@@ -313,19 +313,19 @@ export default function LoginPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="text-slate-400 hover:text-white flex items-center space-x-1 text-[11px] cursor-pointer"
+                        className="text-slate-400 hover:text-white flex items-center space-x-1 text-[11px] cursor-pointer py-1"
                       >
                         {showPassword ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-blue-400" />}
                         <span>{showPassword ? 'Hide' : 'View'}</span>
                       </button>
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                      <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-2.5 text-white font-medium focus:outline-none focus:border-blue-500 transition"
+                        className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-10 py-3 sm:py-2.5 text-base sm:text-xs min-h-[46px] text-white font-medium focus:outline-none focus:border-blue-500 transition font-mono"
                         placeholder="••••••••"
                         required
                       />
@@ -335,7 +335,7 @@ export default function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
+                    className="w-full py-3 min-h-[46px] rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
                   >
                     {loading ? 'Updating & Signing In...' : 'Save & Sign In'}
                   </button>
@@ -347,7 +347,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleSwitchToDifferentAccount}
-                  className="text-xs text-slate-400 hover:text-blue-400 font-semibold transition flex items-center justify-center space-x-1.5 mx-auto cursor-pointer"
+                  className="text-xs text-slate-400 hover:text-blue-400 font-semibold transition flex items-center justify-center space-x-1.5 mx-auto cursor-pointer py-1"
                 >
                   <UserX className="w-3.5 h-3.5" />
                   <span>Sign in as a different employee</span>
@@ -360,12 +360,12 @@ export default function LoginPage() {
               <div>
                 <label className="block font-bold text-slate-300 light:text-slate-700 mb-1.5">Email or Employee ID</label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 light:text-slate-500" />
+                  <Mail className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 light:text-slate-500" />
                   <input
                     type="text"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-2.5 text-white light:text-slate-900 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-medium transition"
+                    className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-4 py-3 sm:py-2.5 text-base sm:text-xs min-h-[46px] text-white light:text-slate-900 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-medium transition"
                     placeholder="name@company.com or EMP001"
                     required
                     autoFocus
@@ -379,19 +379,19 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-slate-400 hover:text-white flex items-center space-x-1 text-[11px] cursor-pointer"
+                    className="text-slate-400 hover:text-white flex items-center space-x-1 text-[11px] cursor-pointer py-1"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-blue-400" />}
                     <span>{showPassword ? 'Hide' : 'View'}</span>
                   </button>
                 </div>
                 <div className="relative">
-                  <Lock className="w-4 h-4 absolute left-3.5 top-3 text-slate-400 light:text-slate-500" />
+                  <Lock className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400 light:text-slate-500" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-10 py-2.5 text-white light:text-slate-900 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-medium transition"
+                    className="w-full bg-slate-950 light:bg-slate-50 border border-slate-800 light:border-slate-300 rounded-xl pl-10 pr-10 py-3 sm:py-2.5 text-base sm:text-xs min-h-[46px] text-white light:text-slate-900 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-medium transition font-mono"
                     placeholder="••••••••"
                     required
                   />
@@ -411,7 +411,7 @@ export default function LoginPage() {
                     <span className="font-bold text-xs text-slate-200">
                       Save password on this device
                     </span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-400 leading-relaxed">
                       Isolated to this browser only. No other employee or device can see your password.
                     </span>
                   </div>
@@ -422,7 +422,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
+                className="w-full py-3 min-h-[48px] rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm sm:text-xs shadow-lg shadow-blue-600/30 flex items-center justify-center space-x-2 transition disabled:opacity-50 cursor-pointer"
               >
                 <span>{loading ? 'Authenticating...' : 'Sign In'}</span>
                 <ArrowRight className="w-4 h-4 text-white" />
@@ -434,7 +434,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleBackToSavedAccount}
-                    className="text-xs text-blue-400 hover:text-blue-300 font-semibold transition cursor-pointer"
+                    className="text-xs text-blue-400 hover:text-blue-300 font-semibold transition cursor-pointer py-1"
                   >
                     ← Back to saved account ({savedAccount.name.split(' ')[0]})
                   </button>

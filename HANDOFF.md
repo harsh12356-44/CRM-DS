@@ -7,6 +7,38 @@
 ---
 
 ## 2. Current Project Status
+- **Universal Mobile-Responsive UI & Progressive Web App Experience (Android, iOS & Desktop)**:
+  - **Requirement Addressed**: The entire HRM portal UI, features, workflows, and navigation are 100% mobile-responsive across all mobile smartphones (Android, iPhone/iOS), tablets (iPad), and desktop browsers. Employees logging in from mobile devices experience an intuitive, fluid native-app feel with comfortable touch targets, zero horizontal cramping, and instant 1-thumb navigation.
+  - **Viewport, PWA & Apple Notch Compatibility**:
+    - Updated [src/app/layout.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/layout.tsx) with a comprehensive `viewport` export (`width: 'device-width'`, `initialScale: 1`, `maximumScale: 5`, `userScalable: true`, `viewportFit: 'cover'`, `themeColor: '#0f172a'`).
+    - Added Apple Web App meta tags (`capable: true`, `statusBarStyle: 'black-translucent'`, `title: 'HRM Portal'`) for standalone iOS Home Screen installability.
+    - Added safe-area padding utility classes (`.pb-safe`, `.pt-safe`, `.mb-safe`) in [src/app/globals.css](file:///d:/Ravina/Antigravity/crm-ds/src/app/globals.css) using `env(safe-area-inset-*)` so content never clips behind the iPhone notch, Dynamic Island, or home indicator bar.
+    - Enabled `-webkit-overflow-scrolling: touch` and `-webkit-tap-highlight-color: transparent` across all touch devices.
+  - **Responsive Sidebar & Off-Canvas Mobile Drawer**:
+    - Updated [src/components/Sidebar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Sidebar.tsx) to hide the desktop fixed sidebar on mobile screens (`hidden md:flex flex-col`).
+    - Implemented a smooth slide-in off-canvas mobile drawer (`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw]`) with backdrop blur overlay (`bg-black/80 backdrop-blur-sm`).
+    - Subscribed to custom window events (`toggleMobileSidebar`, `openMobileSidebar`, `closeMobileSidebar`), auto-closing upon backdrop tap or navigation link click.
+  - **Adaptive Header Navigation Bar**:
+    - Updated [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx) with a mobile hamburger menu trigger button (`md:hidden`) with `Menu` icon dispatching `toggleMobileSidebar`.
+    - Made padding adaptive (`px-3 sm:px-6 py-2.5 sm:py-3`), condensed Role pill badge, and made Save DB button compact on small widths.
+  - **Native-Feel Mobile Bottom Navigation Bar**:
+    - Integrated a thumb-friendly bottom navigation bar into [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx) (`md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)]`).
+    - Offers 5 instant touch actions:
+      1. **Home**: Direct switch to Dashboard metrics.
+      2. **Attendance**: Instant view of biometric logs & attendance matrix.
+      3. **Apply**: Elevated primary action button floating above the bar for 1-tap leave applications.
+      4. **History**: Instant view of leave application status and HR approvals.
+      5. **Menu**: Triggers the off-canvas drawer for Profile, Holidays, Team Approvals, and Logout.
+  - **Mobile Card Feeds for Data Tables (Zero Horizontal Squeeze)**:
+    - **Leave Register & Quarterly Breakdown**: Added mobile cards displaying Request ID, active quarter badge, dates, and separate Manager & HR status badges alongside the desktop table (`hidden md:block` / `md:hidden`).
+    - **Leave History Tab**: Added responsive card feed with dates, duration badge, note callout, and side-by-side approval status pills.
+    - **Team Approvals Tab (Manager Workspace)**: Added card view with direct 44px+ touch-friendly "Approve" and "Reject" buttons.
+    - **Manager Portal Desk ([src/app/manager/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/manager/page.tsx))**: Dual view with desktop table and mobile card feed with quick decision buttons.
+  - **iOS Safari Auto-Zoom Prevention & Touch Targets**:
+    - Increased font size to `text-base sm:text-xs` (>= 16px on mobile) and minimum height to `min-h-[44px]` across all inputs, selects, and textareas in Apply Leave, Change Password modal, AttendanceLogTab filters, and Login page.
+    - Completely prevents iOS Safari from automatically zooming into the page on input focus.
+  - **Mobile Live Punch In / Out Card Widget**:
+    - Created an on-screen Live Punch card on the Employee Dashboard for office staff with real-time digital clock, punch state indicator, and prominent touch action buttons.
 - **Employee Dashboard Dynamic Current Month Attendance & Dynamic Quarterly Leave Balance**:
   - **Requirement Addressed**: 
     1. Employee dashboard attendance statistics (Work Status / Present Days, Total Hours Worked, Average Daily Hours, Late Arrivals, and the Monthly Attendance Analytics daily hours bar chart) must dynamically evaluate for the **current active month** (October 2026 / `2026-10`) rather than freezing in historical months (September/August 2026).

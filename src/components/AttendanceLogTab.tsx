@@ -309,12 +309,12 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* View Toggle */}
           <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button
               onClick={() => setViewMode('matrix')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === 'matrix' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -323,7 +323,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
             </button>
             <button
               onClick={() => setViewMode('daily')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1.5 cursor-pointer ${
                 viewMode === 'daily' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -335,7 +335,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
           {!hideImport && (
             <div>
               <input type="file" id="biometric-import" accept=".csv, .xlsx, .xls" onChange={handleFileUpload} className="hidden" />
-              <label htmlFor="biometric-import" className="cursor-pointer px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2 shrink-0">
+              <label htmlFor="biometric-import" className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-2 shrink-0 min-h-[38px]">
                 <Upload className="w-4 h-4" />
                 <span>Import Biometric File</span>
               </label>
@@ -352,7 +352,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
 
       {/* Filter Controls Bar */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-md">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4 w-full sm:w-auto">
           {viewMode === 'matrix' ? (
             <>
               {/* Month Dropdown */}
@@ -361,7 +361,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                 <select
                   value={selectedMonth}
                   onChange={e => setSelectedMonth(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500 min-w-[120px]"
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-base sm:text-xs min-h-[40px] font-semibold text-white focus:outline-none focus:border-blue-500 min-w-[120px]"
                 >
                   {MONTHS.map(m => (
                     <option key={m.value} value={m.value}>{m.name}</option>
@@ -375,7 +375,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                 <select
                   value={selectedYear}
                   onChange={e => setSelectedYear(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500 min-w-[90px]"
+                  className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-base sm:text-xs min-h-[40px] font-semibold text-white focus:outline-none focus:border-blue-500 min-w-[90px]"
                 >
                   {YEARS.map(y => (
                     <option key={y} value={y}>{y}</option>
@@ -390,7 +390,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500"
+                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-base sm:text-xs min-h-[40px] font-semibold text-white focus:outline-none focus:border-blue-500"
               />
             </div>
           )}
@@ -402,7 +402,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
               <select
                 value={department}
                 onChange={e => setDepartment(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs font-semibold text-white focus:outline-none focus:border-blue-500 min-w-[150px]"
+                className="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-base sm:text-xs min-h-[40px] font-semibold text-white focus:outline-none focus:border-blue-500 min-w-[150px]"
               >
                 <option value="ALL">All Departments</option>
                 <option value="Human Resources">Human Resources</option>
@@ -417,7 +417,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
           {/* Filter Action Button */}
           <button
             onClick={() => fetchAttendance(false)}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition"
+            className="px-5 py-2 min-h-[40px] bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/30 transition cursor-pointer"
           >
             Filter
           </button>

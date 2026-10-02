@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Upload, Clock, Edit2, Calendar, LayoutGrid, List } from 'lucide-react';
+import { Upload, Clock, Edit2, Calendar, LayoutGrid, List, User, CheckCircle2, AlertTriangle, ChevronDown, CalendarDays } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { Holiday } from '@/lib/types';
 
@@ -58,6 +58,13 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
   const [reason, setReason] = useState('');
 
   const [allEmployees, setAllEmployees] = useState<any[]>([]);
+  const [mobileSelectedEmpId, setMobileSelectedEmpId] = useState<string>('');
+
+  useEffect(() => {
+    if (employees.length > 0 && (!mobileSelectedEmpId || !employees.some(e => e.id === mobileSelectedEmpId))) {
+      setMobileSelectedEmpId(employees[0].id);
+    }
+  }, [employees, mobileSelectedEmpId]);
 
   const fetchAttendance = async (isSilent = false) => {
     if (!isSilent) setLoading(true);
@@ -432,159 +439,401 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
         </div>
       </div>
 
-      {/* MONTHLY MATRIX GRID VIEW (With Dual Horizontal & Vertical Scrollbars) */}
+      {/* MONTHLY MATRIX GRID VIEW (Dual Desktop Horizontal Matrix + Mobile Vertical Day-by-Day Timeline) */}
       {viewMode === 'matrix' ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-auto max-h-[580px] relative">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="sticky top-0 z-20 bg-slate-950 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800 shadow-md">
-              <tr>
-                {/* Frozen Left Header */}
-                <th className="py-4 px-4 sticky left-0 z-30 bg-slate-950 border-r border-b border-slate-800 min-w-[200px] shadow-sm text-slate-200 font-extrabold">
-                  EMPLOYEE NAME
-                </th>
+        <>
+          {/* Desktop Table View (Horizontal 31-day Matrix with Sticky Headers) */}
+          <div className="hidden md:block bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-auto max-h-[580px] relative">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="sticky top-0 z-20 bg-slate-950 text-slate-300 font-bold uppercase text-[10px] tracking-wider border-b border-slate-800 shadow-md">
+                <tr>
+                  {/* Frozen Left Header */}
+                  <th className="py-4 px-4 sticky left-0 z-30 bg-slate-950 border-r border-b border-slate-800 min-w-[200px] shadow-sm text-slate-200 font-extrabold">
+                    EMPLOYEE NAME
+                  </th>
 
-                {/* Frozen Top Day Columns 1..31 */}
-                {daysArray.map(dayNum => {
+                  {/* Frozen Top Day Columns 1..31 */}
+                  {daysArray.map(dayNum => {
+                    const padDay = String(dayNum).padStart(2, '0');
+                    const padMonth = String(selectedMonth).padStart(2, '0');
+                    const dateStr = `${selectedYear}-${padMonth}-${padDay}`;
+                    const dateObj = new Date(dateStr);
+                    const isSunday = dateObj.getDay() === 0;
+
+                    const holiday = holidays.find(h => h.date === dateStr);
+
+                    return (
+                      <th
+                        key={dayNum}
+                        title={holiday ? holiday.name : undefined}
+                        className={`py-3 px-2 text-center border-r border-b border-slate-800 min-w-[70px] ${
+                          holiday
+                            ? 'bg-rose-500/20 text-rose-300 font-extrabold border-b-2 border-b-rose-500'
+                            : isSunday
+                            ? 'bg-amber-500/10 text-amber-300 font-extrabold'
+                            : ''
+                        }`}
+                      >
+                        <span className="block text-xs">{dayNum}</span>
+                        <span className="block text-[9px] font-normal opacity-80 truncate max-w-[65px]">
+                          {holiday ? holiday.name : dateObj.toLocaleDateString('en-US', { weekday: 'short' })}
+                        </span>
+                      </th>
+                    );
+                  })}
+
+                  {/* Cumulative Total Hours Header (if showHoursFormat) */}
+                  {showHoursFormat && (
+                    <th className="py-4 px-3 text-center bg-slate-950 border-l border-b border-slate-800 min-w-[100px] text-indigo-300">
+                      TOTAL HRS
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60">
+                {employees.map(emp => {
+                  const empLogs = logs.filter(l => l.employeeId === emp.id || l.employeeId === emp.employeeId || (l.employeeId && emp.name && l.employeeId.toLowerCase() === emp.name.toLowerCase()));
+                  const empTotalMins = empLogs.reduce((sum, l) => sum + (l.workedMinutes || 0), 0);
+
+                  return (
+                    <tr key={emp.id} className="hover:bg-slate-850/50 transition">
+                      {/* Sticky Employee Name & Department Cell */}
+                      <td className="py-3 px-4 sticky left-0 z-10 bg-slate-900 border-r border-slate-800 min-w-[200px] shadow-sm">
+                        <p className="font-bold text-white text-xs truncate max-w-[180px]">{emp.name}</p>
+                        <p className="text-[10px] text-slate-400 font-medium truncate max-w-[180px]">{emp.department} • {emp.designation}</p>
+                      </td>
+
+                      {/* Days 1..31 Punch Cells */}
+                      {daysArray.map(dayNum => {
+                        const padDay = String(dayNum).padStart(2, '0');
+                        const padMonth = String(selectedMonth).padStart(2, '0');
+                        const dateStr = `${selectedYear}-${padMonth}-${padDay}`;
+                        const log = logsMap[`${emp.id}_${dateStr}`] || logsMap[`${emp.employeeId}_${dateStr}`];
+
+                        const dateObj = new Date(dateStr);
+                        const isSunday = dateObj.getDay() === 0;
+
+                        // Check for Holiday
+                        const holiday = holidays.find(h => h.date === dateStr);
+
+                        // Sunday / Weekly Off
+                        const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isSunday && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
+
+                        return (
+                          <td
+                            key={dayNum}
+                            onClick={() => {
+                              if (!hideImport) {
+                                setEditLog(log || { id: `att-${emp.id}-${dateStr}`, employeeId: emp.id, employeeName: emp.name, date: dateStr });
+                                setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isSunday ? 'WO-I' : 'P'));
+                                setEditIn(log ? log.checkIn || '09:00' : '09:00');
+                                setEditOut(log ? log.checkOut || '18:00' : '18:00');
+                              }
+                            }}
+                            className={`py-2 px-1 text-center border-r border-slate-800/60 transition cursor-pointer hover:bg-blue-600/20 ${
+                              holiday ? 'bg-rose-500/10' : isSunday ? 'bg-amber-500/5' : ''
+                            }`}
+                          >
+                            {holiday ? (
+                              <span
+                                className="inline-block px-1.5 py-1 rounded bg-rose-500/25 border border-rose-500/40 text-rose-300 font-extrabold text-[9px] uppercase shadow-sm leading-tight max-w-[65px] truncate"
+                                title={holiday.name}
+                              >
+                                {holiday.name}
+                              </span>
+                            ) : isWeeklyOff ? (
+                              <span className="inline-block px-2 py-1 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-[10px] uppercase shadow-sm">
+                                WO
+                              </span>
+                            ) : log ? (
+                              log.attendanceCode === 'A' ? (
+                                <span className="inline-block px-2 py-1 rounded bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-[10px]">
+                                  A
+                                </span>
+                              ) : log.attendanceCode === 'HD' ? (
+                                <span className={`inline-block px-2 py-1 rounded bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 font-bold text-[10px] ${showHoursFormat ? 'font-mono' : ''}`}>
+                                  {showHoursFormat ? '4h 0m' : 'HD'}
+                                </span>
+                              ) : log.attendanceCode === 'PL' || log.attendanceCode === 'UL' ? (
+                                <span className="inline-block px-2 py-1 rounded bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-[10px]">
+                                  {log.attendanceCode}
+                                </span>
+                              ) : showHoursFormat ? (
+                                <span className="font-mono text-[11px] font-extrabold text-emerald-400">
+                                  {formatMins(log.workedMinutes)}
+                                </span>
+                              ) : (
+                                <div className="font-mono text-[10px] leading-tight space-y-0.5 font-medium">
+                                  <span className="block text-emerald-400">{log.checkIn || '--:--'}</span>
+                                  <span className="block text-slate-300">{log.checkOut || '--:--'}</span>
+                                </div>
+                              )
+                            ) : (
+                              <span className="text-slate-600 text-xs font-mono">-</span>
+                            )}
+                          </td>
+                        );
+                      })}
+
+                      {/* Cumulative Total Completed Hours Cell (if showHoursFormat) */}
+                      {showHoursFormat && (
+                        <td className="py-3 px-3 text-center bg-slate-900 border-l border-slate-800 font-mono font-black text-indigo-400 text-xs">
+                          {(empTotalMins / 60).toFixed(1)}h
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* VERTICAL MOBILE VIEW (Zero Horizontal Scrolling • 100% Screen-Adjusted) */}
+          <div className="md:hidden space-y-4">
+            {/* If multiple employees (Admin Mode): Touch-friendly Employee Selector */}
+            {employees.length > 1 && (
+              <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-md space-y-2">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                  <span>Select Employee</span>
+                  <span className="text-blue-400 font-mono text-[10px]">{employees.length} Members</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={mobileSelectedEmpId}
+                    onChange={e => setMobileSelectedEmpId(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-base text-white font-bold focus:outline-none focus:border-blue-500 min-h-[46px] pr-8 appearance-none"
+                  >
+                    {employees.map(emp => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name} ({emp.department || 'Staff'})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                </div>
+              </div>
+            )}
+
+            {/* Active Employee Monthly Summary Header Card */}
+            {(() => {
+              const activeEmp = employees.find(e => e.id === mobileSelectedEmpId) || employees[0];
+              if (!activeEmp) return null;
+
+              const activeEmpLogs = logs.filter(l => l.employeeId === activeEmp.id || l.employeeId === activeEmp.employeeId || (l.employeeId && activeEmp.name && l.employeeId.toLowerCase() === activeEmp.name.toLowerCase()));
+              const activeEmpTotalMins = activeEmpLogs.reduce((sum, l) => sum + (l.workedMinutes || 0), 0);
+              const activeEmpPresentCount = activeEmpLogs.filter(l => l.attendanceCode === 'P').length;
+              const activeEmpHalfDayCount = activeEmpLogs.filter(l => l.attendanceCode === 'HD').length;
+              const activeEmpAbsentCount = activeEmpLogs.filter(l => l.attendanceCode === 'A').length;
+
+              return (
+                <div className="p-4 bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-2xl shadow-md space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow">
+                        {activeEmp.name?.charAt(0) || 'E'}
+                      </div>
+                      <div>
+                        <h4 className="font-extrabold text-sm text-white">{activeEmp.name}</h4>
+                        <p className="text-[10px] text-slate-400">{activeEmp.department} • {activeEmp.designation || 'Staff'}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-base font-mono font-black text-emerald-400 block">
+                        {(activeEmpTotalMins / 60).toFixed(1)}h
+                      </span>
+                      <span className="text-[9px] uppercase font-bold text-slate-500">Month Total</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-800/80 text-center">
+                    <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/60">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Present</span>
+                      <span className="text-xs font-black text-emerald-400 font-mono mt-0.5 block">{activeEmpPresentCount}</span>
+                    </div>
+                    <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/60">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Half Day</span>
+                      <span className="text-xs font-black text-amber-400 font-mono mt-0.5 block">{activeEmpHalfDayCount}</span>
+                    </div>
+                    <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/60">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Absent</span>
+                      <span className="text-xs font-black text-red-400 font-mono mt-0.5 block">{activeEmpAbsentCount}</span>
+                    </div>
+                    <div className="bg-slate-950/60 p-2 rounded-xl border border-slate-800/60">
+                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Days</span>
+                      <span className="text-xs font-black text-blue-400 font-mono mt-0.5 block">{totalDaysInMonth}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* VERTICAL DAY-BY-DAY LIST (Days 1..31 arranged vertically) */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
+                  Daily Calendar Breakdown ({MONTHS.find(m => m.value === selectedMonth)?.name} {selectedYear})
+                </span>
+                <span className="text-[10px] text-blue-400 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
+                  Vertical View
+                </span>
+              </div>
+
+              {(() => {
+                const activeEmp = employees.find(e => e.id === mobileSelectedEmpId) || employees[0];
+                if (!activeEmp) {
+                  return (
+                    <div className="p-8 text-center text-slate-500 text-xs bg-slate-900 rounded-2xl border border-slate-800">
+                      No employee record found.
+                    </div>
+                  );
+                }
+
+                return daysArray.map(dayNum => {
                   const padDay = String(dayNum).padStart(2, '0');
                   const padMonth = String(selectedMonth).padStart(2, '0');
                   const dateStr = `${selectedYear}-${padMonth}-${padDay}`;
+                  const log = logsMap[`${activeEmp.id}_${dateStr}`] || logsMap[`${activeEmp.employeeId}_${dateStr}`] || logsMap[`${activeEmp.name?.toLowerCase().trim()}_${dateStr}`];
+
                   const dateObj = new Date(dateStr);
                   const isSunday = dateObj.getDay() === 0;
+                  const weekdayShort = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                  const weekdayLong = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
 
                   const holiday = holidays.find(h => h.date === dateStr);
+                  const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isSunday && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
 
                   return (
-                    <th
+                    <div
                       key={dayNum}
-                      title={holiday ? holiday.name : undefined}
-                      className={`py-3 px-2 text-center border-r border-b border-slate-800 min-w-[70px] ${
+                      onClick={() => {
+                        if (!hideImport) {
+                          setEditLog(log || { id: `att-${activeEmp.id}-${dateStr}`, employeeId: activeEmp.id, employeeName: activeEmp.name, date: dateStr });
+                          setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isSunday ? 'WO-I' : 'P'));
+                          setEditIn(log ? log.checkIn || '09:00' : '09:00');
+                          setEditOut(log ? log.checkOut || '18:00' : '18:00');
+                        }
+                      }}
+                      className={`p-3 sm:p-3.5 rounded-2xl border transition-all ${
                         holiday
-                          ? 'bg-rose-500/20 text-rose-300 font-extrabold border-b-2 border-b-rose-500'
-                          : isSunday
-                          ? 'bg-amber-500/10 text-amber-300 font-extrabold'
-                          : ''
-                      }`}
+                          ? 'bg-rose-950/20 border-rose-500/40'
+                          : isWeeklyOff
+                          ? 'bg-amber-950/15 border-amber-500/30'
+                          : log && log.attendanceCode === 'P'
+                          ? 'bg-slate-900/90 border-slate-800'
+                          : log && log.attendanceCode === 'A'
+                          ? 'bg-red-950/20 border-red-500/30'
+                          : 'bg-slate-950/70 border-slate-800/80'
+                      } ${!hideImport ? 'cursor-pointer active:scale-[0.99]' : ''}`}
                     >
-                      <span className="block text-xs">{dayNum}</span>
-                      <span className="block text-[9px] font-normal opacity-80 truncate max-w-[65px]">
-                        {holiday ? holiday.name : dateObj.toLocaleDateString('en-US', { weekday: 'short' })}
-                      </span>
-                    </th>
-                  );
-                })}
+                      <div className="flex items-center justify-between gap-2">
+                        {/* Left: Date Box & Weekday */}
+                        <div className="flex items-center space-x-3 min-w-0">
+                          <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center font-bold text-center shrink-0 ${
+                            holiday
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              : isSunday
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-slate-800 text-white border border-slate-700'
+                          }`}>
+                            <span className="text-sm font-mono font-black leading-none">{padDay}</span>
+                            <span className="text-[9px] uppercase font-bold text-slate-400 mt-0.5">{weekdayShort}</span>
+                          </div>
 
-                {/* Cumulative Total Hours Header (if showHoursFormat) */}
-                {showHoursFormat && (
-                  <th className="py-4 px-3 text-center bg-slate-950 border-l border-b border-slate-800 min-w-[100px] text-indigo-300">
-                    TOTAL HRS
-                  </th>
-                )}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {employees.map(emp => {
-                const empLogs = logs.filter(l => l.employeeId === emp.id || l.employeeId === emp.employeeId || (l.employeeId && emp.name && l.employeeId.toLowerCase() === emp.name.toLowerCase()));
-                const empTotalMins = empLogs.reduce((sum, l) => sum + (l.workedMinutes || 0), 0);
+                          <div className="min-w-0">
+                            <div className="flex items-center space-x-1.5 truncate">
+                              <span className="text-xs font-bold text-white truncate">
+                                {padDay} {MONTHS.find(m => m.value === selectedMonth)?.name}
+                              </span>
+                              <span className="text-[10px] text-slate-400">({weekdayLong})</span>
+                            </div>
 
-                return (
-                  <tr key={emp.id} className="hover:bg-slate-850/50 transition">
-                    {/* Sticky Employee Name & Department Cell */}
-                    <td className="py-3 px-4 sticky left-0 z-10 bg-slate-900 border-r border-slate-800 min-w-[200px] shadow-sm">
-                      <p className="font-bold text-white text-xs truncate max-w-[180px]">{emp.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium truncate max-w-[180px]">{emp.department} • {emp.designation}</p>
-                    </td>
+                            {holiday ? (
+                              <span className="text-[11px] font-bold text-rose-300 flex items-center space-x-1 mt-0.5 truncate">
+                                <span>🏖️</span>
+                                <span className="truncate">{holiday.name}</span>
+                              </span>
+                            ) : isWeeklyOff ? (
+                              <span className="text-[11px] font-semibold text-amber-300/90 mt-0.5 block">
+                                Official Sunday Off
+                              </span>
+                            ) : log ? (
+                              <div className="text-[11px] text-slate-300 font-mono mt-0.5 flex items-center space-x-2">
+                                <span>In: <strong className="text-emerald-400">{log.checkIn || '--:--'}</strong></span>
+                                <span>•</span>
+                                <span>Out: <strong className="text-slate-200">{log.checkOut || '--:--'}</strong></span>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-slate-500 mt-0.5 block">No punch recorded</span>
+                            )}
+                          </div>
+                        </div>
 
-                    {/* Days 1..31 Punch Cells */}
-                    {daysArray.map(dayNum => {
-                      const padDay = String(dayNum).padStart(2, '0');
-                      const padMonth = String(selectedMonth).padStart(2, '0');
-                      const dateStr = `${selectedYear}-${padMonth}-${padDay}`;
-                      const log = logsMap[`${emp.id}_${dateStr}`] || logsMap[`${emp.employeeId}_${dateStr}`];
-
-                      const dateObj = new Date(dateStr);
-                      const isSunday = dateObj.getDay() === 0;
-
-                      // Check for Holiday
-                      const holiday = holidays.find(h => h.date === dateStr);
-
-                      // Sunday / Weekly Off
-                      const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isSunday && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
-
-                      return (
-                        <td
-                          key={dayNum}
-                          onClick={() => {
-                            if (!hideImport) {
-                              setEditLog(log || { id: `att-${emp.id}-${dateStr}`, employeeId: emp.id, employeeName: emp.name, date: dateStr });
-                              setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isSunday ? 'WO-I' : 'P'));
-                              setEditIn(log ? log.checkIn || '09:00' : '09:00');
-                              setEditOut(log ? log.checkOut || '18:00' : '18:00');
-                            }
-                          }}
-                          className={`py-2 px-1 text-center border-r border-slate-800/60 transition cursor-pointer hover:bg-blue-600/20 ${
-                            holiday ? 'bg-rose-500/10' : isSunday ? 'bg-amber-500/5' : ''
-                          }`}
-                        >
+                        {/* Right: Status Pill or Working Hours */}
+                        <div className="shrink-0 text-right">
                           {holiday ? (
-                            /* HOLIDAY BADGE (e.g. Diwali, Holi, Republic Day) */
-                            <span
-                              className="inline-block px-1.5 py-1 rounded bg-rose-500/25 border border-rose-500/40 text-rose-300 font-extrabold text-[9px] uppercase shadow-sm leading-tight max-w-[65px] truncate"
-                              title={holiday.name}
-                            >
-                              {holiday.name}
+                            <span className="px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-black uppercase">
+                              Holiday
                             </span>
                           ) : isWeeklyOff ? (
-                            /* WO Badge Matching Reference Image 1:1 */
-                            <span className="inline-block px-2 py-1 rounded bg-amber-500/20 border border-amber-500/30 text-amber-300 font-extrabold text-[10px] uppercase shadow-sm">
+                            <span className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-black uppercase">
                               WO
                             </span>
                           ) : log ? (
                             log.attendanceCode === 'A' ? (
-                              <span className="inline-block px-2 py-1 rounded bg-red-500/20 border border-red-500/30 text-red-400 font-bold text-[10px]">
-                                A
+                              <span className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold">
+                                Absent
                               </span>
                             ) : log.attendanceCode === 'HD' ? (
-                              <span className={`inline-block px-2 py-1 rounded bg-yellow-500/20 border border-yellow-500/30 text-yellow-300 font-bold text-[10px] ${showHoursFormat ? 'font-mono' : ''}`}>
-                                {showHoursFormat ? '4h 0m' : 'HD'}
+                              <span className="px-2.5 py-1 rounded-full bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 text-[10px] font-bold">
+                                {showHoursFormat ? '4h 0m' : 'Half Day'}
                               </span>
                             ) : log.attendanceCode === 'PL' || log.attendanceCode === 'UL' ? (
-                              <span className="inline-block px-2 py-1 rounded bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-[10px]">
-                                {log.attendanceCode}
+                              <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold">
+                                {log.attendanceCode === 'PL' ? 'Paid Leave' : 'Unpaid'}
                               </span>
                             ) : showHoursFormat ? (
-                              /* Completed Hours Format (e.g., 9h 0m, 8h 19m) */
-                              <span className="font-mono text-[11px] font-extrabold text-emerald-400">
-                                {formatMins(log.workedMinutes)}
-                              </span>
+                              <div className="text-right">
+                                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-mono font-black inline-block">
+                                  {formatMins(log.workedMinutes)}
+                                </span>
+                                {log.workedMinutes && log.workedMinutes < 480 ? (
+                                  <span className="block text-[9px] font-mono font-bold text-amber-400 mt-0.5">
+                                    -{formatMins(480 - log.workedMinutes)} Deficit
+                                  </span>
+                                ) : log.workedMinutes && log.workedMinutes > 480 ? (
+                                  <span className="block text-[9px] font-mono font-bold text-emerald-400 mt-0.5">
+                                    +{formatMins(log.workedMinutes - 480)} OT
+                                  </span>
+                                ) : null}
+                              </div>
                             ) : (
-                              /* Present Check-In & Check-Out Times Stacked */
-                              <div className="font-mono text-[10px] leading-tight space-y-0.5 font-medium">
-                                <span className="block text-emerald-400">{log.checkIn || '--:--'}</span>
-                                <span className="block text-slate-300">{log.checkOut || '--:--'}</span>
+                              <div className="text-right">
+                                <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold inline-block">
+                                  Present ✓
+                                </span>
+                                {log.workedMinutes ? (
+                                  <span className="block text-[10px] font-mono text-slate-400 mt-0.5">
+                                    {formatMins(log.workedMinutes)}
+                                  </span>
+                                ) : null}
                               </div>
                             )
                           ) : (
                             <span className="text-slate-600 text-xs font-mono">-</span>
                           )}
-                        </td>
-                      );
-                    })}
-
-                    {/* Cumulative Total Completed Hours Cell (if showHoursFormat) */}
-                    {showHoursFormat && (
-                      <td className="py-3 px-3 text-center bg-slate-900 border-l border-slate-800 font-mono font-black text-indigo-400 text-xs">
-                        {(empTotalMins / 60).toFixed(1)}h
-                      </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </>
       ) : (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-950 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
@@ -630,7 +879,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                             setEditIn(log.checkIn || '09:00');
                             setEditOut(log.checkOut || '18:00');
                           }}
-                          className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs font-semibold transition flex items-center space-x-1 ml-auto"
+                          className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs font-semibold transition flex items-center space-x-1 ml-auto cursor-pointer"
                         >
                           <Edit2 className="w-3 h-3" />
                           <span>Edit</span>
@@ -641,6 +890,64 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Vertical Daily Log Cards */}
+          <div className="md:hidden space-y-3 p-4">
+            {logs.length > 0 ? (
+              logs.map(log => (
+                <div key={log.id} className="bg-slate-950/70 border border-slate-800 rounded-2xl p-4 space-y-2.5 shadow-md">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-white text-xs">{log.employeeName}</p>
+                      <p className="text-[10px] text-slate-400">{log.department}</p>
+                    </div>
+                    <span className={`px-2.5 py-1 rounded-full font-bold font-mono text-[10px] ${
+                      log.attendanceCode === 'P' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                      log.attendanceCode === 'HD' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                      log.attendanceCode === 'MP' ? 'bg-red-500/20 text-red-400 border border-red-500/30' :
+                      log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                      'bg-slate-800 text-slate-300'
+                    }`}>
+                      {log.attendanceCode}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-slate-900/90 rounded-xl p-2.5 border border-slate-800/80 font-mono">
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-sans">Check In:</span>
+                      <span className="font-bold text-emerald-400">{log.checkIn || '--:--'}</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-400 block font-sans">Check Out:</span>
+                      <span className="font-bold text-slate-200">{log.checkOut || '--:--'}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-800/60">
+                    <span className="text-slate-400 font-mono text-[11px]">Worked: <strong className="text-white">{log.workedMinutes || 0}m</strong></span>
+                    {!hideImport && (
+                      <button
+                        onClick={() => {
+                          setEditLog(log);
+                          setEditCode(log.attendanceCode);
+                          setEditIn(log.checkIn || '09:00');
+                          setEditOut(log.checkOut || '18:00');
+                        }}
+                        className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-blue-400 rounded-lg text-xs font-semibold transition flex items-center space-x-1 cursor-pointer"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-slate-500 text-xs">
+                No logs recorded for this date.
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -7,6 +7,28 @@
 ---
 
 ## 2. Current Project Status
+- **Vertical Mobile Responsive Calendar & Timeline View for Attendance Grid & Working Hours**:
+  - **Requirement Addressed**: On mobile smartphones, horizontal 31-day table matrices (requiring ~1300px width) previously forced awkward horizontal scrolling and cramped columns. The attendance grid and working hours tabs have been transformed so that on mobile screens, instead of horizontal scrolling, the schedule renders **vertically down the screen** as a clean daily timeline, completely fitting mobile screen sizes without horizontal cramping or overflow.
+  - **Desktop vs. Mobile Experience**:
+    - **Desktop (`md:` and up)**: Retains the full 31-day horizontal matrix table with sticky employee header columns, dual scrollbars, and color-coded status badges.
+    - **Mobile (`md:hidden`)**: Renders an intuitive vertical day-by-day calendar timeline (Days 1 to `totalDaysInMonth`), identical to native mobile calendar schedule views (e.g. Apple / Google Calendar schedule list).
+  - **Attendance Grid ([src/components/AttendanceLogTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/AttendanceLogTab.tsx))**:
+    - **Employee Selector for Admin/Managers**: When viewing multiple employees (`employees.length > 1`), a native touch dropdown enables effortless 1-tap switching between any team member. In Employee mode, the view automatically displays the logged-in employee's schedule.
+    - **Active Employee Monthly Summary Card**: Displays employee initials avatar, name, department, role, total month hours, and quick count pills for Present, Half Day, Absent, and Total Month Days.
+    - **Vertical Day-by-Day Calendar Timeline**:
+      - Left: Date box with day number and short weekday (highlighted in rose for official holidays and amber for Sundays).
+      - Center: Date with full weekday, holiday title callout, Sunday Off banner, or punch check-in / check-out times.
+      - Right: Clear status badges (`Holiday`, `WO`, `Present`, `Half Day`, `Absent`, `Leave`) and worked hours badge.
+      - Tap-to-edit integration: In Admin mode, tapping any day card opens the manual edit modal to adjust punch times and status codes.
+    - **Daily Log Feed**: Desktop table wrapped in `hidden md:block`; mobile view displays a vertical card feed (`md:hidden`) showing employee name, punch interval, worked minutes, and status badges.
+  - **Working Hours Tab ([src/app/admin/working-hours/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/working-hours/page.tsx))**:
+    - **Desktop (`hidden md:block`)**: Preserves the 31-day matrix table with sticky columns.
+    - **Mobile (`md:hidden`)**:
+      - Employee picker dropdown with member count and department.
+      - Monthly working hours breakdown card (Total Completed Hours, Total Short Hours, Overtime Hours).
+      - Vertical Day-by-Day schedule list (Days 1 to 31) with check-in/out times, formatted worked hours (e.g., `8h 30m`), deficit badges (`-45m short`), and overtime badges (`+30m OT`).
+      - Tapping any day card immediately opens the quick edit dialog to correct hours, codes, or reasons.
+      - In Daily Log Table view, mobile cards provide a complete vertical breakdown of check-in, check-out, worked mins, required mins, short mins, and overtime mins without table overflow.
 - **Universal Mobile-Responsive UI & Progressive Web App Experience (Android, iOS & Desktop)**:
   - **Requirement Addressed**: The entire HRM portal UI, features, workflows, and navigation are 100% mobile-responsive across all mobile smartphones (Android, iPhone/iOS), tablets (iPad), and desktop browsers. Employees logging in from mobile devices experience an intuitive, fluid native-app feel with comfortable touch targets, zero horizontal cramping, and instant 1-thumb navigation.
   - **Viewport, PWA & Apple Notch Compatibility**:

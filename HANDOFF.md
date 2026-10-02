@@ -7,6 +7,25 @@
 ---
 
 ## 2. Current Project Status
+- **Device-Isolated Save Password & Account Privacy Security System**:
+  - **Requirement Addressed**: Employees, Managers, and Admins can save their passwords on their personal devices for effortless 1-click access, but must never see each other's saved passwords, and no one should access another employee's account.
+  - **Device Isolation & Local Storage Architecture**:
+    - Passwords saved on a device are stored strictly in client-side browser local storage (`localStorage['hrm_saved_device_login']`). They are never saved into shared database records or transmitted to other devices.
+    - When an employee opens the login page on their personal device, a dedicated **"Saved on This Device"** card appears with their name, role, email, and 1-click **"Sign in as [Name]"** button.
+    - An interactive **"View / Edit Password"** control with an Eye toggle (`Eye` / `EyeOff`) allows the device owner to unmask and verify their password.
+    - A **"Forget this Device"** button immediately clears the saved credentials from that device.
+    - A **"Sign In with a Different Account"** button opens a clean, blank login form so someone else can sign in without seeing or altering the saved account.
+    - When logging in from an unsaved device or new account, the user can toggle the **"[✓] Save password on this device"** checkbox.
+  - **Server-Side Authentication Route (`POST /api/auth/login`)**:
+    - Eliminated client-side password evaluation and direct employee array inspection on `/login`.
+    - Created [src/app/api/auth/login/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/auth/login/route.ts) to authenticate credentials on the backend server.
+    - Returns safe employee data (id, employeeId, name, email, role, department) and sets secure session cookies (`hrm_user_role`, `hrm_user_email`, `hrm_user_id`). Passwords are never returned over the wire.
+  - **Network Credential Leak Prevention in `/api/employees`**:
+    - Updated [src/app/api/employees/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/employees/route.ts) to strictly strip the `password` property from all employee records for non-admin callers. Non-admins opening DevTools Network tab cannot see other employees' passwords.
+    - Restricted `POST` and `PUT` in `/api/employees` so non-admins can only update their own profile and cannot tamper with other employees' accounts or elevate roles.
+  - **Self-Service Password Sync**:
+    - Updated [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx) so changing a password automatically updates the saved password in `localStorage['hrm_saved_device_login']` on that device.
+    - Removed arbitrary fallbacks to other employees' IDs (`emp-5`) when a session is unauthenticated, redirecting strictly to `/login`.
 - **Resolution of Duplicate Leave Record for Mudita & Date Overlap Guard**:
   - **Problem Identified**: Mudita requested leave for a single day (`2026-09-21`), but two entries appeared in the Admin Leave Requests register (`#880` with note `"Due to family event "` and `#360` with note `"For a family event "`, submitted 24 seconds apart). Because both duplicate entries were approved, the Leave Tracker in Q3 calculated 2 Casual Leaves Used and 4 Remaining instead of 1 Used and 5 Remaining.
   - **Root Causes**:

@@ -121,7 +121,7 @@ function EmployeePortalContent() {
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   const handleOpenChangePasswordModal = () => {
-    setCurrentPassword(employee?.password || 'Employee@123');
+    setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
     setShowCurrentPass(false);
@@ -137,6 +137,11 @@ function EmployeePortalContent() {
     setPasswordError('');
     setPasswordMsg('');
 
+    if (!currentPassword) {
+      setPasswordError('Please enter your current password.');
+      return;
+    }
+
     if (newPassword !== confirmPassword) {
       setPasswordError('New password and Confirm password do not match.');
       return;
@@ -144,11 +149,6 @@ function EmployeePortalContent() {
 
     if (newPassword.length < 4) {
       setPasswordError('Password must be at least 4 characters long.');
-      return;
-    }
-
-    if (employee?.password && currentPassword && currentPassword !== employee.password) {
-      setPasswordError('Current password is incorrect.');
       return;
     }
 
@@ -165,6 +165,7 @@ function EmployeePortalContent() {
         body: JSON.stringify({
           id: activeEmpId,
           email: activeEmpEmail,
+          currentPassword,
           password: newPassword,
         }),
       });
@@ -175,6 +176,26 @@ function EmployeePortalContent() {
         if (employee) {
           setEmployee({ ...employee, password: newPassword });
         }
+
+        // If this device has saved credentials matching this employee, synchronize device-saved password!
+        if (typeof window !== 'undefined') {
+          try {
+            const savedStr = localStorage.getItem('hrm_saved_device_login');
+            if (savedStr) {
+              const savedObj = JSON.parse(savedStr);
+              if (
+                savedObj &&
+                (savedObj.id === activeEmpId ||
+                 (savedObj.email && activeEmpEmail && savedObj.email.toLowerCase() === activeEmpEmail.toLowerCase()))
+              ) {
+                savedObj.password = newPassword;
+                savedObj.savedAt = Date.now();
+                localStorage.setItem('hrm_saved_device_login', JSON.stringify(savedObj));
+              }
+            }
+          } catch (e) {}
+        }
+
         setTimeout(() => {
           setIsChangePasswordModalOpen(false);
           setPasswordMsg('');
@@ -229,19 +250,25 @@ function EmployeePortalContent() {
 
         if (matched) {
           activeTargetId = matched.id;
+          localStorage.setItem('hrm_active_employee_id', activeTargetId);
         } else {
-          const matchingRoleEmps = employeesList.filter(e => e && e.role === storedRole);
-          activeTargetId = matchingRoleEmps[0] ? matchingRoleEmps[0].id : (employeesList[0]?.id || 'emp-5');
+          // Strictly prevent cross-account fallback; require proper authentication
+          router.push('/login');
+          return;
         }
-        localStorage.setItem('hrm_active_employee_id', activeTargetId);
       }
 
       // Match selected employee by ID, employeeId, or name
       const currentEmp = employeesList.find(
         e => e && e.id && (e.id === activeTargetId || e.employeeId === activeTargetId || (e.name && activeTargetId && e.name.toLowerCase().includes(activeTargetId.toLowerCase())))
-      ) || employeesList[0] || null;
+      );
 
-      setEmployee(currentEmp || null);
+      if (!currentEmp) {
+        router.push('/login');
+        return;
+      }
+
+      setEmployee(currentEmp);
 
       if (currentEmp) {
         const isMgr = Boolean(

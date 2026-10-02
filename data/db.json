@@ -26862,6 +26862,16 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-1790941159947",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "User Login",
+      "objectType": "Auth",
+      "objectId": "emp-3",
+      "newValue": "User Jigyasa Sen (jigyasa.digitalsuncity@gmail.com) signed in successfully",
+      "timestamp": "2026-10-02T11:39:19.947Z"
+    },
+    {
       "id": "aud-1789494400122",
       "userId": "emp-1",
       "userName": "Harshit Bhootra",

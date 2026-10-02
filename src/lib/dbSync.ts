@@ -1,5 +1,5 @@
 import { prisma } from './prisma';
-import { InitialState, Employee, LeaveRecord, AttendanceLog, CompanySettings, Holiday, Department, AuditLogEntry } from './types';
+import { InitialState, Employee, LeaveRecord, AttendanceLog, CompanySettings, Holiday, Department, AuditLogEntry, getCurrentQuarter } from './types';
 
 export async function loadDataFromPrisma(): Promise<InitialState | null> {
   if (!process.env.DATABASE_URL) {
@@ -209,7 +209,7 @@ export async function persistDataToPrisma(data: InitialState): Promise<void> {
             startDate: l.startDate,
             endDate: l.endDate || l.startDate,
             daysCount: Number(l.daysCount) || 1,
-            quarter: l.quarter || 'Q3',
+            quarter: l.quarter || getCurrentQuarter(),
             year: Number(l.year) || 2026,
             status: l.status || 'APPROVED',
             note: l.note || null,
@@ -224,7 +224,7 @@ export async function persistDataToPrisma(data: InitialState): Promise<void> {
             startDate: l.startDate,
             endDate: l.endDate || l.startDate,
             daysCount: Number(l.daysCount) || 1,
-            quarter: l.quarter || 'Q3',
+            quarter: l.quarter || getCurrentQuarter(),
             year: Number(l.year) || 2026,
             status: l.status || 'APPROVED',
             note: l.note || null,

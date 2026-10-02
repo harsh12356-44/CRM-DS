@@ -707,21 +707,29 @@ export function logAudit(action: string, objectType: string, objectId: string, o
   saveDbData(db);
 }
 
-function getQuarterFromDateStr(dateStr?: string): string {
-  if (!dateStr) return 'Q3';
+export function getCurrentQuarter(): 'Q1' | 'Q2' | 'Q3' | 'Q4' {
+  const m = new Date().getMonth() + 1;
+  if (m >= 1 && m <= 3) return 'Q1';
+  if (m >= 4 && m <= 6) return 'Q2';
+  if (m >= 7 && m <= 9) return 'Q3';
+  return 'Q4';
+}
+
+export function getQuarterFromDateStr(dateStr?: string): 'Q1' | 'Q2' | 'Q3' | 'Q4' {
+  if (!dateStr) return getCurrentQuarter();
   try {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return 'Q3';
+    if (isNaN(d.getTime())) return getCurrentQuarter();
     const m = d.getMonth() + 1;
     if (m >= 1 && m <= 3) return 'Q1';
     if (m >= 4 && m <= 6) return 'Q2';
     if (m >= 7 && m <= 9) return 'Q3';
     if (m >= 10 && m <= 12) return 'Q4';
   } catch (e) {}
-  return 'Q3';
+  return getCurrentQuarter();
 }
 
-export function getQuarterlyLeaveSummaries(quarter: string = 'Q3', departmentFilter: string = 'ALL'): LeaveSummary[] {
+export function getQuarterlyLeaveSummaries(quarter: string = getCurrentQuarter(), departmentFilter: string = 'ALL'): LeaveSummary[] {
   const db = getDbData();
   let employees = db.employees;
 

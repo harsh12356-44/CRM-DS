@@ -7,6 +7,31 @@
 ---
 
 ## 2. Current Project Status
+- **Employee Dashboard Dynamic Current Month Attendance & Dynamic Quarterly Leave Balance**:
+  - **Requirement Addressed**: 
+    1. Employee dashboard attendance statistics (Work Status / Present Days, Total Hours Worked, Average Daily Hours, Late Arrivals, and the Monthly Attendance Analytics daily hours bar chart) must dynamically evaluate for the **current active month** (October 2026 / `2026-10`) rather than freezing in historical months (September/August 2026).
+    2. Leave Balance cards and allowances must automatically calculate and update based on leaves applied/approved in the **current active quarter** (Q4: Oct–Dec 2026) rather than hardcoded `Q3` (Jul–Sep 2026).
+  - **Dynamic Month Attendance Statistics**:
+    - Updated [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx) with a reactive `selectedDashboardMonth` state defaulting to the current calendar month (`YYYY-MM`).
+    - Eliminated hardcoded fallbacks to `2026-09` or `2026-08`. If logs have not yet been recorded for the current month, the dashboard correctly reflects current month zero/live metrics rather than showing outdated past month logs.
+    - Added an interactive month selector dropdown in the Monthly Attendance Analytics card header, enabling employees to view October 2026 (Current Month) or switch back to review September 2026, August 2026, etc.
+    - Updated the bar chart days array to generate the exact number of days in the selected month (`new Date(selYear, selMonth, 0).getDate()`).
+  - **Dynamic Quarterly Leave Balance Engine**:
+    - Created and exported `getCurrentQuarter(): 'Q1' | 'Q2' | 'Q3' | 'Q4'` and `getQuarterFromDateStr()` in [src/lib/types.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/types.ts) and [src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts):
+      - Q1: Jan–Mar (Months 1–3)
+      - Q2: Apr–Jun (Months 4–6)
+      - Q3: Jul–Sep (Months 7–9)
+      - Q4: Oct–Dec (Months 10–12)
+    - Defaulted `quarter` in `GET /api/leaves`, `POST /api/leaves`, `PUT /api/leaves`, `DELETE /api/leaves`, [src/components/LeaveTrackerTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/LeaveTrackerTab.tsx), and [src/components/AdjustLeaveModal.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/AdjustLeaveModal.tsx) to `getCurrentQuarter()`.
+    - Refactored [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx) to dynamically compute:
+      - `casualApplied`, `casualApproved`, `remainingCasual`
+      - `plannedApplied`, `plannedApproved`, `remainingPlanned`
+      - `leaveBalance` (`totalAllowance - totalApplied`, max 6 paid days per quarter)
+      - `unpaidLeaves` (`Math.max(0, totalApplied - totalAllowance)`)
+      - `pendingInQuarterCount` (leaves awaiting manager/HR approval in the current quarter)
+    - Updated both WFH and Office Leave Balance stat cards to show `leaveBalance / totalAllowance Days` (e.g. `6 / 6 Days`), a breakdown of Casual and Planned days remaining, and pending approval notices.
+    - Updated the **Leave Register & Quarterly Breakdown** table to clearly badge `{q} (Current)` on the active quarter pill and resolve missing dates to the current quarter.
+    - Updated the **Leave Balance & Policy** card in the Apply Leave tab to display dynamic allowance breakdowns for the active quarter (`remainingCasual`, `remainingPlanned`, `leaveBalance`, and `unpaidLeaves`) rather than static `(Q3)` labels.
 - **Device-Isolated Save Password & Account Privacy Security System**:
   - **Requirement Addressed**: Employees, Managers, and Admins can save their passwords on their personal devices for effortless 1-click access, but must never see each other's saved passwords, and no one should access another employee's account.
   - **Device Isolation & Local Storage Architecture**:

@@ -5,14 +5,14 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { NextResponse } from 'next/server';
-import { getDbData, saveDbData, getQuarterlyLeaveSummaries, getEmployeeAllQuarters, addNotification, logAudit, ensureCloudSync } from '@/lib/store';
+import { getDbData, saveDbData, getQuarterlyLeaveSummaries, getEmployeeAllQuarters, addNotification, logAudit, ensureCloudSync, getCurrentQuarter } from '@/lib/store';
 import { LeaveRecord, Employee, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
 
 export async function GET(request: Request) {
   try {
     await ensureCloudSync();
     const { searchParams } = new URL(request.url);
-    const quarter = searchParams.get('quarter') || 'Q3';
+    const quarter = searchParams.get('quarter') || getCurrentQuarter();
     const department = searchParams.get('department') || 'ALL';
     const employeeDetails = searchParams.get('employeeDetails');
 
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     console.error('Error in GET /api/leaves:', err);
     const db = getDbData();
     return NextResponse.json({
-      quarter: 'Q3',
+      quarter: getCurrentQuarter(),
       department: 'ALL',
       summaries: [],
       records: db.leaveRecords || [],
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         saveDbData(db);
         logAudit('Delete Leave Record', 'LeaveRecord', targetId, undefined, `Deleted leave record ${targetId}`);
       }
-      const targetQ = body.quarter || 'Q3';
+      const targetQ = body.quarter || getCurrentQuarter();
       const summaries = getQuarterlyLeaveSummaries(targetQ, 'ALL');
       return NextResponse.json({ success: true, message: `Deleted leave record ${targetId}`, summaries, records: db.leaveRecords });
     }
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
     // 0. Clear All Leaves Action (for testing & reset)
     if (body.action === 'clear' || body.action === 'clear_all') {
       const db = getDbData();
-      const targetQ = body.quarter || 'Q3';
+      const targetQ = body.quarter || getCurrentQuarter();
       db.leaveRecords = [];
       saveDbData(db);
 
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
       db.leaveRecords = mergeLeavesNonRegressive(db.leaveRecords || [], body.records);
       saveDbData(db);
       logAudit('Sync Client Backup Leaves', 'LeaveRecord', 'backup', undefined, `Synced ${body.records.length} records from client backup`);
-      const targetQ = body.quarter || 'Q3';
+      const targetQ = body.quarter || getCurrentQuarter();
       const summaries = getQuarterlyLeaveSummaries(targetQ, 'ALL');
       return NextResponse.json({ success: true, message: 'Synced leave records from client backup', summaries, records: db.leaveRecords });
     }
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
         l => !((l.employeeId === emp.id || l.employeeId === emp.employeeId || l.employeeId === emp.name) && l.quarter === quarter && l.status === 'APPROVED')
       );
 
-      const targetQuarter = quarter || 'Q3';
+      const targetQuarter = quarter || getCurrentQuarter();
       let datePrefix = '2026-08-15';
       if (targetQuarter === 'Q1') datePrefix = '2026-02-15';
       else if (targetQuarter === 'Q2') datePrefix = '2026-05-15';
@@ -256,10 +256,10 @@ export async function POST(request: Request) {
       }
 
       // 2b. Process leave records
-      let targetQuarter = 'Q3';
+      let targetQuarter = getCurrentQuarter();
       body.records.forEach((row: any) => {
         const empName = row.employeeName || row['Employee Name'] || row['Employee'] || row['Name'];
-        const quarter = row.quarter || row['Quarter'] || 'Q3';
+        const quarter = row.quarter || row['Quarter'] || getCurrentQuarter();
         targetQuarter = quarter;
         const casual = Number(row.casualUsed || row['Casual Leaves Applied'] || row['Casual Leaves'] || row['Casual'] || 0);
         const planned = Number(row.plannedUsed || row['Planned Leaves Applied'] || row['Planned Leaves'] || row['Planned'] || 0);
@@ -501,7 +501,7 @@ export async function PUT(request: Request) {
         startDate: startDate || record?.startDate || '2026-08-15',
         endDate: endDate || record?.endDate || startDate || record?.startDate || '2026-08-15',
         daysCount: daysCount || record?.daysCount || 1,
-        quarter: record?.quarter || 'Q3',
+        quarter: record?.quarter || getCurrentQuarter(),
         year: 2026,
         status: status || 'APPROVED',
         managerStatus: newMgrStatus,
@@ -569,7 +569,7 @@ export async function PUT(request: Request) {
 
     await saveDbData(db);
 
-    const targetQuarter = updatedRecord.quarter || 'Q3';
+    const targetQuarter = updatedRecord.quarter || getCurrentQuarter();
     const summaries = getQuarterlyLeaveSummaries(targetQuarter, 'ALL');
 
     return NextResponse.json({

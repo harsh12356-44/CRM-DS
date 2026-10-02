@@ -21,8 +21,16 @@ import TrackerDetailModal from './TrackerDetailModal';
 import { LeaveSummary, Employee } from '@/lib/types';
 import * as XLSX from 'xlsx';
 
+const getCurrentQuarter = (): 'Q1' | 'Q2' | 'Q3' | 'Q4' => {
+  const m = new Date().getMonth() + 1;
+  if (m >= 1 && m <= 3) return 'Q1';
+  if (m >= 4 && m <= 6) return 'Q2';
+  if (m >= 7 && m <= 9) return 'Q3';
+  return 'Q4';
+};
+
 export default function LeaveTrackerTab() {
-  const [quarter, setQuarterState] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>('Q3');
+  const [quarter, setQuarterState] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>(() => getCurrentQuarter());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'used' | 'unused' | 'alert'>('all');
   const [summaries, setSummaries] = useState<LeaveSummary[]>([]);
@@ -41,6 +49,8 @@ export default function LeaveTrackerTab() {
       const saved = urlQ || localStorage.getItem('hrm_leave_quarter');
       if (saved && ['Q1', 'Q2', 'Q3', 'Q4'].includes(saved)) {
         setQuarterState(saved as 'Q1' | 'Q2' | 'Q3' | 'Q4');
+      } else {
+        setQuarterState(getCurrentQuarter());
       }
     }
   }, []);

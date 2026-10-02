@@ -102,6 +102,10 @@ function EmployeePortalContent() {
 
   // Dashboard & Apply Leave state
   const [leaveType, setLeaveType] = useState('Casual Leave');
+  const [selectedDashboardMonth, setSelectedDashboardMonth] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [dashboardQuarterFilter, setDashboardQuarterFilter] = useState<'ALL' | 'Q1' | 'Q2' | 'Q3' | 'Q4'>('ALL');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -585,42 +589,92 @@ function EmployeePortalContent() {
   // Dynamically resolve current month & year for employee dashboard metrics
   const now = new Date();
   const dynamicYear = now.getFullYear();
-  const dynamicMonth = String(now.getMonth() + 1).padStart(2, '0');
-  const dynamicMonthPrefix = `${dynamicYear}-${dynamicMonth}`;
+  const dynamicMonthNum = now.getMonth() + 1;
+  const dynamicMonth = String(dynamicMonthNum).padStart(2, '0');
+  const dynamicCurrentMonthPrefix = `${dynamicYear}-${dynamicMonth}`;
 
-  // Use current month if logs exist, otherwise fallback to latest month containing logs
-  const hasDynamicLogs = safeAttendance.some(a => a && a.date && a.date.startsWith(dynamicMonthPrefix));
-  const hasSeptemberLogs = safeAttendance.some(a => a && a.date && a.date.startsWith('2026-09'));
-  const currentMonthPrefix = hasDynamicLogs ? dynamicMonthPrefix : (hasSeptemberLogs ? '2026-09' : '2026-08');
-
+  // Current active month prefix strictly defaults to current month (e.g. 2026-10 October 2026)
+  const currentMonthPrefix = selectedDashboardMonth || dynamicCurrentMonthPrefix;
   const [selYear, selMonth] = currentMonthPrefix.split('-').map(Number);
   const monthName = new Date(selYear, selMonth - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' });
+  const isActualCurrentMonth = currentMonthPrefix === dynamicCurrentMonthPrefix;
+
+  // Month options for dropdown selector: current month + past 5 months
+  const monthOptions = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(dynamicYear, dynamicMonthNum - 1 - i, 1);
+    const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const lbl = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    return {
+      value: val,
+      label: i === 0 ? `${lbl} (Current)` : lbl,
+    };
+  });
 
   const currentMonthLogs = safeAttendance.filter(a => a && a.date && a.date.startsWith(currentMonthPrefix));
 
-  // Present Days Count for current month
+  // Present Days Count for current/selected month
   const presentDaysCount = currentMonthLogs.reduce((sum, a) => {
     if (a.attendanceCode === 'P' || (a.attendanceCode as string) === 'PRESENT' || (a.checkIn && !a.attendanceCode)) return sum + 1;
     if (a.attendanceCode === 'HD' || (a.attendanceCode as string) === 'HALF_DAY') return sum + 0.5;
     return sum;
   }, 0);
 
-  // Total Hours completed for current month
+  // Total Hours completed for current/selected month
   const totalWorkedMins = currentMonthLogs.reduce((sum, a) => sum + (a.workedMinutes || 0), 0);
   const totalHoursNum = Math.floor(totalWorkedMins / 60);
   const totalMinsNum = totalWorkedMins % 60;
   const totalHoursDisplay = totalMinsNum > 0 ? `${totalHoursNum}h ${totalMinsNum}m` : `${totalHoursNum}h`;
   const avgDailyHours = presentDaysCount > 0 ? (totalWorkedMins / 60 / presentDaysCount).toFixed(1) : '0';
 
-  // Late Arrivals for current month (checkIn > 09:15:00)
+  // Late Arrivals for current/selected month (checkIn > 09:15:00)
   const lateArrivalsCount = currentMonthLogs.filter(a => (a.checkIn && a.checkIn > '09:15:00') || (a as any).isLate).length || 0;
 
-  // Leave Balance for current quarter fetched from Leave Tracker rules
+  // Helper for quarter calculation
+  const getQuarterFromDate = (dStr?: string): 'Q1' | 'Q2' | 'Q3' | 'Q4' => {
+    if (!dStr) {
+      const m = new Date().getMonth() + 1;
+      if (m >= 1 && m <= 3) return 'Q1';
+      if (m >= 4 && m <= 6) return 'Q2';
+      if (m >= 7 && m <= 9) return 'Q3';
+      return 'Q4';
+    }
+    try {
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return 'Q4';
+      const m = d.getMonth() + 1;
+      if (m >= 1 && m <= 3) return 'Q1';
+      if (m >= 4 && m <= 6) return 'Q2';
+      if (m >= 7 && m <= 9) return 'Q3';
+      return 'Q4';
+    } catch (e) {
+      return 'Q4';
+    }
+  };
+
+  // Dynamic Current Quarter: Q1 (Jan-Mar), Q2 (Apr-Jun), Q3 (Jul-Sep), Q4 (Oct-Dec)
+  const currentQuarter: 'Q1' | 'Q2' | 'Q3' | 'Q4' =
+    now.getMonth() < 3 ? 'Q1' :
+    now.getMonth() < 6 ? 'Q2' :
+    now.getMonth() < 9 ? 'Q3' : 'Q4';
+
+  const activeQuarter: 'Q1' | 'Q2' | 'Q3' | 'Q4' =
+    dashboardQuarterFilter === 'ALL' ? currentQuarter : dashboardQuarterFilter;
+
+  // Leave Balance & Leaves applied for active quarter
   const currentEmpId = employee?.id || selectedEmployeeId || 'emp-12';
   const currentEmpCode = employee?.employeeId || 'SG012';
   const currentEmpName = (employee?.name || '').toLowerCase().trim();
 
-  const q3Leaves = safeLeaves.filter(l => {
+  const isLeaveRejected = (l: LeaveRecord) =>
+    l.status === 'REJECTED' || l.managerStatus === 'Rejected' || l.hrStatus === 'Rejected';
+
+  const isLeaveApproved = (l: LeaveRecord) => {
+    const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
+    const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || (l.managerStatus && l.managerStatus.includes('Short Hours'))) && (l.hrStatus === 'Approved' || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || (l.hrStatus && l.hrStatus.includes('Short Hours')));
+    return isBothApproved || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || l.isAdjustment || isShortHours || (l as any).submittedBy === 'HR' || l.managerStatus === 'Approved' || l.hrStatus === 'Approved';
+  };
+
+  const quarterLeaves = safeLeaves.filter(l => {
     if (!l) return false;
     const targetEmp = String(l.employeeId || '').toLowerCase().trim();
     const matchesEmp =
@@ -630,28 +684,53 @@ function EmployeePortalContent() {
       (currentEmpName.length >= 3 && targetEmp.includes(currentEmpName)) ||
       (targetEmp.length >= 3 && currentEmpName.includes(targetEmp));
 
-    const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
-    const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || (l.managerStatus && l.managerStatus.includes('Short Hours'))) && (l.hrStatus === 'Approved' || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || (l.hrStatus && l.hrStatus.includes('Short Hours')));
-    const isApproved = isBothApproved || l.status === 'APPROVED' || l.status === 'SHORT_HOURS' || l.isAdjustment || isShortHours || (l as any).submittedBy === 'HR' || l.managerStatus === 'Approved' || l.hrStatus === 'Approved';
-    const recQuarter = l.quarter || (l.startDate ? (new Date(l.startDate).getMonth() >= 6 && new Date(l.startDate).getMonth() <= 8 ? 'Q3' : 'Q3') : 'Q3');
+    if (!matchesEmp) return false;
 
-    return matchesEmp && isApproved && (recQuarter === 'Q3' || !l.quarter);
+    const recQuarter = l.quarter || getQuarterFromDate(l.startDate);
+    return recQuarter === activeQuarter;
   });
 
-  const casualUsedQ3 = q3Leaves
-    .filter(l => l.leaveType === 'Casual Leave' || l.leaveType === 'Casual')
-    .reduce((sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0);
+  // Exclude rejected leaves from deducting balance
+  const activeQuarterLeaves = quarterLeaves.filter(l => !isLeaveRejected(l));
 
-  const plannedUsedQ3 = q3Leaves
-    .filter(l => l.leaveType === 'Planned Leave' || l.leaveType === 'Planned' || l.leaveType === 'Sick Leave')
-    .reduce((sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0);
+  // Casual leaves applied/used in this quarter
+  const casualLeavesInQ = activeQuarterLeaves.filter(
+    l => l.leaveType === 'Casual Leave' || l.leaveType === 'Casual'
+  );
+  const casualApplied = casualLeavesInQ.reduce(
+    (sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0
+  );
+  const casualApproved = casualLeavesInQ.filter(l => isLeaveApproved(l)).reduce(
+    (sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0
+  );
 
-  const casualAllowanceLeft = Math.max(0, (employee?.casualAllowance ?? 2) - casualUsedQ3);
-  const plannedAllowanceLeft = Math.max(0, (employee?.plannedAllowance ?? 4) - plannedUsedQ3);
-  const totalUsedQ3 = casualUsedQ3 + plannedUsedQ3;
-  const totalAllowance = (employee?.casualAllowance ?? 2) + (employee?.plannedAllowance ?? 4); // 6 Days
-  const leaveBalance = Math.max(0, totalAllowance - totalUsedQ3);
-  const unpaidLeavesQ3 = Math.max(0, totalUsedQ3 - totalAllowance);
+  // Planned / Sick leaves applied/used in this quarter
+  const plannedLeavesInQ = activeQuarterLeaves.filter(
+    l => l.leaveType === 'Planned Leave' || l.leaveType === 'Planned' || l.leaveType === 'Sick Leave'
+  );
+  const plannedApplied = plannedLeavesInQ.reduce(
+    (sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0
+  );
+  const plannedApproved = plannedLeavesInQ.filter(l => isLeaveApproved(l)).reduce(
+    (sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (l.daysCount || 1)), 0
+  );
+
+  // Quarterly Allowances (default: 2 Casual + 4 Planned = 6 Days per quarter)
+  const casualAllowance = employee?.casualAllowance ?? 2;
+  const plannedAllowance = employee?.plannedAllowance ?? 4;
+  const totalAllowance = casualAllowance + plannedAllowance; // 6 Days
+
+  // Applied & Remaining Balance for this quarter
+  const totalApplied = casualApplied + plannedApplied;
+  const totalApproved = casualApproved + plannedApproved;
+  const remainingCasual = Math.max(0, casualAllowance - casualApplied);
+  const remainingPlanned = Math.max(0, plannedAllowance - plannedApplied);
+  const leaveBalance = Math.max(0, totalAllowance - totalApplied);
+  const unpaidLeaves = Math.max(0, totalApplied - totalAllowance);
+
+  // Pending leaves in this quarter
+  const pendingLeavesInQuarter = activeQuarterLeaves.filter(l => !isLeaveApproved(l));
+  const pendingInQuarterCount = pendingLeavesInQuarter.length;
 
   // Dynamic Current Month Bar Chart Data
   const totalDaysInMonth = new Date(selYear, selMonth, 0).getDate();
@@ -800,14 +879,30 @@ function EmployeePortalContent() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-400">Leave Balance</span>
+                      <span className="text-xs font-bold text-slate-400">Leave Balance ({activeQuarter})</span>
                       <div className="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
                         <Plane className="w-4 h-4" />
                       </div>
                     </div>
                     <div>
-                      <p className="text-3xl font-extrabold text-white font-heading">{leaveBalance} Days</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Days left in Q3 2026 (Leave Tracker)</p>
+                      <p className="text-3xl font-extrabold text-white font-heading">
+                        {leaveBalance} <span className="text-xs font-normal text-slate-400">/ {totalAllowance} Days</span>
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap text-[10px]">
+                        <span className="text-purple-300 font-medium">Casual: {remainingCasual}/{casualAllowance} left</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-blue-300 font-medium">Planned: {remainingPlanned}/{plannedAllowance} left</span>
+                      </div>
+                      {pendingInQuarterCount > 0 ? (
+                        <p className="text-[10px] text-amber-400 font-semibold mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3 inline shrink-0" />
+                          <span>{pendingInQuarterCount} request awaiting review</span>
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          {totalApplied > 0 ? `${totalApplied} day(s) applied in ${activeQuarter}` : `All ${totalAllowance} days available in ${activeQuarter}`}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -867,7 +962,7 @@ function EmployeePortalContent() {
                     </div>
                     <div>
                       <p className="text-3xl font-extrabold text-white font-heading">{totalHoursDisplay}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{avgDailyHours}h avg daily</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{avgDailyHours}h avg daily ({monthName})</p>
                     </div>
                   </div>
 
@@ -886,14 +981,30 @@ function EmployeePortalContent() {
 
                   <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-lg flex flex-col justify-between space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-400">Leave Balance</span>
+                      <span className="text-xs font-bold text-slate-400">Leave Balance ({activeQuarter})</span>
                       <div className="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center">
                         <Plane className="w-4 h-4" />
                       </div>
                     </div>
                     <div>
-                      <p className="text-3xl font-extrabold text-white font-heading">{leaveBalance}</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Days left in Q3 2026 (Leave Tracker)</p>
+                      <p className="text-3xl font-extrabold text-white font-heading">
+                        {leaveBalance} <span className="text-xs font-normal text-slate-400">/ {totalAllowance} Days</span>
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap text-[10px]">
+                        <span className="text-purple-300 font-medium">Casual: {remainingCasual}/{casualAllowance} left</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-blue-300 font-medium">Planned: {remainingPlanned}/{plannedAllowance} left</span>
+                      </div>
+                      {pendingInQuarterCount > 0 ? (
+                        <p className="text-[10px] text-amber-400 font-semibold mt-1 flex items-center space-x-1">
+                          <Clock className="w-3 h-3 inline shrink-0" />
+                          <span>{pendingInQuarterCount} request awaiting review</span>
+                        </p>
+                      ) : (
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          {totalApplied > 0 ? `${totalApplied} day(s) applied in ${activeQuarter}` : `All ${totalAllowance} days available in ${activeQuarter}`}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -903,17 +1014,31 @@ function EmployeePortalContent() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {employee?.workMode !== 'WFH' && (
                   <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <h2 className="text-base font-extrabold text-white font-heading">Monthly Attendance Analytics</h2>
-                        <p className="text-xs text-slate-400">Daily working hours for {monthName}</p>
+                        <h2 className="text-base font-extrabold text-white font-heading flex items-center space-x-2">
+                          <Clock className="w-4 h-4 text-blue-400" />
+                          <span>Monthly Attendance Analytics</span>
+                        </h2>
+                        <p className="text-xs text-slate-400">Daily working hours for {monthName} {isActualCurrentMonth ? '(Current Month)' : ''}</p>
                       </div>
-                      <Link
-                        href="/employee?tab=attendance"
-                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition"
-                      >
-                        View details
-                      </Link>
+                      <div className="flex items-center space-x-2">
+                        <select
+                          value={currentMonthPrefix}
+                          onChange={e => setSelectedDashboardMonth(e.target.value)}
+                          className="bg-slate-950 border border-slate-700 text-white rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none focus:border-blue-500 cursor-pointer"
+                        >
+                          {monthOptions.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <Link
+                          href="/employee?tab=attendance"
+                          className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold border border-slate-700 transition"
+                        >
+                          Full Register
+                        </Link>
+                      </div>
                     </div>
 
                     <div className="pt-6 pb-2 border-t border-slate-800/80">
@@ -1059,7 +1184,7 @@ function EmployeePortalContent() {
               {/* Quarterly Approved & Applied Leaves Register Table Card */}
               {(() => {
                 const getQuarterFromDate = (dStr?: string) => {
-                  if (!dStr) return 'Q3';
+                  if (!dStr) return currentQuarter;
                   const month = new Date(dStr).getMonth() + 1;
                   if (month >= 1 && month <= 3) return 'Q1';
                   if (month >= 4 && month <= 6) return 'Q2';
@@ -1108,7 +1233,7 @@ function EmployeePortalContent() {
                                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
                             }`}
                           >
-                            {q}
+                            {q === 'ALL' ? 'All' : q === currentQuarter ? `${q} (Current)` : q}
                           </button>
                         ))}
                       </div>
@@ -1162,7 +1287,7 @@ function EmployeePortalContent() {
                               const isBothApproved = (isMgrApp && isHrApp) || l.status === 'APPROVED' || isShort || isAdjustment;
 
                               const reqQuarter = l.quarter || getQuarterFromDate(l.startDate);
-                              const startStr = l.startDate || '2026-08-01';
+                              const startStr = l.startDate || new Date().toISOString().split('T')[0];
                               const endStr = l.endDate || startStr;
                               const daysNum = l.daysCount || 1;
                               
@@ -1346,7 +1471,7 @@ function EmployeePortalContent() {
                                 <span>Quarterly Paid Limit Notice ({excessDays} Unpaid LOP Day{excessDays === 1 ? '' : 's'})</span>
                               </div>
                               <p className="text-[11px] text-rose-200/90 leading-relaxed">
-                                You have {leaveBalance} paid leave day(s) remaining in Q3 (limit: 6 days/quarter). Requesting {requestedDays} days will count <strong className="underline text-rose-300">{excessDays} day(s) as Unpaid Leave / Loss of Pay (LOP)</strong>.
+                                You have {leaveBalance} paid leave day(s) remaining in {activeQuarter} (limit: {totalAllowance} days/quarter). Requesting {requestedDays} days will count <strong className="underline text-rose-300">{excessDays} day(s) as Unpaid Leave / Loss of Pay (LOP)</strong>.
                               </p>
                             </div>
                           );
@@ -1389,24 +1514,24 @@ function EmployeePortalContent() {
                 <div className="space-y-3 text-xs">
                   <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 flex justify-between items-center">
                     <span className="text-slate-300">Casual Allowance Left</span>
-                    <strong className="text-amber-400 font-bold">{casualAllowanceLeft} Days (Q3)</strong>
+                    <strong className="text-amber-400 font-bold">{remainingCasual} Days ({activeQuarter})</strong>
                   </div>
                   <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 flex justify-between items-center">
                     <span className="text-slate-300">Planned Allowance Left</span>
-                    <strong className="text-purple-400 font-bold">{plannedAllowanceLeft} Days (Q3)</strong>
+                    <strong className="text-purple-400 font-bold">{remainingPlanned} Days ({activeQuarter})</strong>
                   </div>
                   <div className="p-3 bg-purple-950/40 rounded-xl border border-purple-500/30 flex justify-between items-center">
                     <span className="text-purple-300 font-semibold">Total Paid Balance</span>
-                    <strong className="text-purple-200 font-extrabold text-sm">{leaveBalance} Days (Q3)</strong>
+                    <strong className="text-purple-200 font-extrabold text-sm">{leaveBalance} Days ({activeQuarter})</strong>
                   </div>
 
-                  {unpaidLeavesQ3 > 0 && (
+                  {unpaidLeaves > 0 && (
                     <div className="p-3 bg-rose-950/40 rounded-xl border border-rose-500/40 flex justify-between items-center">
                       <span className="text-rose-300 font-semibold flex items-center space-x-1">
                         <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
                         <span>Unpaid Leaves (LOP)</span>
                       </span>
-                      <strong className="text-rose-400 font-extrabold text-sm">{unpaidLeavesQ3} Days (Exceeded)</strong>
+                      <strong className="text-rose-400 font-extrabold text-sm">{unpaidLeaves} Days (Exceeded)</strong>
                     </div>
                   )}
                 </div>

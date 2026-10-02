@@ -239,3 +239,25 @@ export function calculateWorkingDaysCount(startDateStr: string, endDateStr?: str
 
   return count;
 }
+
+export function getCurrentQuarter(): 'Q1' | 'Q2' | 'Q3' | 'Q4' {
+  const m = new Date().getMonth() + 1;
+  if (m >= 1 && m <= 3) return 'Q1';
+  if (m >= 4 && m <= 6) return 'Q2';
+  if (m >= 7 && m <= 9) return 'Q3';
+  return 'Q4';
+}
+
+export function getQuarterFromDateStr(dateStr?: string): 'Q1' | 'Q2' | 'Q3' | 'Q4' {
+  if (!dateStr) return getCurrentQuarter();
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return getCurrentQuarter();
+    const m = d.getMonth() + 1;
+    if (m >= 1 && m <= 3) return 'Q1';
+    if (m >= 4 && m <= 6) return 'Q2';
+    if (m >= 7 && m <= 9) return 'Q3';
+    if (m >= 10 && m <= 12) return 'Q4';
+  } catch (e) {}
+  return getCurrentQuarter();
+}

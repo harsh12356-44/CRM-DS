@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Scale, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { Employee } from '@/lib/types';
+import { Employee, getCurrentQuarter } from '@/lib/types';
 
 interface AdjustLeaveModalProps {
   isOpen: boolean;
@@ -20,7 +20,7 @@ export default function AdjustLeaveModal({
   onSuccess,
 }: AdjustLeaveModalProps) {
   const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [targetQuarter, setTargetQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>(quarter || 'Q3');
+  const [targetQuarter, setTargetQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>(quarter || getCurrentQuarter());
   const [leaveType, setLeaveType] = useState<'Casual Leave' | 'Planned Leave'>('Casual Leave');
   const [actionType, setActionType] = useState<'add_used' | 'deduct_used'>('add_used');
   const [days, setDays] = useState(1.0);

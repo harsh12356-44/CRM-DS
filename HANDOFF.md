@@ -53,8 +53,13 @@
   - **Adaptive Header Navigation Bar**:
     - Updated [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx) with a mobile hamburger menu trigger button (`md:hidden`) with `Menu` icon dispatching `toggleMobileSidebar`.
     - Made padding adaptive (`px-3 sm:px-6 py-2.5 sm:py-3`), condensed Role pill badge, and made Save DB button compact on small widths.
-  - **Native-Feel Mobile Bottom Navigation Bar**:
-    - Integrated a thumb-friendly bottom navigation bar into [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx) (`md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)]`).
+  - **Native-Feel Mobile Bottom Navigation Bar & Footer Buttons (Fixed & Verified)**:
+    - Integrated a thumb-friendly bottom navigation bar into [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx) (`md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)] select-none`).
+    - **Fixed Route Parameter & Tab Mismatch**: Resolved issue where tapping "Attendance" navigated to `?tab=attendance-log` while the component evaluated `activeTab === 'attendance'`, resulting in an unrendered blank screen. The button now targets `tab=attendance`, and the conditional renderer supports both `activeTab === 'attendance' || activeTab === 'attendance-log'`.
+    - **Synchronous 0ms Tab Switching**: Replaced loose `router.push(...)` calls with a unified `handleTabChange` handler that synchronously sets React state (`setTabOverride`), dispatches browser history updates (`window.history.pushState`), and scrolls cleanly to the top (`window.scrollTo({ top: 0, behavior: 'smooth' })`).
+    - **Mobile Bottom Padding Expansion**: Increased `<main>` bottom padding on mobile screens from `pb-24` to `pb-32` (128px) so page content, bottom form buttons (such as "Submit Leave Application"), and table cards never get obscured or overlapped by the fixed bottom navigation bar (`h-16 + pb-safe`).
+    - **Touch Targets & Elevation**: Added `touch-manipulation`, `select-none`, and `active:scale-95` to all bottom buttons for immediate tap responsiveness without 300ms mobile touch delay. The elevated "Apply" button now has `relative overflow-visible` for consistent thumb activation across the entire column.
+    - **Modal Footer Button Visibility**: Updated [src/components/RecordLeaveModal.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/RecordLeaveModal.tsx) and [src/components/AdjustLeaveModal.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/AdjustLeaveModal.tsx) with `max-h-[90vh] flex flex-col` and scrollable form containers with pinned `shrink-0` footers, ensuring "Cancel", "Record Leaves", and "Apply Adjustment" buttons never get cut off or pushed off-screen on small mobile viewports.
     - Offers 5 instant touch actions:
       1. **Home**: Direct switch to Dashboard metrics.
       2. **Attendance**: Instant view of biometric logs & attendance matrix.

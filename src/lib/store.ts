@@ -19,7 +19,7 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
 const TMP_DB_FILE = path.join(os.tmpdir(), 'hrm_db.json');
 
-interface InitialState {
+export interface InitialState {
   employees: Employee[];
   leaveRecords: LeaveRecord[];
   attendanceLogs: AttendanceLog[];

@@ -89,6 +89,15 @@ function EmployeePortalContent() {
 
   const activeTab = tabOverride || tabFromUrl;
 
+  const handleTabChange = useCallback((targetTab: string) => {
+    setTabOverride(targetTab);
+    router.push(`/employee?tab=${targetTab}`);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', `/employee?tab=${targetTab}`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [router]);
+
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('emp-12'); // Default: Sonu Goswami (SG012)
   const [employee, setEmployee] = useState<Employee | null>(null);
@@ -790,7 +799,7 @@ function EmployeePortalContent() {
       <Navbar currentRole="EMPLOYEE" />
       <div className="flex flex-1">
         <Sidebar currentTab={activeTab} role="EMPLOYEE" />
-        <main className="flex-1 p-3 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6 overflow-y-auto overflow-x-hidden pb-24 md:pb-8">
+        <main className="flex-1 p-3 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6 overflow-y-auto overflow-x-hidden pb-32 md:pb-8">
           {/* Top Date Header & Active View Indicator (Strictly restricted dropdown for HR Admin Ravina Khimani) */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 border-b border-slate-800 pb-3">
             <span>{now.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })} • Live HRM Portal</span>
@@ -2207,7 +2216,7 @@ function EmployeePortalContent() {
           )}
 
           {/* OTHER TABS */}
-          {activeTab === 'attendance' && (
+          {(activeTab === 'attendance' || activeTab === 'attendance-log') && (
             employee?.workMode === 'WFH' ? (
               <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl text-center space-y-3">
                 <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center mx-auto">
@@ -2478,13 +2487,13 @@ function EmployeePortalContent() {
           )}
 
           {/* NATIVE-FEEL MOBILE BOTTOM NAVIGATION BAR */}
-          <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)]">
+          <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.5)] select-none">
             <div className="grid grid-cols-5 h-16 items-center px-1">
               {/* 1. Dashboard */}
               <button
                 type="button"
-                onClick={() => router.push('/employee?tab=dashboard')}
-                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                onClick={() => handleTabChange('dashboard')}
+                className={`flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer touch-manipulation active:scale-95 ${
                   activeTab === 'dashboard' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -2495,9 +2504,9 @@ function EmployeePortalContent() {
               {/* 2. Attendance */}
               <button
                 type="button"
-                onClick={() => router.push('/employee?tab=attendance-log')}
-                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
-                  activeTab === 'attendance-log' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                onClick={() => handleTabChange('attendance')}
+                className={`flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer touch-manipulation active:scale-95 ${
+                  activeTab === 'attendance' || activeTab === 'attendance-log' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <CalendarCheck className="w-5 h-5 mb-0.5" />
@@ -2507,12 +2516,12 @@ function EmployeePortalContent() {
               {/* 3. Apply Leave (Elevated Primary CTA Button) */}
               <button
                 type="button"
-                onClick={() => router.push('/employee?tab=apply-leave')}
-                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                onClick={() => handleTabChange('apply-leave')}
+                className={`flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer touch-manipulation active:scale-95 relative overflow-visible ${
                   activeTab === 'apply-leave' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                <div className={`p-2 rounded-xl mb-0.5 -mt-3 shadow-lg transition-transform active:scale-95 ${
+                <div className={`p-2 rounded-xl mb-0.5 -mt-3 shadow-lg transition-transform active:scale-90 ${
                   activeTab === 'apply-leave' ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-blue-500/40 ring-2 ring-blue-400/30' : 'bg-slate-800 text-blue-400 border border-slate-700'
                 }`}>
                   <Plane className="w-5 h-5" />
@@ -2523,8 +2532,8 @@ function EmployeePortalContent() {
               {/* 4. History */}
               <button
                 type="button"
-                onClick={() => router.push('/employee?tab=leave-history')}
-                className={`flex flex-col items-center justify-center py-1 transition-all cursor-pointer ${
+                onClick={() => handleTabChange('leave-history')}
+                className={`flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer touch-manipulation active:scale-95 ${
                   activeTab === 'leave-history' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -2535,8 +2544,12 @@ function EmployeePortalContent() {
               {/* 5. Menu Drawer Trigger */}
               <button
                 type="button"
-                onClick={() => window.dispatchEvent(new CustomEvent('toggleMobileSidebar'))}
-                className="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-slate-200 transition-all cursor-pointer"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('toggleMobileSidebar'));
+                  }
+                }}
+                className="flex flex-col items-center justify-center h-full py-1 text-slate-400 hover:text-slate-200 transition-all cursor-pointer touch-manipulation active:scale-95"
               >
                 <Menu className="w-5 h-5 mb-0.5" />
                 <span className="text-[10px] tracking-tight">Menu</span>

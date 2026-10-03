@@ -71,12 +71,12 @@ export default function RecordLeaveModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden text-slate-100">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden text-slate-100 max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
+        <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/50 shrink-0">
           <div>
-            <h3 className="text-lg font-bold text-white">Record Leave Period</h3>
+            <h3 className="text-base sm:text-lg font-bold text-white">Record Leave Period</h3>
             <p className="text-xs text-slate-400">Adds leaves dynamically with half-day & handover note options</p>
           </div>
           <button
@@ -88,7 +88,8 @@ export default function RecordLeaveModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 text-xs overflow-y-auto flex-1 flex flex-col justify-between">
+          <div className="space-y-4">
           {error && (
             <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-medium">
               {error}
@@ -205,25 +206,26 @@ export default function RecordLeaveModal({
               className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-white focus:outline-none focus:border-blue-500"
             />
           </div>
+        </div>
 
-          {/* Footer Buttons */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-end space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-medium"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-600/30 transition disabled:opacity-50"
-            >
-              {loading ? 'Recording...' : 'Record Leaves'}
-            </button>
-          </div>
-        </form>
+        {/* Footer Buttons */}
+        <div className="pt-3 border-t border-slate-800 flex items-center justify-end space-x-3 shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-medium cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-lg shadow-blue-600/30 transition disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? 'Recording...' : 'Record Leaves'}
+              </button>
+            </div>
+          </form>
       </div>
     </div>
   );

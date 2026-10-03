@@ -94,10 +94,10 @@ export default function AdjustLeaveModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 px-6 py-5 flex items-center justify-between text-white">
+        <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-700 px-5 sm:px-6 py-4 sm:py-5 flex items-center justify-between text-white shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
               <Scale className="w-5 h-5 text-white" />
@@ -116,7 +116,8 @@ export default function AdjustLeaveModal({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 flex flex-col justify-between">
+          <div className="space-y-4">
           {message && (
             <div
               className={`p-3 rounded-xl text-xs font-semibold flex items-center space-x-2 ${
@@ -220,25 +221,26 @@ export default function AdjustLeaveModal({
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
             />
           </div>
+        </div>
 
-          {/* Footer Buttons */}
-          <div className="pt-3 flex items-center justify-end space-x-3 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center space-x-2 disabled:opacity-50"
-            >
-              <span>{loading ? 'Applying...' : 'Apply Adjustment'}</span>
-            </button>
-          </div>
-        </form>
+        {/* Footer Buttons */}
+        <div className="pt-3 flex items-center justify-end space-x-3 border-t border-slate-800 shrink-0">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 transition flex items-center space-x-2 disabled:opacity-50 cursor-pointer"
+              >
+                <span>{loading ? 'Applying...' : 'Apply Adjustment'}</span>
+              </button>
+            </div>
+          </form>
       </div>
     </div>
   );

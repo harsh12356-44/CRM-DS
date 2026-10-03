@@ -26862,6 +26862,26 @@
   ],
   "auditLogs": [
     {
+      "id": "aud-1791022600256",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "User Login",
+      "objectType": "Auth",
+      "objectId": "emp-6",
+      "newValue": "User Nandini Gupta (security@harshitbhootra.com) signed in successfully",
+      "timestamp": "2026-10-03T10:16:40.256Z"
+    },
+    {
+      "id": "aud-1791021140022",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "User Login",
+      "objectType": "Auth",
+      "objectId": "emp-6",
+      "newValue": "User Nandini Gupta (security@harshitbhootra.com) signed in successfully",
+      "timestamp": "2026-10-03T09:52:20.022Z"
+    },
+    {
       "id": "aud-1790941159947",
       "userId": "emp-1",
       "userName": "Harshit Bhootra",

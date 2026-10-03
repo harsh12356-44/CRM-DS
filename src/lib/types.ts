@@ -88,6 +88,7 @@ export interface CompanySettings {
   managerPortalUrl: string;
 }
 
+
 export interface LeaveSummary {
   employeeId: string;
   employeeName: string;

@@ -1,5 +1,6 @@
 import { prisma } from './prisma';
-import { InitialState, Employee, LeaveRecord, AttendanceLog, CompanySettings, Holiday, Department, AuditLogEntry, getCurrentQuarter } from './types';
+import type { InitialState } from './store';
+import { Employee, LeaveRecord, AttendanceLog, CompanySettings, Holiday, Department, AuditLogEntry, getCurrentQuarter } from './types';
 
 export async function loadDataFromPrisma(): Promise<InitialState | null> {
   if (!process.env.DATABASE_URL) {
@@ -65,6 +66,7 @@ export async function loadDataFromPrisma(): Promise<InitialState | null> {
       note: l.note || undefined,
       handoverNote: l.handoverNote || undefined,
       emergencyContact: l.emergencyContact || undefined,
+      createdAt: l.createdAt ? new Date(l.createdAt).toISOString() : new Date().toISOString(),
     }));
 
     const formattedAttendance: AttendanceLog[] = attendanceLogs.map(a => ({
@@ -130,7 +132,14 @@ export async function loadDataFromPrisma(): Promise<InitialState | null> {
       settings: formattedSettings,
       payrollPreviews: [],
       holidays: formattedHolidays,
-      departments: departments,
+      departments: (departments || []).map(d => ({
+        id: d.id,
+        code: d.code,
+        name: d.name,
+        managerName: d.managerName || undefined,
+        description: d.description || undefined,
+        employeeCount: d.employeeCount,
+      })),
       auditLogs: formattedAudit,
       attendanceImports: [],
       notifications: [],

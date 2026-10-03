@@ -256,7 +256,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
           <Menu className="w-5 h-5 text-blue-500" />
         </button>
 
-        <Link href={isRavinaUser ? "/admin" : "/employee"} onClick={() => setRoleCookie(isRavinaUser ? 'ADMIN' : 'EMPLOYEE')} className="flex items-center space-x-2 sm:space-x-3">
+        <Link suppressHydrationWarning href={!mounted ? (currentRole === 'ADMIN' ? "/admin" : "/employee") : (isRavinaUser ? "/admin" : "/employee")} onClick={() => setRoleCookie(isRavinaUser ? 'ADMIN' : 'EMPLOYEE')} className="flex items-center space-x-2 sm:space-x-3">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-base sm:text-lg shadow-md text-white shrink-0">
             H
           </div>

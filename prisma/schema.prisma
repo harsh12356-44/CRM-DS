@@ -125,3 +125,46 @@ model AuditLog {
   ipAddress  String?
   timestamp  DateTime @default(now())
 }
+
+// WFH time tracking: one row per clock-in session (breaks stored inline as JSON)
+model TimeEntry {
+  id          String    @id
+  employeeId  String
+  date        String    // YYYY-MM-DD (IST) of the clock-in
+  activity    String    @default("Other")
+  note        String?
+  clockIn     DateTime
+  clockOut    DateTime?
+  breaks      Json      @default("[]")
+  source      String    @default("WEB") // WEB, MANUAL
+  autoClosed  Boolean   @default(false)
+  editedBy    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
+
+  @@index([employeeId, date])
+}
+
+model TimeActivity {
+  id       String  @id
+  name     String  @unique
+  color    String  @default("#64748b")
+  isActive Boolean @default(true)
+}
+
+// Employees who opted in to the time tracker (WFH work mode is always tracked)
+model TimeTrackerOptIn {
+  employeeId         String   @id
+  enabled            Boolean  @default(true)
+  screenshotsEnabled Boolean? // null = follow company default
+  screenshotInterval Int?     // minutes; null = follow company default
+  updatedAt          DateTime @default(now())
+}
+
+model TimeTrackingSettings {
+  id                               String  @id @default("default")
+  screenshotsEnabledByDefault      Boolean @default(true)
+  defaultScreenshotIntervalMinutes Int     @default(10)
+  screenshotRetentionDays          Int     @default(7)
+  breaks                           Json?   @default("[]")
+}

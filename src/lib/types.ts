@@ -26,6 +26,9 @@ export interface Employee {
   managerName?: string;
   employeeType?: string;
   workMode?: 'OFFICE' | 'WFH';
+  timeTrackingEnabled?: boolean; // employee opted in to the time tracker (always on for WFH work mode)
+  screenshotsEnabled?: boolean; // overrides the company default set by HR
+  screenshotIntervalMinutes?: number; // overrides the company default interval
 }
 
 export interface Department {
@@ -163,6 +166,69 @@ export interface NotificationItem {
   message: string;
   isRead: boolean;
   createdAt: string;
+}
+
+// WFH time tracking (Jibble-style clock in / break / clock out sessions)
+export interface BreakConfig {
+  id: string; // 'tea' | 'lunch' | string
+  name: string; // 'Tea Break' | 'Lunch Break' | string
+  durationMinutes: number; // 15, 45, etc.
+  isActive?: boolean;
+}
+
+export interface TimeBreak {
+  start: string; // ISO timestamp
+  end?: string; // ISO timestamp, undefined while the break is running
+  type?: string; // 'tea' | 'lunch' | string
+  name?: string; // 'Tea Break' | 'Lunch Break' | string
+}
+
+export interface TimeEntry {
+  id: string;
+  employeeId: string;
+  date: string; // YYYY-MM-DD (IST) of the clock-in
+  activity: string;
+  note?: string;
+  clockIn: string; // ISO timestamp
+  clockOut?: string; // ISO timestamp, undefined while the session is running
+  breaks: TimeBreak[];
+  source: 'WEB' | 'MANUAL';
+  autoClosed?: boolean;
+  editedBy?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TimeActivity {
+  id: string;
+  name: string;
+  color: string;
+  isActive: boolean;
+}
+
+export interface TimeTrackingSettings {
+  screenshotsEnabledByDefault: boolean;
+  defaultScreenshotIntervalMinutes: number;
+  screenshotRetentionDays: number;
+  retentionPolicyVersion?: number;
+  breaks?: BreakConfig[];
+}
+
+// One captured screen image (files live on disk; this is the gallery index row)
+export interface ScreenshotMeta {
+  id: string;
+  employeeId: string;
+  date: string; // YYYY-MM-DD (IST)
+  takenAt: string; // ISO timestamp
+  entryId?: string; // the TimeEntry (working session) this capture belongs to
+  sessionClockIn?: string; // clock-in time of that session
+  employeeName?: string;
+  employeeCode?: string;
+  activity?: string;
+  width: number;
+  height: number;
+  size: number;
+  surface?: string; // monitor / window / browser, as reported by the browser
 }
 
 export function getLeaveTimestamp(l: Partial<LeaveRecord> | undefined | null): number {

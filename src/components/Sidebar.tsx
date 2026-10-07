@@ -28,6 +28,8 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   X,
+  Timer,
+  UsersRound,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -158,6 +160,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
         { id: 'attendance-import', label: 'Attendance Import', icon: Upload, href: '/admin/attendance/import' },
         { id: 'working-hours', label: 'Working Hours', icon: Clock, href: '/admin/working-hours' },
         { id: 'attendance-analytics', label: 'Attendance Analytics', icon: BarChart3, href: '/admin/attendance-analytics' },
+        { id: 'time-tracking', label: 'Time Tracker', icon: Timer, href: '/admin/time-tracking' },
       ],
     },
     {
@@ -187,9 +190,11 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/employee?tab=dashboard' },
         ...(!isWfh ? [{ id: 'attendance', label: 'Attendance', icon: Clock, href: '/employee?tab=attendance' }] : []),
+        { id: 'time-tracker', label: 'Time Tracker', icon: Timer, href: '/employee?tab=time-tracker' },
         { id: 'apply-leave', label: 'Apply Leave', icon: Plane, href: '/employee?tab=apply-leave' },
         { id: 'leave-history', label: 'Leave History', icon: FileText, href: '/employee?tab=leave-history' },
         ...(isManager ? [{ id: 'team-approvals', label: 'Team Approvals', icon: ClipboardCheck, href: '/employee?tab=team-approvals' }] : []),
+        ...(isManager ? [{ id: 'team-time', label: 'Team Time Tracker', icon: UsersRound, href: '/employee?tab=team-time' }] : []),
         ...(!isWfh ? [{ id: 'working-hours', label: 'Working Hours', icon: Clock, href: '/employee?tab=working-hours' }] : []),
         { id: 'holidays', label: 'Holidays List', icon: CalendarDays, href: '/employee?tab=holidays' },
         { id: 'notifications', label: 'Notifications', icon: Bell, href: '/employee?tab=notifications' },

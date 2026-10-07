@@ -33,3 +33,13 @@ pnpm-debug.log*
 hostinger_deployment.zip
 crm-ds-hostinger-deployment.zip
 *.tsbuildinfo
+
+# Time tracker screenshot gallery (images live on the server only)
+/data/screenshots/
+
+# Deploy build archive
+next_build.tar.gz
+
+# Time tracking upload archive folder
+/timetracking/
+

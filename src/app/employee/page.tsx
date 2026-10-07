@@ -36,6 +36,8 @@ import {
 import AttendanceLogTab from '@/components/AttendanceLogTab';
 import HolidaysTab from '@/components/HolidaysTab';
 import LeaveTrackerTab from '@/components/LeaveTrackerTab';
+import TimeTracker from '@/components/TimeTracker';
+import TimeTrackingAdmin from '@/components/TimeTrackingAdmin';
 import { Employee, AttendanceLog, LeaveRecord, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
 function getLiveStatusBadge(l: LeaveRecord) {
   if (!l) return null;
@@ -938,6 +940,9 @@ function EmployeePortalContent() {
                   </div>
                 </div>
               )}
+
+              {/* Optional Time Tracker (Jibble-style) — opt-in for every employee */}
+              {employee && <TimeTracker employeeId={employee.id} compact />}
 
               {punchMsg && (
                 <div className="p-3.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-xs font-semibold text-blue-300 flex items-center space-x-2">
@@ -2218,20 +2223,7 @@ function EmployeePortalContent() {
           {/* OTHER TABS */}
           {(activeTab === 'attendance' || activeTab === 'attendance-log') && (
             employee?.workMode === 'WFH' ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center mx-auto">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <h2 className="text-lg font-extrabold text-white font-heading">Work From Home Account</h2>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Daily attendance clocking is excluded for Work From Home positions. All your leave requests and balances are managed seamlessly under the <strong className="text-purple-300">Apply Leave</strong> and <strong className="text-purple-300">Leave History</strong> tabs.
-                </p>
-                <div className="pt-2">
-                  <Link href="/employee?tab=apply-leave" className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition inline-block">
-                    Go to Apply Leave
-                  </Link>
-                </div>
-              </div>
+              <TimeTracker employeeId={employee.id} />
             ) : (
               <AttendanceLogTab hideImport={true} targetEmployeeId={employee?.id} showHoursFormat={false} />
             )
@@ -2254,6 +2246,12 @@ function EmployeePortalContent() {
           )}
 
           {activeTab === 'holidays' && <HolidaysTab />}
+
+          {/* TAB: TIME TRACKER (optional for everyone) */}
+          {activeTab === 'time-tracker' && employee && <TimeTracker employeeId={employee.id} />}
+
+          {/* TAB: TEAM TIME TRACKER (managers see their reports) */}
+          {activeTab === 'team-time' && <TimeTrackingAdmin />}
 
           {/* TAB: MY PROFILE */}
           {activeTab === 'profile' && employee && (
@@ -2504,13 +2502,13 @@ function EmployeePortalContent() {
               {/* 2. Attendance */}
               <button
                 type="button"
-                onClick={() => handleTabChange('attendance')}
+                onClick={() => handleTabChange(employee?.workMode === 'WFH' ? 'time-tracker' : 'attendance')}
                 className={`flex flex-col items-center justify-center h-full py-1 transition-all cursor-pointer touch-manipulation active:scale-95 ${
-                  activeTab === 'attendance' || activeTab === 'attendance-log' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
+                  activeTab === 'attendance' || activeTab === 'attendance-log' || activeTab === 'time-tracker' ? 'text-blue-400 font-bold' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
                 <CalendarCheck className="w-5 h-5 mb-0.5" />
-                <span className="text-[10px] tracking-tight">Attendance</span>
+                <span className="text-[10px] tracking-tight">{employee?.workMode === 'WFH' ? 'Tracker' : 'Attendance'}</span>
               </button>
 
               {/* 3. Apply Leave (Elevated Primary CTA Button) */}

@@ -7,6 +7,34 @@
 ---
 
 ## 2. Current Project Status
+- **Integrated WFH Time Tracking & Screenshot Monitoring (v3 - Non-Regressive)**:
+  - **Requirement Addressed**: Incorporated dedicated time tracking with session management (Clock In / Clock Out), structured breaks (Tea & Lunch), screenshot capture, automatic retention cleanup, and administrative timesheet reporting without modifying or affecting official biometric attendance, leave records, or existing database tables.
+  - **Strict Isolation from Biometric Attendance**:
+    - Tracker hours are strictly separate from office attendance records. Attendance Grid, Working Hours, and Payroll calculations continue to run exclusively off official biometric / punch logs.
+    - HR Admin reviews tracker hours separately via the Timesheets tab and exportable CSVs (Summary CSV and Detailed CSV).
+  - **Clock In / Break / Clock Out Sessions**:
+    - Jibble-style time entry tracking with support for two company-standard breaks: **Tea Break** (15 min default) and **Lunch Break** (45 min default).
+    - Durations are customizable by Master Admin (1–180 minutes).
+    - Unclosed sessions are automatically capped after 14 hours or upon crossing midnight IST.
+  - **Screen Capture & Monitoring Engine**:
+    - Uses browser `getDisplayMedia` screen sharing prompted once at Clock In.
+    - Single permission stream is re-used across break pauses and work resumption without repeated browser permission prompts.
+    - Captures at configurable intervals (default: 10 mins).
+    - Stores images as plain files on disk under `/data/screenshots/` (indexed via `index.json`) to keep `db.json` and database operations fast and bloat-free.
+    - 7-day automated retention policy: an hourly background task and standalone cron script (`scripts/cleanup_screenshots.js`) automatically purge images older than 7 days.
+  - **Admin Time Tracking Suite ([src/app/admin/time-tracking/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/time-tracking/page.tsx))**:
+    - **Live Board**: Real-time cards showing working/break/off status, live elapsed clocks, and overdue screenshot alerts.
+    - **Timesheets**: Complete breakdown of logged-in time, break deductions, net worked hours, target hours, and overtime hours.
+    - **Entries Desk**: Manual time entry adjustments and correction logging by HR admins.
+    - **Screenshots Gallery**: Filterable thumbnail grid with high-resolution inspection modal.
+    - **Settings Tab**: Toggle time tracking access per employee, configure break durations, and retention days.
+  - **Employee Portal Integration ([src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx))**:
+    - Embedded compact `<TimeTracker>` widget on dashboard.
+    - Dedicated "Time Tracker" tab and Manager "Team Time Tracker" tab.
+    - For employees with `workMode === 'WFH'`, the Attendance tab and mobile navigation bar seamlessly display the Time Tracker.
+  - **Database Decoupling**:
+    - 4 new standalone Prisma models (`TimeEntry`, `TimeActivity`, `TimeTrackerOptIn`, `TimeTrackingSettings`) added to schema with zero foreign keys.
+    - Synchronized safely in `src/lib/dbSync.ts` with error-isolated handlers so absence of database tables never blocks core HR synchronization.
 - **Vertical Mobile Responsive Items for Leave Requests & Team Approvals Desks**:
   - **Requirement Addressed**: On mobile phones, wide tables for leave requests (e.g. 7-column Pending Approvals and 11-column Historical Leave Requests Register) forced cumbersome horizontal scrolling and tiny text. All leave request items now render **vertically down the screen** as responsive, structured cards on mobile screens (`< md`), fitting comfortably within the screen with zero horizontal scrolling.
   - **Leave Requests Desk ([src/app/admin/leave-records/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/leave-records/page.tsx))**:

@@ -9,6 +9,9 @@ import {
   AuditLogEntry,
   AttendanceImport,
   NotificationItem,
+  TimeEntry,
+  TimeActivity,
+  TimeTrackingSettings,
 } from './types';
 import fs from 'fs';
 import path from 'path';
@@ -31,6 +34,9 @@ export interface InitialState {
   notifications: NotificationItem[];
   departments?: any[];
   deletedDepartments?: string[];
+  timeEntries?: TimeEntry[];
+  timeActivities?: TimeActivity[];
+  timeTrackingSettings?: TimeTrackingSettings;
 }
 
 const DEFAULT_EMPLOYEES: Employee[] = [
@@ -557,6 +563,9 @@ export function getDbData(): InitialState {
           attendanceImports: data.attendanceImports || [],
           notifications: data.notifications || DEFAULT_NOTIFICATIONS,
           departments: data.departments || [],
+          timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
+          timeActivities: Array.isArray(data.timeActivities) ? data.timeActivities : undefined,
+          timeTrackingSettings: data.timeTrackingSettings || undefined,
         };
         (globalThis as any)._inMemoryDbData = memoryDb;
 
@@ -603,6 +612,7 @@ export function getDbData(): InitialState {
     attendanceImports: [],
     notifications: DEFAULT_NOTIFICATIONS,
     departments: [],
+    timeEntries: [],
   };
   (globalThis as any)._inMemoryDbData = memoryDb;
   return memoryDb;

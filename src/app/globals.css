@@ -384,3 +384,23 @@ html, body {
   max-width: 100vw;
 }
 
+
+/* Time Tracker: readable status colors in light mode (scoped to the tracker only) */
+html.light .tt-root .text-emerald-300 { color: #047857 !important; }
+html.light .tt-root .text-amber-300,
+html.light .tt-root .text-amber-200,
+html.light .tt-root .text-amber-300\/90 { color: #b45309 !important; }
+html.light .tt-root .text-rose-300 { color: #be123c !important; }
+html.light .tt-root .text-blue-300 { color: #1d4ed8 !important; }
+html.light .tt-root .bg-rose-600\/15,
+html.light .tt-root .bg-rose-600\/10 { background-color: #ffe4e6 !important; }
+html.light .tt-root .bg-rose-600,
+html.light .tt-root .bg-rose-600 * { color: #ffffff !important; }
+html.light .tt-root .font-mono.text-white { color: #0f172a !important; }
+html.light .tt-root .divide-slate-800 > * { border-color: #e2e8f0 !important; }
+html.light .tt-root .bg-slate-800\/50,
+html.light .tt-root .bg-slate-800\/70 { background-color: #f1f5f9 !important; }
+html.light .tt-root .hover\:bg-slate-800\/30:hover { background-color: #f8fafc !important; }
+html.light .tt-dark,
+html.light .tt-dark * { color: #ffffff !important; }
+html.light .tt-dark .text-slate-400 { color: #cbd5e1 !important; }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Users,
   UserPlus,
@@ -54,6 +54,48 @@ export default function EmployeesTab() {
   const [workMode, setWorkMode] = useState<'OFFICE' | 'WFH'>('OFFICE');
   const [salary, setSalary] = useState(75000);
   const [weeklyOff, setWeeklyOff] = useState('Sunday');
+
+  const PRESET_WEEKLY_OFFS = useMemo(() => [
+    { value: 'Sunday', label: 'Sunday (1 Day Off)' },
+    { value: 'Saturday, Sunday', label: 'Saturday & Sunday (2 Days Off)' },
+    { value: 'Friday, Saturday', label: 'Friday & Saturday (2 Days Off)' },
+    { value: 'Sunday, Monday', label: 'Sunday & Monday (2 Days Off)' },
+    { value: 'Saturday', label: 'Saturday (1 Day Off)' },
+    { value: 'Friday', label: 'Friday (1 Day Off)' },
+  ], []);
+
+  const selectedDaysList = useMemo(() => {
+    return (weeklyOff || 'Sunday')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }, [weeklyOff]);
+
+  const toggleWeeklyOffDay = (day: string) => {
+    const current = (weeklyOff || 'Sunday')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    let next: string[];
+    if (current.includes(day)) {
+      if (current.length > 1) {
+        next = current.filter(d => d !== day);
+      } else {
+        next = current;
+      }
+    } else {
+      if (current.length >= 2) {
+        next = [current[1], day];
+      } else {
+        next = [...current, day];
+      }
+    }
+
+    const order = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    next.sort((a, b) => order.indexOf(a) - order.indexOf(b));
+    setWeeklyOff(next.join(', '));
+  };
 
   const fetchEmployees = async (isSilent = false) => {
     try {
@@ -427,6 +469,9 @@ export default function EmployeesTab() {
                       🏠 WFH
                     </span>
                   )}
+                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/80 font-bold text-[10px]" title="Weekly Off Schedule">
+                    Off: {emp.weeklyOff || 'Sunday'}
+                  </span>
                 </div>
                 <span className="text-slate-500 font-mono font-bold">ID: {emp.employeeId || '123456'}</span>
               </div>
@@ -639,16 +684,77 @@ export default function EmployeesTab() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-300 mb-1.5">Weekly Off Day</label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block font-bold text-slate-300">
+                        Weekly Off Day(s) <span className="text-xs text-blue-400 font-normal">(Select 1 or 2 Days)</span>
+                      </label>
+                      <span className="text-[11px] font-semibold text-slate-400">
+                        {selectedDaysList.length} of 2 selected
+                      </span>
+                    </div>
+
+                    {/* Presets Dropdown */}
                     <select
-                      value={weeklyOff}
-                      onChange={e => setWeeklyOff(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-medium focus:border-blue-500 focus:outline-none"
+                      value={
+                        PRESET_WEEKLY_OFFS.some(p => p.value === weeklyOff)
+                          ? weeklyOff
+                          : 'custom'
+                      }
+                      onChange={e => {
+                        if (e.target.value !== 'custom') {
+                          setWeeklyOff(e.target.value);
+                        }
+                      }}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-medium focus:border-blue-500 focus:outline-none mb-2"
                     >
-                      <option value="Sunday">Sunday</option>
-                      <option value="Saturday">Saturday</option>
-                      <option value="Friday">Friday</option>
+                      {PRESET_WEEKLY_OFFS.map(p => (
+                        <option key={p.value} value={p.value}>
+                          {p.label}
+                        </option>
+                      ))}
+                      {!PRESET_WEEKLY_OFFS.some(p => p.value === weeklyOff) && (
+                        <option value="custom">Custom Selection ({weeklyOff})</option>
+                      )}
                     </select>
+
+                    {/* Interactive 7-Day Buttons for Instant 1-Tap Toggle */}
+                    <div className="space-y-1.5 pt-0.5">
+                      <p className="text-[11px] text-slate-400 font-medium">
+                        Or tap any day below to pick 1 or 2 off days:
+                      </p>
+                      <div className="grid grid-cols-7 gap-1">
+                        {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => {
+                          const isSel = selectedDaysList.includes(day);
+                          return (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => toggleWeeklyOffDay(day)}
+                              title={isSel ? `Selected as Weekly Off (click to remove)` : `Click to select ${day} as Weekly Off`}
+                              className={`py-2 px-1 rounded-xl text-xs font-bold text-center transition flex flex-col items-center justify-center cursor-pointer ${
+                                isSel
+                                  ? 'bg-blue-600 text-white shadow-md ring-2 ring-blue-400/60 scale-[1.02]'
+                                  : 'bg-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-700 hover:border-slate-600'
+                              }`}
+                            >
+                              <span className="text-[11px] uppercase tracking-wider">{day.slice(0, 3)}</span>
+                              {isSel && (
+                                <span className="text-[9px] text-blue-200 mt-0.5">✓ Off</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="p-2 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300 flex items-center justify-between mt-2">
+                        <span>
+                          <strong className="text-white">Active Schedule:</strong> {weeklyOff || 'Sunday'}
+                        </span>
+                        <span className="font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-200 text-[10px]">
+                          {selectedDaysList.length} Day{selectedDaysList.length > 1 ? 's' : ''} Off / Week
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

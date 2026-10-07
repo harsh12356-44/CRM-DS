@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import { BarChart3, Award, Activity } from 'lucide-react';
-import { AttendanceLog, Employee } from '@/lib/types';
+import { AttendanceLog, Employee, isDateWeeklyOff } from '@/lib/types';
 
 const MONTHS = [
   { value: '1', name: 'January' },
@@ -236,6 +236,7 @@ export default function AttendanceAnalyticsPage() {
 
                       const dateObj = new Date(dateStr);
                       const isSunday = dateObj.getDay() === 0;
+                      const isDayOff = isDateWeeklyOff(dateStr, selectedEmp?.weeklyOff);
                       const weekdayStr = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
                       const workedMins = log ? log.workedMinutes || 0 : 0;
@@ -243,7 +244,7 @@ export default function AttendanceAnalyticsPage() {
                       const maxHoursScale = 12; // 12 hours max scale
                       const heightPercent = Math.min(100, Math.max(6, (hours / maxHoursScale) * 100));
 
-                      const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isSunday && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
+                      const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isDayOff && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
                       const isAbsent = log && log.attendanceCode === 'A';
                       const isHalfDay = log && log.attendanceCode === 'HD';
 
@@ -283,7 +284,7 @@ export default function AttendanceAnalyticsPage() {
 
                           {/* Day Number and Weekday Label */}
                           <div className="mt-2 text-center">
-                            <span className={`block text-[10px] font-black font-mono ${isSunday ? 'text-amber-400' : 'text-slate-300'}`}>
+                            <span className={`block text-[10px] font-black font-mono ${isDayOff ? 'text-amber-400' : 'text-slate-300'}`}>
                               {dayNum}
                             </span>
                             <span className="block text-[8px] font-semibold text-slate-500 uppercase">

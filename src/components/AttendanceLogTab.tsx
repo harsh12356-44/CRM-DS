@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Clock, Edit2, Calendar, LayoutGrid, List, User, CheckCircle2, AlertTriangle, ChevronDown, CalendarDays } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { Holiday } from '@/lib/types';
+import { Holiday, isDateWeeklyOff } from '@/lib/types';
 
 interface AttendanceLogTabProps {
   hideImport?: boolean;
@@ -512,12 +512,13 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
 
                         const dateObj = new Date(dateStr);
                         const isSunday = dateObj.getDay() === 0;
+                        const isDayOff = isDateWeeklyOff(dateStr, emp.weeklyOff);
 
                         // Check for Holiday
                         const holiday = holidays.find(h => h.date === dateStr);
 
-                        // Sunday / Weekly Off
-                        const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isSunday && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
+                        // Weekly Off
+                        const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isDayOff && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
 
                         return (
                           <td
@@ -525,13 +526,13 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                             onClick={() => {
                               if (!hideImport) {
                                 setEditLog(log || { id: `att-${emp.id}-${dateStr}`, employeeId: emp.id, employeeName: emp.name, date: dateStr });
-                                setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isSunday ? 'WO-I' : 'P'));
+                                setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isDayOff ? 'WO-I' : 'P'));
                                 setEditIn(log ? log.checkIn || '09:00' : '09:00');
                                 setEditOut(log ? log.checkOut || '18:00' : '18:00');
                               }
                             }}
                             className={`py-2 px-1 text-center border-r border-slate-800/60 transition cursor-pointer hover:bg-blue-600/20 ${
-                              holiday ? 'bg-rose-500/10' : isSunday ? 'bg-amber-500/5' : ''
+                              holiday ? 'bg-rose-500/10' : isDayOff ? 'bg-amber-500/5' : ''
                             }`}
                           >
                             {holiday ? (
@@ -696,11 +697,12 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
 
                   const dateObj = new Date(dateStr);
                   const isSunday = dateObj.getDay() === 0;
+                  const isDayOff = isDateWeeklyOff(dateStr, activeEmp.weeklyOff);
                   const weekdayShort = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
                   const weekdayLong = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
 
                   const holiday = holidays.find(h => h.date === dateStr);
-                  const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isSunday && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
+                  const isWeeklyOff = (log && (log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO')) || (isDayOff && (!log || log.attendanceCode === 'WO-I' || log.attendanceCode === 'WO'));
 
                   return (
                     <div
@@ -708,7 +710,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                       onClick={() => {
                         if (!hideImport) {
                           setEditLog(log || { id: `att-${activeEmp.id}-${dateStr}`, employeeId: activeEmp.id, employeeName: activeEmp.name, date: dateStr });
-                          setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isSunday ? 'WO-I' : 'P'));
+                          setEditCode(log ? log.attendanceCode : (holiday ? 'HOLIDAY' : isDayOff ? 'WO-I' : 'P'));
                           setEditIn(log ? log.checkIn || '09:00' : '09:00');
                           setEditOut(log ? log.checkOut || '18:00' : '18:00');
                         }
@@ -731,7 +733,7 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
                           <div className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center font-bold text-center shrink-0 ${
                             holiday
                               ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                              : isSunday
+                              : isDayOff
                               ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                               : 'bg-slate-800 text-white border border-slate-700'
                           }`}>

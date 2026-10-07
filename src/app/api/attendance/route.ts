@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getDbData, saveDbData, saveDbDataAsync, logAudit, ensureCloudSync } from '@/lib/store';
-import { AttendanceLog, AttendanceImport } from '@/lib/types';
+import { AttendanceLog, AttendanceImport, isDateWeeklyOff } from '@/lib/types';
 import { parseBiometricPunches, parsePunchTimes, detectMonthYearFromFile, matchEmployeeByNameOrCode } from '@/lib/biometricParser';
 
 export async function GET(request: Request) {
@@ -260,9 +260,8 @@ export async function POST(request: Request) {
               const dateObjs: string[] = [];
               for (let d = 1; d <= totalDaysInMonth; d++) {
                 const dayStr = String(d).padStart(2, '0');
-                const dateStr = `${monthYear}-${dayStr}`;
-                const dt = new Date(`${dateStr}T00:00:00`);
-                if (dt.getDay() !== 0) {
+                const isOff = isDateWeeklyOff(dateStr, matchedEmp.weeklyOff);
+                if (!isOff) {
                   workingDaysCount++;
                 }
                 dateObjs.push(dateStr);
@@ -271,13 +270,12 @@ export async function POST(request: Request) {
               const dailyWorkedMins = workingDaysCount > 0 ? Math.round(totalMins / workingDaysCount) : Math.round(totalMins / totalDaysInMonth);
 
               dateObjs.forEach(dateStr => {
-                const dt = new Date(`${dateStr}T00:00:00`);
-                const isSunday = dt.getDay() === 0;
+                const isWeeklyOffDay = isDateWeeklyOff(dateStr, matchedEmp.weeklyOff);
                 const existingIdx = db.attendanceLogs.findIndex(
                   l => (l.employeeId === matchedEmp.id || l.employeeId === matchedEmp.employeeId) && l.date === dateStr
                 );
 
-                if (isSunday) {
+                if (isWeeklyOffDay) {
                   if (existingIdx !== -1) {
                     if (db.attendanceLogs[existingIdx].workedMinutes === 0) {
                       db.attendanceLogs[existingIdx].attendanceCode = 'WO';

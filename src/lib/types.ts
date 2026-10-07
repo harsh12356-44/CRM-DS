@@ -301,7 +301,33 @@ export function mergeLeavesNonRegressive(primaryList: LeaveRecord[] = [], second
   return Array.from(map.values()).sort((a, b) => getLeaveTimestamp(b) - getLeaveTimestamp(a));
 }
 
-export function calculateWorkingDaysCount(startDateStr: string, endDateStr?: string, dayType?: string): number {
+export const WEEK_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
+
+export function isDateWeeklyOff(dateStr: string, weeklyOff?: string): boolean {
+  if (!dateStr) return false;
+  try {
+    const parts = dateStr.split('-');
+    if (parts.length < 3) return false;
+    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(d.getTime())) return false;
+    const dayName = WEEK_DAYS[d.getDay()];
+
+    if (!weeklyOff) {
+      return dayName === 'Sunday';
+    }
+
+    const offDays = weeklyOff
+      .split(',')
+      .map(s => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    return offDays.includes(dayName.toLowerCase());
+  } catch (e) {
+    return false;
+  }
+}
+
+export function calculateWorkingDaysCount(startDateStr: string, endDateStr?: string, dayType?: string, weeklyOff?: string): number {
   if (dayType === 'first_half' || dayType === 'second_half') {
     return 0.5;
   }
@@ -319,8 +345,11 @@ export function calculateWorkingDaysCount(startDateStr: string, endDateStr?: str
   targetEnd.setHours(0, 0, 0, 0);
 
   while (current <= targetEnd) {
-    // 0 is Sunday (Weekly Off)
-    if (current.getDay() !== 0) {
+    const padY = current.getFullYear();
+    const padM = String(current.getMonth() + 1).padStart(2, '0');
+    const padD = String(current.getDate()).padStart(2, '0');
+    const curStr = `${padY}-${padM}-${padD}`;
+    if (!isDateWeeklyOff(curStr, weeklyOff)) {
       count++;
     }
     current.setDate(current.getDate() + 1);

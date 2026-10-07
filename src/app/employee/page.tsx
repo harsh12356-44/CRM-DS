@@ -2292,9 +2292,13 @@ function EmployeePortalContent() {
                     <span className="text-slate-400">Employee Type:</span>
                     <span className="font-bold text-white">{employee.employeeType || 'Full Time'}</span>
                   </div>
-                  <div className="flex justify-between py-1.5">
+                  <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Date of Joining:</span>
                     <span className="font-bold font-mono text-purple-300">{employee.dateOfJoining || '2024-04-10'}</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-slate-400">Weekly Off Schedule:</span>
+                    <span className="font-bold text-amber-300">{employee.weeklyOff || 'Sunday'}</span>
                   </div>
                 </div>
 

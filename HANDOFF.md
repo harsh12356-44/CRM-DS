@@ -7,8 +7,17 @@
 ---
 
 ## 2. Current Project Status
-- **Integrated Employee Help, Support, Complaint & Feedback Desk**:
+- **Integrated Employee Help, Support, Complaint & Feedback Desk (with Instant 0ms Status Updates & Live Polling)**:
   - **Requirement Addressed**: Provided all employees with a structured, confidential "Help & Support" channel on their portal dashboard to submit Complaints, Suggestions, Feedback, or Support tickets along with detailed descriptions and optional screenshot/image attachments. Built an administrative "Feedback Desk" in the Admin portal to track, filter, review attachments, and respond to employee submissions.
+  - **Instant Optimistic UI & Live Real-Time Status Updates (Zero Refresh Required)**:
+    - **Problem Solved**: Status dropdown changes previously waited on network latency and browser/LiteSpeed server caching, making it look like tickets did not update without a manual page refresh.
+    - **0ms Instant Optimistic Updates**: Selecting a new status (`Pending`, `In Review`, `Resolved`) in [src/components/FeedbackAdminTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/FeedbackAdminTab.tsx) immediately updates the React state (0ms delay), showing the new status and badge instantly with automatic rollback if the server request fails.
+    - **Optimistic Resolution Reply**: When HR Admin sends a resolution response note via the Reply modal, the ticket is updated and the modal closes immediately without freezing the UI.
+    - **Live 5-Second Background Polling & Window Focus Sync**: Both Employee [SupportFeedbackTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/SupportFeedbackTab.tsx) and Admin [FeedbackAdminTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/FeedbackAdminTab.tsx) run silent background polling every 5 seconds (with `isSilent=true` so no loading spinner flickers) and automatically refresh upon switching tabs/window focus. When Admin updates a status or writes a reply, the Employee sees the updated status and resolution note live in real time without refreshing.
+    - **Cross-Component Custom Event Dispatcher (`feedbackUpdated`)**: State changes immediately dispatch `window.dispatchEvent(new CustomEvent('feedbackUpdated'))` so any active tabs or modals update with 0ms delay.
+    - **Strict HTTP No-Cache Headers & Cache Busting**: [src/app/api/feedback/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/feedback/route.ts) now returns strict `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0`, `Pragma: no-cache`, and `Expires: 0` headers on all GET, POST, PUT, and DELETE operations, and client fetch requests append cache-busting timestamp `_t=${Date.now()}`.
+    - **Optimistic Employee Status Toggle**: In [src/components/EmployeesTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/EmployeesTab.tsx), toggling employee Active/Inactive status reflects instantly (0ms) in UI with event listeners and cache-busting.
+    - **Leave Application Live Event Sync**: Added `leaveDataUpdated` event dispatch to [src/components/RecordLeaveModal.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/RecordLeaveModal.tsx) and live polling in [src/app/admin/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/page.tsx).
   - **Employee Help & Support Tab ([src/components/SupportFeedbackTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/SupportFeedbackTab.tsx))**:
     - Accessible via `/employee?tab=support` and in the sidebar and mobile drawer.
     - Category selector with 4 structured options: **Complaint** (Confidential / Direct to HR), **Suggestion** (Ideas & Improvements), **Feedback** (Culture & Operations), and **Help / Support** (Technical & Administrative).

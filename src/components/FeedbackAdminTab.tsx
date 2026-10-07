@@ -48,30 +48,66 @@ export default function FeedbackAdminTab() {
   // Delete Modal
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
-  const fetchItems = async () => {
+  const fetchItems = async (isSilent = false) => {
     try {
-      setLoading(true);
-      const res = await fetch('/api/feedback', { cache: 'no-store' });
+      if (!isSilent) setLoading(true);
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setItems(data.items);
-      } else {
+        setError('');
+      } else if (!isSilent) {
         setError(data.error || 'Failed to fetch feedback records');
       }
     } catch (err: any) {
-      setError(err.message || 'Error loading feedback records');
+      if (!isSilent) setError(err.message || 'Error loading feedback records');
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchItems();
+    fetchItems(false);
+
+    // Live background polling every 5 seconds so new submissions and changes sync automatically
+    const pollInterval = setInterval(() => {
+      fetchItems(true);
+    }, 5000);
+
+    const onFocus = () => fetchItems(true);
+    const onFeedbackUpdate = () => fetchItems(true);
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('feedbackUpdated', onFeedbackUpdate);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('feedbackUpdated', onFeedbackUpdate);
+    };
   }, []);
 
   const handleUpdateStatus = async (item: FeedbackItem, newStatus: FeedbackStatus) => {
+    const prevStatus = item.status;
+    const prevResolvedAt = item.resolvedAt;
+
+    // 1. Instant 0ms optimistic UI update (changes dropdown value immediately without waiting)
+    setItems(prev =>
+      prev.map(f =>
+        f.id === item.id
+          ? {
+              ...f,
+              status: newStatus,
+              resolvedAt: newStatus === 'Resolved' ? new Date().toISOString() : f.resolvedAt,
+              updatedAt: new Date().toISOString(),
+            }
+          : f
+      )
+    );
+    showFlash(`Status updated to "${newStatus}"`);
+
     try {
-      const res = await fetch('/api/feedback', {
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -81,12 +117,28 @@ export default function FeedbackAdminTab() {
       });
 
       const data = await res.json();
-      if (data.success && data.item) {
-        setItems(prev => prev.map(f => (f.id === item.id ? { ...f, status: newStatus } : f)));
-        showFlash(`Status updated to "${newStatus}"`);
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Server rejected status update');
       }
-    } catch (e) {
-      console.error('Failed to update status:', e);
+
+      if (data.item) {
+        setItems(prev => prev.map(f => (f.id === item.id ? { ...f, ...data.item } : f)));
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('feedbackUpdated'));
+      }
+    } catch (e: any) {
+      console.error('Failed to update status on server:', e);
+      // Revert optimistic update on failure
+      setItems(prev =>
+        prev.map(f =>
+          f.id === item.id
+            ? { ...f, status: prevStatus, resolvedAt: prevResolvedAt }
+            : f
+        )
+      );
+      showFlash(`Error: Could not save status to server.`);
     }
   };
 
@@ -94,45 +146,94 @@ export default function FeedbackAdminTab() {
     e.preventDefault();
     if (!replyModalItem) return;
 
+    const currentItem = replyModalItem;
+    const prevStatus = currentItem.status;
+    const prevResponse = currentItem.adminResponse;
+    const prevResolvedAt = currentItem.resolvedAt;
+
+    // 1. Instant 0ms optimistic UI update & close modal right away
+    setItems(prev =>
+      prev.map(f =>
+        f.id === currentItem.id
+          ? {
+              ...f,
+              status: replyStatus,
+              adminResponse: replyText,
+              resolvedAt: replyStatus === 'Resolved' ? new Date().toISOString() : f.resolvedAt,
+              updatedAt: new Date().toISOString(),
+            }
+          : f
+      )
+    );
+    setReplyModalItem(null);
+    showFlash('Response sent to employee successfully.');
+
     setSavingReply(true);
     try {
-      const res = await fetch('/api/feedback', {
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: replyModalItem.id,
+          id: currentItem.id,
           status: replyStatus,
           adminResponse: replyText,
         }),
       });
 
       const data = await res.json();
-      if (data.success && data.item) {
-        setItems(prev => prev.map(f => (f.id === replyModalItem.id ? { ...f, status: replyStatus, adminResponse: replyText } : f)));
-        setReplyModalItem(null);
-        showFlash('Response sent to employee successfully.');
-      } else {
-        alert(data.error || 'Failed to save response');
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to save response');
+      }
+
+      if (data.item) {
+        setItems(prev => prev.map(f => (f.id === currentItem.id ? { ...f, ...data.item } : f)));
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('feedbackUpdated'));
       }
     } catch (e: any) {
-      alert('Error updating feedback: ' + e.message);
+      console.error('Error updating feedback:', e);
+      // Revert on failure
+      setItems(prev =>
+        prev.map(f =>
+          f.id === currentItem.id
+            ? {
+                ...f,
+                status: prevStatus,
+                adminResponse: prevResponse,
+                resolvedAt: prevResolvedAt,
+              }
+            : f
+        )
+      );
+      alert('Error updating feedback: ' + (e.message || 'Server error'));
     } finally {
       setSavingReply(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    // Optimistic removal
+    const previousItems = items;
+    setItems(prev => prev.filter(f => f.id !== id));
+    setDeleteConfirmId(null);
+    showFlash('Record deleted.');
+
     try {
-      const res = await fetch(`/api/feedback?id=${id}`, {
+      const res = await fetch(`/api/feedback?id=${id}&_t=${Date.now()}`, {
         method: 'DELETE',
       });
       const data = await res.json();
-      if (data.success) {
-        setItems(prev => prev.filter(f => f.id !== id));
-        setDeleteConfirmId(null);
-        showFlash('Record deleted successfully.');
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to delete record');
+      }
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('feedbackUpdated'));
       }
     } catch (e: any) {
+      // Revert on failure
+      setItems(previousItems);
       alert('Failed to delete item: ' + e.message);
     }
   };

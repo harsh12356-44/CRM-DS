@@ -55,9 +55,9 @@ export default function EmployeesTab() {
   const [salary, setSalary] = useState(75000);
   const [weeklyOff, setWeeklyOff] = useState('Sunday');
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (isSilent = false) => {
     try {
-      const res = await fetch('/api/employees');
+      const res = await fetch(`/api/employees?_t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       setEmployees(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -67,6 +67,15 @@ export default function EmployeesTab() {
 
   useEffect(() => {
     fetchEmployees();
+
+    const handleUpdate = () => fetchEmployees(true);
+    window.addEventListener('employeeDataUpdated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+
+    return () => {
+      window.removeEventListener('employeeDataUpdated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+    };
   }, []);
 
   const handleOpenAddModal = () => {
@@ -114,9 +123,16 @@ export default function EmployeesTab() {
   };
 
   const handleToggleStatus = async (emp: Employee) => {
+    const prevStatus = emp.status;
+    const newStatus = emp.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+
+    // 1. Instant 0ms optimistic UI update
+    setEmployees(prev => prev.map(e => (e.id === emp.id ? { ...e, status: newStatus } : e)));
+    setMessage(`Employee ${emp.name} is now ${newStatus}!`);
+    setTimeout(() => setMessage(''), 4000);
+
     try {
-      const newStatus = emp.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-      await fetch('/api/employees', {
+      const res = await fetch(`/api/employees?_t=${Date.now()}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,11 +141,19 @@ export default function EmployeesTab() {
           status: newStatus,
         }),
       });
-      setMessage(`Employee ${emp.name} is now ${newStatus}!`);
-      setTimeout(() => setMessage(''), 4000);
-      fetchEmployees();
+
+      if (!res.ok) {
+        throw new Error('Server update failed');
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('employeeDataUpdated'));
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to toggle status:', err);
+      // Revert on failure
+      setEmployees(prev => prev.map(e => (e.id === emp.id ? { ...e, status: prevStatus } : e)));
+      setMessage(`Failed to update status on server.`);
     }
   };
 

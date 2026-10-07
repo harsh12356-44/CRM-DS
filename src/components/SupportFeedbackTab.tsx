@@ -94,9 +94,10 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchMyHistory = async () => {
+  const fetchMyHistory = async (isSilent = false) => {
     try {
-      const res = await fetch('/api/feedback', { cache: 'no-store' });
+      if (!isSilent) setLoadingHistory(true);
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setMyItems(data.items);
@@ -104,12 +105,29 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
     } catch (err) {
       console.warn('Failed to load feedback history:', err);
     } finally {
-      setLoadingHistory(false);
+      if (!isSilent) setLoadingHistory(false);
     }
   };
 
   useEffect(() => {
-    fetchMyHistory();
+    fetchMyHistory(false);
+
+    // Silent background polling every 5s so employee sees status updates & Admin responses live without refreshing
+    const pollInterval = setInterval(() => {
+      fetchMyHistory(true);
+    }, 5000);
+
+    const onFocus = () => fetchMyHistory(true);
+    const onFeedbackUpdate = () => fetchMyHistory(true);
+
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('feedbackUpdated', onFeedbackUpdate);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('feedbackUpdated', onFeedbackUpdate);
+    };
   }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,7 +180,7 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
         imageBase64 = imagePreview;
       }
 
-      const res = await fetch('/api/feedback', {
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -180,11 +198,20 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
         throw new Error(data.error || 'Failed to submit request');
       }
 
+      // 1. Immediately reflect the submitted item in history (0ms delay)
+      if (data.item) {
+        setMyItems(prev => [data.item, ...prev.filter(x => x.id !== data.item.id)]);
+      }
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('feedbackUpdated'));
+      }
+
       setSuccessMsg('Your submission has been received by HR and Admin. Thank you!');
       setSubject('');
       setDescription('');
       removeImage();
-      fetchMyHistory();
+      fetchMyHistory(true);
 
       setTimeout(() => setSuccessMsg(''), 6000);
     } catch (err: any) {
@@ -471,7 +498,7 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
             </p>
           </div>
           <button
-            onClick={fetchMyHistory}
+            onClick={() => fetchMyHistory(false)}
             className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />

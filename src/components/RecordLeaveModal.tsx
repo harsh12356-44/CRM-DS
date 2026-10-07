@@ -61,6 +61,9 @@ export default function RecordLeaveModal({
         throw new Error(data.error || 'Failed to record leave');
       }
 
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('leaveDataUpdated'));
+      }
       onSuccess();
       onClose();
     } catch (err: any) {

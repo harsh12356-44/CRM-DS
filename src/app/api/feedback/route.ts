@@ -11,6 +11,13 @@ import { deleteFeedbackFromPrisma } from '@/lib/dbSync';
 
 const ATTACHMENT_DIR = path.join(process.cwd(), 'data', 'feedback_attachments');
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+  'Surrogate-Control': 'no-store',
+};
+
 function ensureAttachmentDir() {
   try {
     if (!fs.existsSync(ATTACHMENT_DIR)) {
@@ -30,7 +37,7 @@ export async function GET(request: Request) {
 
     if (user.role === 'ADMIN') {
       const sorted = [...all].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      return NextResponse.json({ success: true, items: sorted });
+      return NextResponse.json({ success: true, items: sorted }, { headers: NO_CACHE_HEADERS });
     }
 
     // Identify employee
@@ -46,10 +53,10 @@ export async function GET(request: Request) {
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    return NextResponse.json({ success: true, items: myItems });
+    return NextResponse.json({ success: true, items: myItems }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('[GET /api/feedback] Error:', error);
-    return NextResponse.json({ error: 'Failed to fetch feedback items' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch feedback items' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -148,10 +155,10 @@ export async function POST(request: Request) {
       success: true,
       message: 'Your request has been successfully submitted.',
       item: newFeedback
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('[POST /api/feedback] Error:', error);
-    return NextResponse.json({ error: error.message || 'Failed to submit feedback.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to submit feedback.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -160,14 +167,14 @@ export async function PUT(request: Request) {
   try {
     const user = getRequestUser(request);
     if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
+      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
 
     const body = await request.json();
     const { id, status, adminResponse } = body;
 
     if (!id) {
-      return NextResponse.json({ error: 'Feedback ID is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'Feedback ID is required.' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
     const db = getDbData();
@@ -175,7 +182,7 @@ export async function PUT(request: Request) {
     const index = items.findIndex(f => f.id === id);
 
     if (index === -1) {
-      return NextResponse.json({ error: 'Feedback item not found.' }, { status: 404 });
+      return NextResponse.json({ error: 'Feedback item not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
     }
 
     const item = items[index];
@@ -214,10 +221,10 @@ export async function PUT(request: Request) {
       success: true,
       message: 'Feedback updated successfully.',
       item
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('[PUT /api/feedback] Error:', error);
-    return NextResponse.json({ error: 'Failed to update feedback.' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to update feedback.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -226,14 +233,14 @@ export async function DELETE(request: Request) {
   try {
     const user = getRequestUser(request);
     if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403 });
+      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'Feedback ID is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'Feedback ID is required.' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
     const db = getDbData();
@@ -253,9 +260,9 @@ export async function DELETE(request: Request) {
     await deleteFeedbackFromPrisma(id);
     await saveDbDataAsync(db);
 
-    return NextResponse.json({ success: true, message: 'Feedback deleted successfully.' });
+    return NextResponse.json({ success: true, message: 'Feedback deleted successfully.' }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
     console.error('[DELETE /api/feedback] Error:', error);
-    return NextResponse.json({ error: 'Failed to delete feedback.' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete feedback.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

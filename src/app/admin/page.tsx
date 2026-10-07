@@ -30,9 +30,9 @@ export default function AdminDashboardPage() {
   const [leaves, setLeaves] = useState<LeaveRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const loadDashboardData = async () => {
+  const loadDashboardData = async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       const [empRes, attRes, leaveRes] = await Promise.all([
         fetch(`/api/employees?t=${Date.now()}`, { cache: 'no-store' }),
         fetch(`/api/attendance?t=${Date.now()}`, { cache: 'no-store' }),
@@ -50,7 +50,7 @@ export default function AdminDashboardPage() {
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
@@ -109,11 +109,23 @@ export default function AdminDashboardPage() {
   };
 
   useEffect(() => {
-    loadDashboardData();
+    loadDashboardData(false);
 
-    const handleUpdate = () => loadDashboardData();
+    const handleUpdate = () => loadDashboardData(true);
     window.addEventListener('leaveDataUpdated', handleUpdate);
-    return () => window.removeEventListener('leaveDataUpdated', handleUpdate);
+    window.addEventListener('attendanceUpdated', handleUpdate);
+    window.addEventListener('employeeDataUpdated', handleUpdate);
+    window.addEventListener('focus', handleUpdate);
+
+    const poll = setInterval(() => loadDashboardData(true), 8000);
+
+    return () => {
+      window.removeEventListener('leaveDataUpdated', handleUpdate);
+      window.removeEventListener('attendanceUpdated', handleUpdate);
+      window.removeEventListener('employeeDataUpdated', handleUpdate);
+      window.removeEventListener('focus', handleUpdate);
+      clearInterval(poll);
+    };
   }, []);
 
   const totalEmployees = employees.length || 17;

@@ -12,6 +12,7 @@ import {
   TimeEntry,
   TimeActivity,
   TimeTrackingSettings,
+  FeedbackItem,
 } from './types';
 import fs from 'fs';
 import path from 'path';
@@ -37,6 +38,7 @@ export interface InitialState {
   timeEntries?: TimeEntry[];
   timeActivities?: TimeActivity[];
   timeTrackingSettings?: TimeTrackingSettings;
+  feedbackItems?: FeedbackItem[];
 }
 
 const DEFAULT_EMPLOYEES: Employee[] = [
@@ -566,6 +568,7 @@ export function getDbData(): InitialState {
           timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
           timeActivities: Array.isArray(data.timeActivities) ? data.timeActivities : undefined,
           timeTrackingSettings: data.timeTrackingSettings || undefined,
+          feedbackItems: Array.isArray(data.feedbackItems) ? data.feedbackItems : [],
         };
         (globalThis as any)._inMemoryDbData = memoryDb;
 
@@ -613,6 +616,7 @@ export function getDbData(): InitialState {
     notifications: DEFAULT_NOTIFICATIONS,
     departments: [],
     timeEntries: [],
+    feedbackItems: [],
   };
   (globalThis as any)._inMemoryDbData = memoryDb;
   return memoryDb;

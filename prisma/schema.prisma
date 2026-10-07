@@ -168,3 +168,27 @@ model TimeTrackingSettings {
   screenshotRetentionDays          Int     @default(7)
   breaks                           Json?   @default("[]")
 }
+
+// Employee complaints, feedback, suggestions, and help requests
+model FeedbackTicket {
+  id            String    @id @default(uuid())
+  employeeId    String
+  employeeName  String
+  employeeEmail String?
+  department    String?
+  category      String    // Complaint, Feedback, Support, Suggestion
+  subject       String?
+  description   String
+  imageUrl      String?
+  imageName     String?
+  status        String    @default("Pending") // Pending, In Review, Resolved
+  adminResponse String?
+  resolvedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
+
+  @@index([employeeId])
+  @@index([category])
+  @@index([status])
+}
+

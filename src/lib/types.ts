@@ -231,6 +231,28 @@ export interface ScreenshotMeta {
   surface?: string; // monitor / window / browser, as reported by the browser
 }
 
+// Employee Feedback, Complaint, Suggestion, and Support Requests
+export type FeedbackCategory = 'Complaint' | 'Feedback' | 'Support' | 'Suggestion';
+export type FeedbackStatus = 'Pending' | 'In Review' | 'Resolved';
+
+export interface FeedbackItem {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeEmail?: string;
+  department?: string;
+  category: FeedbackCategory;
+  subject?: string;
+  description: string;
+  imageUrl?: string;
+  imageName?: string;
+  status: FeedbackStatus;
+  adminResponse?: string;
+  resolvedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export function getLeaveTimestamp(l: Partial<LeaveRecord> | undefined | null): number {
   if (!l) return 0;
   

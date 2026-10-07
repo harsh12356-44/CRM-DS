@@ -38,6 +38,7 @@ import HolidaysTab from '@/components/HolidaysTab';
 import LeaveTrackerTab from '@/components/LeaveTrackerTab';
 import TimeTracker from '@/components/TimeTracker';
 import TimeTrackingAdmin from '@/components/TimeTrackingAdmin';
+import SupportFeedbackTab from '@/components/SupportFeedbackTab';
 import { Employee, AttendanceLog, LeaveRecord, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
 function getLiveStatusBadge(l: LeaveRecord) {
   if (!l) return null;
@@ -2252,6 +2253,11 @@ function EmployeePortalContent() {
 
           {/* TAB: TEAM TIME TRACKER (managers see their reports) */}
           {activeTab === 'team-time' && <TimeTrackingAdmin />}
+
+          {/* TAB: HELP, COMPLAINT, SUGGESTION & SUPPORT */}
+          {(activeTab === 'support' || activeTab === 'help' || activeTab === 'feedback') && employee && (
+            <SupportFeedbackTab employee={employee} />
+          )}
 
           {/* TAB: MY PROFILE */}
           {activeTab === 'profile' && employee && (

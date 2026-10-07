@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from './prisma';
 import type { InitialState } from './store';
-import { Employee, LeaveRecord, AttendanceLog, CompanySettings, Holiday, Department, AuditLogEntry, TimeBreak, TimeEntry, BreakConfig, getCurrentQuarter } from './types';
+import { Employee, LeaveRecord, AttendanceLog, CompanySettings, Holiday, Department, AuditLogEntry, TimeBreak, TimeEntry, BreakConfig, getCurrentQuarter, FeedbackItem } from './types';
 
 export async function loadDataFromPrisma(): Promise<InitialState | null> {
   if (!process.env.DATABASE_URL) {
@@ -132,6 +132,8 @@ export async function loadDataFromPrisma(): Promise<InitialState | null> {
       if (prefs) Object.assign(e, prefs);
     });
 
+    const feedbackItems = await loadFeedbackFromPrisma();
+
     return {
       employees: formattedEmployees,
       leaveRecords: formattedLeaves,
@@ -153,6 +155,7 @@ export async function loadDataFromPrisma(): Promise<InitialState | null> {
       timeEntries: timeTracking.timeEntries,
       timeActivities: timeTracking.timeActivities,
       timeTrackingSettings: timeTracking.timeTrackingSettings,
+      feedbackItems,
     };
   } catch (error) {
     console.error('[dbSync] Failed to load data from Prisma/Supabase:', error);
@@ -327,6 +330,7 @@ export async function persistDataToPrisma(data: InitialState): Promise<void> {
   }
 
   await persistTimeTrackingToPrisma(data);
+  await persistFeedbackToPrisma(data);
 }
 
 // Time tracking tables are synced separately so a missing table (schema not pushed yet)
@@ -455,3 +459,85 @@ export async function deleteTimeEntryFromPrisma(id: string): Promise<void> {
     console.warn('[dbSync] Failed to delete time entry:', error);
   }
 }
+
+async function loadFeedbackFromPrisma(): Promise<FeedbackItem[]> {
+  try {
+    const list = await (prisma as any).feedbackTicket?.findMany({ orderBy: { createdAt: 'desc' } });
+    if (!list || !Array.isArray(list)) return [];
+    return list.map((f: any) => ({
+      id: f.id,
+      employeeId: f.employeeId,
+      employeeName: f.employeeName,
+      employeeEmail: f.employeeEmail || undefined,
+      department: f.department || undefined,
+      category: f.category,
+      subject: f.subject || undefined,
+      description: f.description,
+      imageUrl: f.imageUrl || undefined,
+      imageName: f.imageName || undefined,
+      status: f.status || 'Pending',
+      adminResponse: f.adminResponse || undefined,
+      resolvedAt: f.resolvedAt ? new Date(f.resolvedAt).toISOString() : undefined,
+      createdAt: f.createdAt ? new Date(f.createdAt).toISOString() : new Date().toISOString(),
+      updatedAt: f.updatedAt ? new Date(f.updatedAt).toISOString() : undefined,
+    }));
+  } catch (error) {
+    console.warn('[dbSync] feedbackTicket table unavailable:', error);
+    return [];
+  }
+}
+
+async function persistFeedbackToPrisma(data: InitialState): Promise<void> {
+  try {
+    if (!data.feedbackItems || data.feedbackItems.length === 0) return;
+    for (const f of data.feedbackItems.slice(0, 100)) {
+      await (prisma as any).feedbackTicket?.upsert({
+        where: { id: f.id },
+        update: {
+          employeeId: f.employeeId,
+          employeeName: f.employeeName,
+          employeeEmail: f.employeeEmail || null,
+          department: f.department || null,
+          category: f.category,
+          subject: f.subject || null,
+          description: f.description,
+          imageUrl: f.imageUrl || null,
+          imageName: f.imageName || null,
+          status: f.status || 'Pending',
+          adminResponse: f.adminResponse || null,
+          resolvedAt: f.resolvedAt ? new Date(f.resolvedAt) : null,
+          updatedAt: new Date(f.updatedAt || f.createdAt),
+        },
+        create: {
+          id: f.id,
+          employeeId: f.employeeId,
+          employeeName: f.employeeName,
+          employeeEmail: f.employeeEmail || null,
+          department: f.department || null,
+          category: f.category,
+          subject: f.subject || null,
+          description: f.description,
+          imageUrl: f.imageUrl || null,
+          imageName: f.imageName || null,
+          status: f.status || 'Pending',
+          adminResponse: f.adminResponse || null,
+          resolvedAt: f.resolvedAt ? new Date(f.resolvedAt) : null,
+          createdAt: new Date(f.createdAt),
+          updatedAt: new Date(f.updatedAt || f.createdAt),
+        },
+      });
+    }
+  } catch (error) {
+    console.warn('[dbSync] Failed to persist feedback tickets to Prisma:', error);
+  }
+}
+
+export async function deleteFeedbackFromPrisma(id: string): Promise<void> {
+  if (!process.env.DATABASE_URL) return;
+  try {
+    await (prisma as any).feedbackTicket?.deleteMany({ where: { id } });
+  } catch (error) {
+    console.warn('[dbSync] Failed to delete feedback ticket:', error);
+  }
+}
+

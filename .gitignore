@@ -37,9 +37,13 @@ crm-ds-hostinger-deployment.zip
 # Time tracker screenshot gallery (images live on the server only)
 /data/screenshots/
 
+# Feedback & complaint image attachments
+/data/feedback_attachments/
+
 # Deploy build archive
 next_build.tar.gz
 
 # Time tracking upload archive folder
 /timetracking/
+
 

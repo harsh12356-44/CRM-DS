@@ -7,6 +7,27 @@
 ---
 
 ## 2. Current Project Status
+- **Integrated Employee Help, Support, Complaint & Feedback Desk**:
+  - **Requirement Addressed**: Provided all employees with a structured, confidential "Help & Support" channel on their portal dashboard to submit Complaints, Suggestions, Feedback, or Support tickets along with detailed descriptions and optional screenshot/image attachments. Built an administrative "Feedback Desk" in the Admin portal to track, filter, review attachments, and respond to employee submissions.
+  - **Employee Help & Support Tab ([src/components/SupportFeedbackTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/SupportFeedbackTab.tsx))**:
+    - Accessible via `/employee?tab=support` and in the sidebar and mobile drawer.
+    - Category selector with 4 structured options: **Complaint** (Confidential / Direct to HR), **Suggestion** (Ideas & Improvements), **Feedback** (Culture & Operations), and **Help / Support** (Technical & Administrative).
+    - Optional Subject line and full description textarea with live character counter.
+    - Screenshot / image attachment dropzone supporting PNG, JPG, JPEG, WEBP up to 5 MB with instant thumbnail preview and remove button.
+    - "My Submitted Requests" history feed displaying all previous submissions with category badges, status indicators (`Pending`, `In Review`, `Resolved`), timestamps, attachment viewing lightbox, and admin resolution response notes.
+  - **Admin Feedback Management Desk ([src/app/admin/feedback/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/feedback/page.tsx), [src/components/FeedbackAdminTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/FeedbackAdminTab.tsx))**:
+    - Accessible via `/admin/feedback` and in the Admin sidebar under "Portals & Config".
+    - Metric summary cards: Total Submissions, Pending Action, In Review, Resolved, and Complaints count.
+    - Search by employee name, department, or keywords, with category and status filters.
+    - Desktop table and mobile responsive card feed displaying employee avatar, name, department, category, subject, description, attachment preview, and timestamp.
+    - Inline status selector to transition tickets between `Pending`, `In Review`, and `Resolved`.
+    - "Reply" modal allowing HR Admin to send a resolution note directly to the employee.
+    - Lightbox image viewer to inspect attached screenshots in high resolution with new-tab open/download.
+    - Safe ticket deletion action with confirmation modal.
+  - **Decoupled Backend & Database Storage**:
+    - Created standalone Prisma model `FeedbackTicket` in [prisma/schema.prisma](file:///d:/Ravina/Antigravity/crm-ds/prisma/schema.prisma) with indexes on `employeeId`, `category`, and `status`.
+    - Integrated with [src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts) and [src/lib/dbSync.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/dbSync.ts) with decoupled `try/catch` handlers.
+    - Attachments stored securely in `data/feedback_attachments/` (ignored in `.gitignore`) and served via API endpoint `/api/feedback/image?id=...` with automatic fallback to data URLs.
 - **Integrated WFH Time Tracking & Screenshot Monitoring (v3 - Non-Regressive)**:
   - **Requirement Addressed**: Incorporated dedicated time tracking with session management (Clock In / Clock Out), structured breaks (Tea & Lunch), screenshot capture, automatic retention cleanup, and administrative timesheet reporting without modifying or affecting official biometric attendance, leave records, or existing database tables.
   - **Strict Isolation from Biometric Attendance**:

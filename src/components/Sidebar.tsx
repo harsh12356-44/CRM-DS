@@ -30,6 +30,8 @@ import {
   X,
   Timer,
   UsersRound,
+  HelpCircle,
+  MessageSquareQuote,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -175,6 +177,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
     {
       title: 'PORTALS & CONFIG',
       items: [
+        { id: 'feedback', label: 'Feedback Desk', icon: MessageSquareQuote, href: '/admin/feedback' },
         { id: 'employee-portal', label: 'Employee Portal', icon: UserCheck, href: '/employee' },
         { id: 'manager-desk', label: 'Manager Desk', icon: UserCheck2, href: '/manager' },
         { id: 'audit-logs', label: 'System Audit Logs', icon: ShieldAlert, href: '/admin/audit-logs' },
@@ -197,6 +200,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
         ...(isManager ? [{ id: 'team-time', label: 'Team Time Tracker', icon: UsersRound, href: '/employee?tab=team-time' }] : []),
         ...(!isWfh ? [{ id: 'working-hours', label: 'Working Hours', icon: Clock, href: '/employee?tab=working-hours' }] : []),
         { id: 'holidays', label: 'Holidays List', icon: CalendarDays, href: '/employee?tab=holidays' },
+        { id: 'support', label: 'Help & Support', icon: HelpCircle, href: '/employee?tab=support' },
         { id: 'notifications', label: 'Notifications', icon: Bell, href: '/employee?tab=notifications' },
         { id: 'profile', label: 'My Profile', icon: User, href: '/employee?tab=profile' },
       ],

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Bell, Check, X, LogOut, Shield, UserCheck, LayoutDashboard, UserCheck2, User, Sun, Moon, Save, Database, Loader2, Menu } from 'lucide-react';
+import { Bell, Check, X, LogOut, Shield, UserCheck, LayoutDashboard, UserCheck2, User, Save, Database, Loader2, Menu } from 'lucide-react';
 import { NotificationItem } from '@/lib/types';
 
 interface NavbarProps {
@@ -16,7 +16,6 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
   const pathname = usePathname();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [showNotifPopover, setShowNotifPopover] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [savingDb, setSavingDb] = useState(false);
   const [saveToast, setSaveToast] = useState<{ show: boolean; msg: string; isError?: boolean }>({ show: false, msg: '' });
 
@@ -109,21 +108,10 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     fetchNotifications();
     loadActiveUser();
     
-    // Light mode removed from employee/manager dashboard area per user request
-    const activeEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-    const isHrAdmin = activeEmpId === 'emp-1' || activeEmpId === 'rk001' || currentRole === 'ADMIN';
-
-    if (!isHrAdmin) {
+    // Enforce permanent dark mode globally across all portals & roles
+    if (typeof window !== 'undefined') {
       document.documentElement.classList.remove('light');
-      setTheme('dark');
-    } else {
-      const savedTheme = (localStorage.getItem('hrm_theme') as 'light' | 'dark') || 'light';
-      setTheme(savedTheme);
-      if (savedTheme === 'light') {
-        document.documentElement.classList.add('light');
-      } else {
-        document.documentElement.classList.remove('light');
-      }
+      localStorage.removeItem('hrm_theme');
     }
 
     window.addEventListener('roleChange', loadActiveUser);
@@ -133,17 +121,6 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
       window.removeEventListener('employeeChanged', loadActiveUser);
     };
   }, [currentRole]);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('hrm_theme', nextTheme);
-    if (nextTheme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
-    }
-  };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -327,27 +304,6 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
             Role: <span className="text-slate-900 dark:text-white font-extrabold">{currentRole}</span>
           </span>
         </div>
-
-        {/* Theme Switcher Toggle (Light / Dark Mode) - Restricted strictly to HR Admin */}
-        {isRavinaUser && (
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-indigo-600 transition flex items-center space-x-1.5 text-xs font-bold shadow-sm border border-slate-200 dark:border-slate-700"
-            title={theme === 'light' ? 'Switch to Dark Theme' : 'Switch to Light Theme'}
-          >
-            {theme === 'light' ? (
-              <>
-                <Moon className="w-4 h-4 text-indigo-600" />
-                <span className="hidden xl:inline text-indigo-600">Dark Mode</span>
-              </>
-            ) : (
-              <>
-                <Sun className="w-4 h-4 text-amber-500" />
-                <span className="hidden xl:inline text-amber-500">Light Mode</span>
-              </>
-            )}
-          </button>
-        )}
 
         {/* Admin Save & Sync Database Button (Strictly for Admin Accounts) */}
         {isAdminAccount && (

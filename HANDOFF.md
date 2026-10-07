@@ -7,6 +7,16 @@
 ---
 
 ## 2. Current Project Status
+- **Permanent Removal of Light Theme Option & Global Dark Theme Enforcement**:
+  - **Requirement Addressed**: Per user directive ("remove light theme option"), completely removed all light theme controls, buttons, toggle states, and stylesheets from the platform.
+  - **Global Dark Mode Across All Roles**: The platform now operates exclusively in modern, cohesive Dark Mode across all roles (HR Admin, Manager, and Employee) and views.
+  - **Navbar Cleanup ([src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx))**:
+    - Removed `theme` state and `setTheme` hook.
+    - Removed `toggleTheme` function and the header theme switcher toggle button (`Sun` / `Moon` icons).
+    - In `useEffect`, enforced permanent dark mode by automatically removing `document.documentElement.classList.remove('light')` and purging legacy `hrm_theme` from `localStorage`.
+  - **CSS Cleanup ([src/app/globals.css](file:///d:/Ravina/Antigravity/crm-ds/src/app/globals.css))**:
+    - Removed over 320 lines of legacy `.light` and `html.light` CSS overrides (cards, tables, buttons, inputs, scrollbars, time tracker badges).
+    - Reduced stylesheet payload and ensured zero chance of accidental style leakage.
 - **Integrated Employee Help, Support, Complaint & Feedback Desk (with Instant 0ms Status Updates & Live Polling)**:
   - **Requirement Addressed**: Provided all employees with a structured, confidential "Help & Support" channel on their portal dashboard to submit Complaints, Suggestions, Feedback, or Support tickets along with detailed descriptions and optional screenshot/image attachments. Built an administrative "Feedback Desk" in the Admin portal to track, filter, review attachments, and respond to employee submissions.
   - **Instant Optimistic UI & Live Real-Time Status Updates (Zero Refresh Required)**:

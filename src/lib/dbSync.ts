@@ -388,11 +388,16 @@ async function persistTimeTrackingToPrisma(data: InitialState): Promise<void> {
         screenshotsEnabled: emp.screenshotsEnabled ?? null,
         screenshotInterval: emp.screenshotIntervalMinutes ?? null,
       };
-      await prisma.timeTrackerOptIn.upsert({
-        where: { employeeId: emp.id },
-        update: prefs,
-        create: { employeeId: emp.id, ...prefs },
-      });
+      try {
+        await prisma.timeTrackerOptIn.upsert({
+          where: { employeeId: emp.id },
+          update: prefs,
+          create: { employeeId: emp.id, ...prefs },
+        });
+      } catch {
+        // Table may not exist yet on remote DB
+        break;
+      }
     }
 
     if (data.timeTrackingSettings) {

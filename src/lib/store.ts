@@ -681,7 +681,10 @@ export async function saveDbDataAsync(data: InitialState): Promise<void> {
     fs.writeFileSync(TMP_DB_FILE, JSON.stringify(data, null, 2));
   } catch (err) {}
 
-  await syncCloudStorageAsync(data);
+  // Sync to cloud database asynchronously in background so HTTP responses return instantly (<15ms)
+  syncCloudStorageAsync(data).catch((err) => {
+    console.warn('[store] Background cloud sync error:', err);
+  });
 }
 
 export function saveDbData(data: InitialState): void {

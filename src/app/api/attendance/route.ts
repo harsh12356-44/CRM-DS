@@ -260,6 +260,8 @@ export async function POST(request: Request) {
               const dateObjs: string[] = [];
               for (let d = 1; d <= totalDaysInMonth; d++) {
                 const dayStr = String(d).padStart(2, '0');
+                const padMonth = String(targetMonth).padStart(2, '0');
+                const dateStr = `${targetYear}-${padMonth}-${dayStr}`;
                 const isOff = isDateWeeklyOff(dateStr, matchedEmp.weeklyOff);
                 if (!isOff) {
                   workingDaysCount++;

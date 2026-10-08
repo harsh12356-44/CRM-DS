@@ -236,7 +236,7 @@ export default function AttendanceAnalyticsPage() {
 
                       const dateObj = new Date(dateStr);
                       const isSunday = dateObj.getDay() === 0;
-                      const isDayOff = isDateWeeklyOff(dateStr, selectedEmp?.weeklyOff);
+                      const isDayOff = isDateWeeklyOff(dateStr, selectedEmployee?.weeklyOff);
                       const weekdayStr = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
 
                       const workedMins = log ? log.workedMinutes || 0 : 0;

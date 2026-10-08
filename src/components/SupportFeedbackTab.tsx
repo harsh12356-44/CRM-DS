@@ -35,7 +35,7 @@ const CATEGORIES: {
   desc: string;
   color: string;
   bgActive: string;
-  borderActive: string;
+  borderActive?: string;
 }[] = [
   {
     id: 'Complaint',

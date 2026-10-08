@@ -202,9 +202,14 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
   const serverLastShot = data?.screenshots?.lastAt ? new Date(data.screenshots.lastAt).getTime() : 0;
   const serverCapturing = !capture?.sharing && serverLastShot > 0 && Date.now() - serverLastShot < (shotInterval * 2 + 1) * 60000;
 
-  const startSharing = () => {
+  const startSharing = async () => {
     const mgr = getScreenCapture();
-    if (mgr) mgr.requestScreen(employeeId, data?.employee.name, activity);
+    if (!mgr) return;
+    setError('');
+    const ok = await mgr.requestScreen(employeeId, data?.employee.name, activity);
+    if (!ok) {
+      setError(mgr.snapshot.error || 'Company policy requires sharing your Entire Screen.');
+    }
   };
 
   const runAction = async (action: string, extra: Record<string, unknown> = {}) => {
@@ -219,7 +224,15 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
     setError('');
     setFlash('');
     try {
-      if (sharePromise) await sharePromise;
+      if (sharePromise) {
+        const ok = await sharePromise;
+        if (!ok) {
+          const errMsg = mgr?.snapshot.error || 'Company policy requires sharing your Entire Screen to clock in.';
+          setError(errMsg);
+          setBusy(false);
+          return;
+        }
+      }
       const r = rangeFor(viewWeek, data.today);
       const res = await fetch('/api/time-tracking', {
         method: 'POST',
@@ -363,6 +376,12 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
               className="w-full px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-purple-500"
             />
           </div>
+          {shotsEnabled && (
+            <p className="text-[11px] text-purple-300/90 flex items-center space-x-1.5 font-medium px-1">
+              <MonitorUp className="w-3.5 h-3.5 shrink-0 text-purple-400" />
+              <span>When prompted, select <strong>Entire Screen</strong> (WFH policy)</span>
+            </p>
+          )}
           <button
             type="button"
             disabled={busy}

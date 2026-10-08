@@ -324,7 +324,7 @@ export default function FeedbackAdminTab() {
           </p>
         </div>
         <button
-          onClick={fetchItems}
+          onClick={() => fetchItems()}
           className="self-start sm:self-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition flex items-center space-x-2 shadow-sm"
         >
           <RefreshCw className="w-3.5 h-3.5" />

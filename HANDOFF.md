@@ -67,6 +67,11 @@
     - Unclosed sessions are automatically capped after 14 hours or upon crossing midnight IST.
   - **Screen Capture & Monitoring Engine**:
     - Uses browser `getDisplayMedia` screen sharing prompted once at Clock In.
+    - **Strict "Entire Screen" Company Policy Enforcement**:
+      - `displayMediaOptions` configured with `{ video: { displaySurface: 'monitor' }, selfBrowserSurface: 'exclude', surfaceSwitching: 'exclude' }` to pre-focus the "Entire Screen" tab in browser dialogs and disable surface switching.
+      - **Strict Rejection of Tabs & Windows**: Reads `track.getSettings().displaySurface`. If the user chooses a window (`window`) or browser tab (`browser`), the stream tracks are immediately terminated (`track.stop()`), the permission is rejected, and an explicit error is shown to the user (`Company Policy: Work From Home tracking requires sharing your Entire Screen. You selected [type]. Please clock in again and choose "Entire Screen"`).
+      - **Clock-In Blocked Until Full Screen**: Clock-in requests abort immediately if the user cancels or does not select their entire screen, preventing incomplete or hidden tracking.
+      - Pre-clock-in visual helper added to guide employees to choose "Entire Screen".
     - Single permission stream is re-used across break pauses and work resumption without repeated browser permission prompts.
     - Captures at configurable intervals (default: 10 mins).
     - Stores images as plain files on disk under `/data/screenshots/` (indexed via `index.json`) to keep `db.json` and database operations fast and bloat-free.

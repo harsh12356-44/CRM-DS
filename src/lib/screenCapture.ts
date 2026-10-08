@@ -87,7 +87,7 @@ class ScreenCaptureManager {
     }
 
     try {
-      // Strongly prefer Entire System Screen (excludes current tab so browser focuses on Entire Screen)
+      // Strongly prefer Entire System Screen (excludes current tab and prevents switching to tabs)
       const displayMediaOptions: any = {
         video: {
           displaySurface: 'monitor',
@@ -95,7 +95,7 @@ class ScreenCaptureManager {
         },
         audio: false,
         selfBrowserSurface: 'exclude',
-        surfaceSwitching: 'include',
+        surfaceSwitching: 'exclude',
         systemAudio: 'exclude',
         preferCurrentTab: false,
         monitorTypeSurfaces: 'include',
@@ -103,20 +103,46 @@ class ScreenCaptureManager {
 
       const stream = await (navigator.mediaDevices as any).getDisplayMedia(displayMediaOptions);
       const track = stream.getVideoTracks()[0];
+      if (!track) {
+        this.releaseStream('No video track available from screen share.');
+        return false;
+      }
+
+      const surface = (track.getSettings() as { displaySurface?: string }).displaySurface;
+
+      // Strict Company Policy: Only 'monitor' (Entire Screen) is allowed for WFH tracking.
+      // If employee selected an application window or browser tab, immediately reject and terminate.
+      if (surface && surface !== 'monitor') {
+        const typeLabel = surface === 'browser' ? 'a browser tab' : 'an application window';
+        track.stop();
+        stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+        this.stream = null;
+        this.stopTicker();
+        this.set({
+          sharing: false,
+          surface: undefined,
+          error: `Company Policy: Work From Home tracking requires sharing your Entire Screen. You selected ${typeLabel}. Please clock in again and choose "Entire Screen".`,
+        });
+        return false;
+      }
+
       track.addEventListener('ended', () => this.releaseStream('Screen sharing was stopped from browser controls. Screenshots are paused until you share again.'));
       this.stream = stream;
-      const surface = (track.getSettings() as { displaySurface?: string }).displaySurface;
       this.set({
         sharing: true,
         surface,
-        error: surface && surface !== 'monitor' ? 'You shared a window/tab. For complete tracking, please choose Entire Screen.' : undefined,
+        error: undefined,
       });
       this.nextShotAt = Date.now() + FIRST_SHOT_DELAY_MS;
       this.ensureTicker();
       return true;
     } catch (err: any) {
       const denied = err?.name === 'NotAllowedError';
-      this.set({ error: denied ? 'Screen sharing was not allowed. Screenshots are paused — click "Share screen" to resume.' : (err?.message || 'Could not start screen sharing.') });
+      this.set({
+        error: denied
+          ? 'Screen sharing was cancelled or denied. Company policy requires sharing your Entire Screen to clock in.'
+          : (err?.message || 'Could not start screen sharing.')
+      });
       return false;
     }
   }

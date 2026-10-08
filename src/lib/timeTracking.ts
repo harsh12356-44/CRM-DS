@@ -207,8 +207,8 @@ export function entryWorkMs(entry: TimeEntry, nowMs: number): number {
   return Math.max(0, end - start - entryBreakMs(entry, nowMs));
 }
 
-export function getOpenEntry(entries: TimeEntry[], employeeId: string): TimeEntry | undefined {
-  return entries.find(e => e.employeeId === employeeId && !e.clockOut);
+export function getOpenEntry(entries: TimeEntry[], employeeId: string, altEmployeeId?: string): TimeEntry | undefined {
+  return entries.find(e => (e.employeeId === employeeId || (altEmployeeId && e.employeeId === altEmployeeId)) && !e.clockOut);
 }
 
 export function getEntryStatus(entry?: TimeEntry): TrackerStatus {

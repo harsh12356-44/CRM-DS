@@ -62,7 +62,7 @@ interface TimeTrackerProps {
 }
 
 const IDLE_PROMPT_MS = 30 * 60 * 1000;
-const POLL_MS = 30 * 1000;
+const POLL_MS = 5 * 1000;
 const MAX_WEEKS_BACK = 8;
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -142,11 +142,15 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
     setWeekAnchor('');
     fetchData();
     const poll = setInterval(() => fetchData(weekAnchorRef.current || undefined), POLL_MS);
-    const onShot = () => fetchData(weekAnchorRef.current || undefined);
-    window.addEventListener('screenshotCaptured', onShot);
+    const onSync = () => fetchData(weekAnchorRef.current || undefined);
+    window.addEventListener('screenshotCaptured', onSync);
+    window.addEventListener('timeTrackerChanged', onSync);
+    window.addEventListener('focus', onSync);
     return () => {
       clearInterval(poll);
-      window.removeEventListener('screenshotCaptured', onShot);
+      window.removeEventListener('screenshotCaptured', onSync);
+      window.removeEventListener('timeTrackerChanged', onSync);
+      window.removeEventListener('focus', onSync);
     };
   }, [fetchData]);
 
@@ -223,6 +227,55 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
     setBusy(true);
     setError('');
     setFlash('');
+
+    // Snapshot previous data for rollback on failure
+    const prevData = data;
+
+    // Instant optimistic update (0ms delay)
+    if (action === 'CLOCK_OUT') {
+      mgr?.stop(); // Immediately release screen sharing
+      const nowIso = new Date().toISOString();
+      setData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          status: 'OFF' as TrackerStatus,
+          activeEntry: null,
+          entries: prev.entries.map(e => (!e.clockOut ? { ...e, clockOut: nowIso } : e)),
+        };
+      });
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+    } else if (action === 'BREAK_START') {
+      const nowIso = new Date().toISOString();
+      const bType = String(extra.breakType || 'tea');
+      const bName = String(extra.breakName || 'Break');
+      setData(prev => {
+        if (!prev || !prev.activeEntry) return prev;
+        const breaks = [...(prev.activeEntry.breaks || []), { type: bType, name: bName, start: nowIso }];
+        return {
+          ...prev,
+          status: 'ON_BREAK' as TrackerStatus,
+          activeEntry: { ...prev.activeEntry, breaks },
+        };
+      });
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+    } else if (action === 'BREAK_END') {
+      const nowIso = new Date().toISOString();
+      setData(prev => {
+        if (!prev || !prev.activeEntry) return prev;
+        const breaks = [...(prev.activeEntry.breaks || [])];
+        if (breaks.length > 0 && !breaks[breaks.length - 1].end) {
+          breaks[breaks.length - 1] = { ...breaks[breaks.length - 1], end: nowIso };
+        }
+        return {
+          ...prev,
+          status: 'WORKING' as TrackerStatus,
+          activeEntry: { ...prev.activeEntry, breaks },
+        };
+      });
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+    }
+
     try {
       if (sharePromise) {
         const ok = await sharePromise;
@@ -255,6 +308,7 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
       if (action === 'CLOCK_IN' || action === 'CLOCK_OUT') setNote('');
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     } catch (err: any) {
+      if (prevData) setData(prevData);
       setError(err.message || 'Action failed.');
       if (action === 'CLOCK_IN' && sharePromise) mgr?.stop();
       fetchData(weekAnchor || undefined);

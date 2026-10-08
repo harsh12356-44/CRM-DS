@@ -199,8 +199,17 @@ export default function TimeTrackingAdmin() {
   rangeRef.current = range;
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(rangeRef.current), 30000);
-    return () => clearInterval(poll);
+    const poll = setInterval(() => fetchData(rangeRef.current), 5000);
+    const onSync = () => fetchData(rangeRef.current);
+    window.addEventListener('timeTrackerChanged', onSync);
+    window.addEventListener('focus', onSync);
+    window.addEventListener('screenshotCaptured', onSync);
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener('timeTrackerChanged', onSync);
+      window.removeEventListener('focus', onSync);
+      window.removeEventListener('screenshotCaptured', onSync);
+    };
   }, [fetchData]);
 
   useEffect(() => {
@@ -218,6 +227,50 @@ export default function TimeTrackingAdmin() {
     setBusyKey(key);
     setFlash('');
     setError('');
+
+    // Snapshot current state for rollback if network fails
+    const prevData = data;
+
+    // Instant optimistic update (0ms delay)
+    if (body.action === 'FORCE_CLOCK_OUT') {
+      const targetEmpId = String(body.employeeId || '');
+      const nowIso = new Date().toISOString();
+      setData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          live: prev.live.map(l => {
+            if (l.employeeId === targetEmpId) {
+              return {
+                ...l,
+                status: 'OFF' as TrackerStatus,
+                activeEntry: l.activeEntry ? { ...l.activeEntry, clockOut: nowIso } : null,
+              };
+            }
+            return l;
+          }),
+          entries: prev.entries.map(e => {
+            if (e.employeeId === targetEmpId && !e.clockOut) {
+              return { ...e, clockOut: nowIso };
+            }
+            return e;
+          }),
+        };
+      });
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+    } else if (body.action === 'SET_TRACKING') {
+      const targetEmpId = String(body.employeeId || '');
+      const enable = Boolean(body.enabled);
+      setData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          employees: prev.employees.map(e => e.id === targetEmpId ? { ...e, trackingEnabled: enable } : e),
+        };
+      });
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+    }
+
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -227,9 +280,11 @@ export default function TimeTrackingAdmin() {
       const payload = await res.json();
       if (!res.ok) throw new Error(payload.error || 'Update failed.');
       setFlash(payload.message || 'Saved.');
-      await fetchData(range);
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+      await fetchData(rangeRef.current || range);
       return true;
     } catch (err: any) {
+      if (prevData) setData(prevData);
       setError(err.message || 'Update failed.');
       return false;
     } finally {

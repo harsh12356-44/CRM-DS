@@ -3,6 +3,12 @@ export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
 import { getDbData, saveDbDataAsync, InitialState } from '@/lib/store';
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
 import { Employee, TimeEntry } from '@/lib/types';
 import { getRequestUser, findRequestEmployee, isSameEmployee, canViewEmployee, RequestUser } from '@/lib/requestUser';
 import { getLastScreenshotAt, listScreenshots } from '@/lib/screenshotStore';
@@ -25,7 +31,7 @@ const MAX_RANGE_DAYS = 62;
 
 function buildPayload(db: InitialState, emp: Employee, user: RequestUser, from: string, to: string) {
   const entries = db.timeEntries || [];
-  const activeEntry = getOpenEntry(entries, emp.id);
+  const activeEntry = getOpenEntry(entries, emp.id, emp.employeeId);
   const resolvedSettings = resolveTimeTrackingSettings(db.timeTrackingSettings);
   return {
     employee: {
@@ -94,9 +100,9 @@ export async function GET(request: Request) {
     }
 
     const { from, to } = resolveRange(url);
-    return NextResponse.json(buildPayload(db, emp, user, from, to));
+    return NextResponse.json(buildPayload(db, emp, user, from, to), { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to load time tracking.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to load time tracking.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -232,13 +238,16 @@ export async function POST(request: Request) {
         break;
       }
       case 'CLOCK_OUT': {
-        if (!open) {
-          return NextResponse.json({ error: 'You are not clocked in.' }, { status: 409 });
+        const openEntries = db.timeEntries.filter(e => (e.employeeId === emp.id || (emp.employeeId && e.employeeId === emp.employeeId)) && !e.clockOut);
+        if (openEntries.length === 0) {
+          return NextResponse.json({ error: 'You are not clocked in.' }, { status: 409, headers: NO_CACHE_HEADERS });
         }
-        if (status === 'ON_BREAK') open.breaks[open.breaks.length - 1].end = nowIso;
-        if (note) open.note = note;
-        open.clockOut = nowIso;
-        open.updatedAt = nowIso;
+        openEntries.forEach(open => {
+          if (getEntryStatus(open) === 'ON_BREAK') open.breaks[open.breaks.length - 1].end = nowIso;
+          if (note) open.note = note;
+          open.clockOut = nowIso;
+          open.updatedAt = nowIso;
+        });
         break;
       }
       default:
@@ -246,8 +255,8 @@ export async function POST(request: Request) {
     }
 
     await saveDbDataAsync(db);
-    return NextResponse.json({ success: true, ...buildPayload(db, emp, user, from, to) });
+    return NextResponse.json({ success: true, ...buildPayload(db, emp, user, from, to) }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Time tracking action failed.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Time tracking action failed.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

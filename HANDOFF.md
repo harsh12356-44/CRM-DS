@@ -72,6 +72,13 @@
       - **Strict Rejection of Tabs & Windows**: Reads `track.getSettings().displaySurface`. If the user chooses a window (`window`) or browser tab (`browser`), the stream tracks are immediately terminated (`track.stop()`), the permission is rejected, and an explicit error is shown to the user (`Company Policy: Work From Home tracking requires sharing your Entire Screen. You selected [type]. Please clock in again and choose "Entire Screen"`).
       - **Clock-In Blocked Until Full Screen**: Clock-in requests abort immediately if the user cancels or does not select their entire screen, preventing incomplete or hidden tracking.
       - Pre-clock-in visual helper added to guide employees to choose "Entire Screen".
+    - **0ms Instant Optimistic Updates & Live Real-Time Clock-Out Sync**:
+      - **Problem Solved**: Clocking out an employee (e.g. Rishi) previously waited on network latency and API response before updating the UI, making the elapsed clock appear to continue ticking and causing perceived delays.
+      - **0ms Admin Force Clock Out**: Clicking "Clock out" on the Live Board ([TimeTrackingAdmin.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTrackingAdmin.tsx)) immediately updates React state (0ms delay), flipping the status badge to "Clocked Out", freezing the timer, and closing running entries with automatic rollback on error.
+      - **0ms Employee Clock Out & Breaks**: In [TimeTracker.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTracker.tsx), clicking Clock Out immediately halts the active stream, sets status to `OFF`, and freezes the timer before awaiting the server response.
+      - **Cross-Tab & Cross-Device Sync**: Dispatches `timeTrackerChanged` on state changes, listens for window focus events, and runs background live polling every 5 seconds (reduced from 30s) across both admin and employee portals.
+      - **Strict HTTP No-Cache Headers**: Both `/api/time-tracking` and `/api/time-tracking/admin` return `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0` to eliminate LiteSpeed/browser 304 response caching.
+      - **Dual ID Matching (`id` & `employeeId`)**: Enhanced `getOpenEntry` and API handlers to match against both internal UUID `emp.id` and company code `emp.employeeId`, ensuring employees like Rishi are always matched accurately.
     - Single permission stream is re-used across break pauses and work resumption without repeated browser permission prompts.
     - Captures at configurable intervals (default: 10 mins).
     - Stores images as plain files on disk under `/data/screenshots/` (indexed via `index.json`) to keep `db.json` and database operations fast and bloat-free.

@@ -4,6 +4,12 @@ export const revalidate = 0;
 import { NextResponse } from 'next/server';
 import { getDbData, saveDbDataAsync, InitialState } from '@/lib/store';
 import { deleteTimeEntryFromPrisma } from '@/lib/dbSync';
+
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
 import { Employee, TimeActivity, TimeBreak, TimeEntry } from '@/lib/types';
 import { getRequestUser, findRequestEmployee, isManagerOf } from '@/lib/requestUser';
 import { cleanupOldScreenshots, getLastScreenshotAt } from '@/lib/screenshotStore';
@@ -143,7 +149,7 @@ export async function GET(request: Request) {
       viewer: { role: user.role, name: viewer?.name || '', canManage: isAdmin },
       employees: visible.map(e => publicEmployee(e, db.timeTrackingSettings)),
       live: visible.map(e => {
-        const open = getOpenEntry(entries, e.id);
+        const open = getOpenEntry(entries, e.id, e.employeeId);
         return {
           employeeId: e.id,
           status: getEntryStatus(open),
@@ -159,9 +165,9 @@ export async function GET(request: Request) {
       serverTime: new Date().toISOString(),
       today,
       range: { from, to },
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to load time tracking data.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to load time tracking data.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -180,7 +186,7 @@ export async function POST(request: Request) {
     const nowIso = new Date().toISOString();
     autoCloseStaleEntries(db.timeEntries, Date.now());
 
-    const findEmp = () => db.employees.find(e => e.id === body.employeeId);
+    const findEmp = () => db.employees.find(e => e.id === body.employeeId || (e.employeeId && e.employeeId === body.employeeId));
     const activityName = (name: unknown) =>
       db.timeActivities!.find(a => a.name === name)?.name || db.timeActivities![0]?.name || 'Other';
     let message = 'Saved.';
@@ -278,13 +284,20 @@ export async function POST(request: Request) {
       }
       case 'FORCE_CLOCK_OUT': {
         const emp = findEmp();
-        const open = emp ? getOpenEntry(db.timeEntries, emp.id) : undefined;
-        if (!emp || !open) return NextResponse.json({ error: 'This employee is not clocked in.' }, { status: 409 });
-        if (getEntryStatus(open) === 'ON_BREAK') open.breaks[open.breaks.length - 1].end = nowIso;
-        open.clockOut = nowIso;
-        open.updatedAt = nowIso;
-        open.editedBy = actor?.name || 'Admin';
-        pushAudit(db, actor, 'Force Clock Out', open.id, undefined, open);
+        if (!emp) return NextResponse.json({ error: 'Employee not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
+        const openEntries = db.timeEntries.filter(e => 
+          (e.employeeId === emp.id || (emp.employeeId && e.employeeId === emp.employeeId)) && !e.clockOut
+        );
+        if (openEntries.length === 0) {
+          return NextResponse.json({ error: `${emp.name} is already clocked out.` }, { status: 409, headers: NO_CACHE_HEADERS });
+        }
+        openEntries.forEach(open => {
+          if (getEntryStatus(open) === 'ON_BREAK') open.breaks[open.breaks.length - 1].end = nowIso;
+          open.clockOut = nowIso;
+          open.updatedAt = nowIso;
+          open.editedBy = actor?.name || 'Admin';
+          pushAudit(db, actor, 'Force Clock Out', open.id, undefined, open);
+        });
         notify(db, emp.id, 'Clocked out by HR', 'HR clocked you out of your running WFH session.');
         message = `${emp.name} has been clocked out.`;
         break;
@@ -320,8 +333,8 @@ export async function POST(request: Request) {
     }
 
     await saveDbDataAsync(db);
-    return NextResponse.json({ success: true, message });
+    return NextResponse.json({ success: true, message }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Time tracking update failed.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Time tracking update failed.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

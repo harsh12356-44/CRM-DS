@@ -47,6 +47,7 @@ export default function FeedbackAdminTab() {
 
   // Delete Modal
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchItems = async (isSilent = false) => {
     try {
@@ -64,6 +65,13 @@ export default function FeedbackAdminTab() {
     } finally {
       if (!isSilent) setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchItems(true);
+    setRefreshing(false);
+    showFlash('Records refreshed.');
   };
 
   useEffect(() => {
@@ -324,11 +332,12 @@ export default function FeedbackAdminTab() {
           </p>
         </div>
         <button
-          onClick={() => fetchItems()}
-          className="self-start sm:self-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition flex items-center space-x-2 shadow-sm"
+          disabled={refreshing}
+          onClick={handleRefresh}
+          className="self-start sm:self-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 transition flex items-center space-x-2 shadow-sm disabled:opacity-60 cursor-pointer"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh Records</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-blue-400' : ''}`} />
+          <span>{refreshing ? 'Refreshing…' : 'Refresh Records'}</span>
         </button>
       </div>
 

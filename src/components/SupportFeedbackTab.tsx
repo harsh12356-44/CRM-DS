@@ -91,6 +91,7 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
 
   // Modal for previewing images
   const [previewModalImg, setPreviewModalImg] = useState<{ url: string; title: string } | null>(null);
+  const [refreshingHistory, setRefreshingHistory] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -107,6 +108,12 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
     } finally {
       if (!isSilent) setLoadingHistory(false);
     }
+  };
+
+  const handleRefreshHistory = async () => {
+    setRefreshingHistory(true);
+    await fetchMyHistory(true);
+    setRefreshingHistory(false);
   };
 
   useEffect(() => {
@@ -498,11 +505,12 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
             </p>
           </div>
           <button
-            onClick={() => fetchMyHistory(false)}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5"
+            disabled={refreshingHistory}
+            onClick={handleRefreshHistory}
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold border border-slate-700 transition flex items-center space-x-1.5 disabled:opacity-60 cursor-pointer"
           >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span>Refresh</span>
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshingHistory ? 'animate-spin text-blue-400' : ''}`} />
+            <span>{refreshingHistory ? 'Refreshing…' : 'Refresh'}</span>
           </button>
         </div>
 

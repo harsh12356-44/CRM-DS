@@ -168,6 +168,7 @@ export default function TimeTrackingAdmin() {
   const [breakForm, setBreakForm] = useState<{ tea: string; lunch: string } | null>(null);
   const [clockOffset, setClockOffset] = useState(0);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (r?: { from: string; to: string } | null) => {
     try {
@@ -221,6 +222,17 @@ export default function TimeTrackingAdmin() {
     setPreset(p);
     setRange(r);
     fetchData(r);
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await fetchData(rangeRef.current || range);
+      setFlash('Records refreshed.');
+      setTimeout(() => setFlash(''), 3000);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const post = async (key: string, body: Record<string, unknown>, url = '/api/time-tracking/admin') => {
@@ -504,9 +516,14 @@ export default function TimeTrackingAdmin() {
             {!canManage && data.viewer.name ? ` · team of ${data.viewer.name}` : ''}.
           </p>
         </div>
-        <button type="button" onClick={() => fetchData(range)} className="self-start md:self-auto px-3.5 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white flex items-center space-x-2 cursor-pointer">
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>Refresh</span>
+        <button
+          type="button"
+          disabled={refreshing}
+          onClick={handleRefresh}
+          className="self-start md:self-auto px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 hover:text-white flex items-center space-x-2 cursor-pointer transition disabled:opacity-60"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-purple-400' : ''}`} />
+          <span>{refreshing ? 'Refreshing…' : 'Refresh'}</span>
         </button>
       </div>
 

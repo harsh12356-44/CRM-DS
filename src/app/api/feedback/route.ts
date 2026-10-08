@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getDbData, saveDbDataAsync } from '@/lib/store';
+import { getDbData, saveDbDataAsync, ensureCloudSync } from '@/lib/store';
 import { getRequestUser, findRequestEmployee } from '@/lib/requestUser';
 import { FeedbackCategory, FeedbackItem, FeedbackStatus } from '@/lib/types';
 import { deleteFeedbackFromPrisma } from '@/lib/dbSync';
@@ -31,6 +31,7 @@ function ensureAttachmentDir() {
 // GET: Fetch feedback items (Admin gets all, Employee gets their own)
 export async function GET(request: Request) {
   try {
+    await ensureCloudSync();
     const user = getRequestUser(request);
     const db = getDbData();
     const all = db.feedbackItems || [];

@@ -79,6 +79,10 @@
       - **Cross-Tab & Cross-Device Sync**: Dispatches `timeTrackerChanged` on state changes, listens for window focus events, and runs background live polling every 5 seconds (reduced from 30s) across both admin and employee portals.
       - **Strict HTTP No-Cache Headers**: Both `/api/time-tracking` and `/api/time-tracking/admin` return `Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0` to eliminate LiteSpeed/browser 304 response caching.
       - **Dual ID Matching (`id` & `employeeId`)**: Enhanced `getOpenEntry` and API handlers to match against both internal UUID `emp.id` and company code `emp.employeeId`, ensuring employees like Rishi are always matched accurately.
+      - **Interactive Refresh Buttons with Spinning Indicators & Cloud Sync**:
+        - Updated Refresh buttons across [TimeTrackingAdmin.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTrackingAdmin.tsx), [FeedbackAdminTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/FeedbackAdminTab.tsx), and [SupportFeedbackTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/SupportFeedbackTab.tsx) with active spinning state (`refreshing ? 'animate-spin' : ''`), disabled state during fetch, and temporary success toasts (`"Records refreshed."`).
+        - Integrated `ensureCloudSync()` directly into API route GET handlers (`/api/time-tracking/admin`, `/api/time-tracking`, `/api/feedback`) so clicking Refresh immediately pulls the latest state from PostgreSQL / Supabase into memory.
+        - Made refreshes non-blocking so tables and card grids stay visible instead of flashing full-page loading skeletons.
     - Single permission stream is re-used across break pauses and work resumption without repeated browser permission prompts.
     - Captures at configurable intervals (default: 10 mins).
     - Stores images as plain files on disk under `/data/screenshots/` (indexed via `index.json`) to keep `db.json` and database operations fast and bloat-free.

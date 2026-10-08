@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-import { getDbData, saveDbDataAsync, InitialState } from '@/lib/store';
+import { getDbData, saveDbDataAsync, ensureCloudSync, InitialState } from '@/lib/store';
 import { deleteTimeEntryFromPrisma } from '@/lib/dbSync';
 
 const NO_CACHE_HEADERS = {
@@ -112,6 +112,7 @@ function scopeEmployees(db: InitialState, role: string, viewer: Employee | undef
 
 export async function GET(request: Request) {
   try {
+    await ensureCloudSync();
     const user = getRequestUser(request);
     if (!user.role) {
       return NextResponse.json({ error: 'Please sign in again.' }, { status: 401 });
@@ -173,6 +174,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    await ensureCloudSync();
     const user = getRequestUser(request);
     if (user.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Only HR admins can change time tracking data.' }, { status: 403 });

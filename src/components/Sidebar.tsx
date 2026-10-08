@@ -52,6 +52,8 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   const [empCodeDisplay, setEmpCodeDisplay] = useState<string>('NB002');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+  const [companyLogoUrl, setCompanyLogoUrl] = useState<string>('');
+  const [companyName, setCompanyName] = useState<string>('HRM Pilot');
 
   useEffect(() => {
     setMounted(true);
@@ -61,18 +63,33 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
         setIsCollapsed(true);
       }
 
+      const cachedLogo = localStorage.getItem('hrm_company_logo');
+      const cachedName = localStorage.getItem('hrm_company_name');
+      if (cachedLogo) setCompanyLogoUrl(cachedLogo);
+      if (cachedName) setCompanyName(cachedName);
+
       const handleToggle = () => setIsMobileOpen(prev => !prev);
       const handleOpen = () => setIsMobileOpen(true);
       const handleClose = () => setIsMobileOpen(false);
+      const handleSettingsUpdate = (e: any) => {
+        if (e?.detail?.companyLogoUrl !== undefined) {
+          setCompanyLogoUrl(e.detail.companyLogoUrl);
+        }
+        if (e?.detail?.companyName) {
+          setCompanyName(e.detail.companyName);
+        }
+      };
 
       window.addEventListener('toggleMobileSidebar', handleToggle);
       window.addEventListener('openMobileSidebar', handleOpen);
       window.addEventListener('closeMobileSidebar', handleClose);
+      window.addEventListener('settingsUpdated', handleSettingsUpdate);
 
       return () => {
         window.removeEventListener('toggleMobileSidebar', handleToggle);
         window.removeEventListener('openMobileSidebar', handleOpen);
         window.removeEventListener('closeMobileSidebar', handleClose);
+        window.removeEventListener('settingsUpdated', handleSettingsUpdate);
       };
     }
   }, []);
@@ -334,11 +351,22 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
               {/* Header with Close Button */}
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-md">
-                    H
-                  </div>
+                  {companyLogoUrl ? (
+                    <div className="h-8 max-w-[100px] flex items-center justify-center shrink-0">
+                      <img
+                        src={companyLogoUrl}
+                        alt={companyName || 'Company Logo'}
+                        className="max-h-8 max-w-[100px] object-contain rounded-md"
+                        onError={() => setCompanyLogoUrl('')}
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-sm text-white shadow-md">
+                      {companyName ? companyName.charAt(0).toUpperCase() : 'H'}
+                    </div>
+                  )}
                   <div>
-                    <p className="font-extrabold text-sm text-white font-heading">HRM Pilot</p>
+                    <p className="font-extrabold text-sm text-white font-heading">{companyName || 'HRM Pilot'}</p>
                     <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">{effectiveRole} Menu</p>
                   </div>
                 </div>

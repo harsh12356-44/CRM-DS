@@ -46,4 +46,7 @@ next_build.tar.gz
 # Time tracking upload archive folder
 /timetracking/
 
+# General user uploads (e.g. company logo)
+/data/uploads/
+
 

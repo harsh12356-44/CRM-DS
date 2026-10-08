@@ -18,6 +18,36 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [savingDb, setSavingDb] = useState(false);
   const [saveToast, setSaveToast] = useState<{ show: boolean; msg: string; isError?: boolean }>({ show: false, msg: '' });
+  const [companyLogoUrl, setCompanyLogoUrl] = useState<string>('');
+  const [companyName, setCompanyName] = useState<string>('HRM Pilot');
+
+  const loadBrandSettings = async () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const cachedLogo = localStorage.getItem('hrm_company_logo');
+        const cachedName = localStorage.getItem('hrm_company_name');
+        if (cachedLogo) setCompanyLogoUrl(cachedLogo);
+        if (cachedName) setCompanyName(cachedName);
+      }
+      const res = await fetch(`/api/settings?_t=${Date.now()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.companyLogoUrl) {
+          setCompanyLogoUrl(data.companyLogoUrl);
+          if (typeof window !== 'undefined') localStorage.setItem('hrm_company_logo', data.companyLogoUrl);
+        } else {
+          setCompanyLogoUrl('');
+          if (typeof window !== 'undefined') localStorage.removeItem('hrm_company_logo');
+        }
+        if (data?.companyName) {
+          setCompanyName(data.companyName);
+          if (typeof window !== 'undefined') localStorage.setItem('hrm_company_name', data.companyName);
+        }
+      }
+    } catch (e) {
+      // Quiet fallback
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -107,6 +137,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
   useEffect(() => {
     fetchNotifications();
     loadActiveUser();
+    loadBrandSettings();
     
     // Enforce permanent dark mode globally across all portals & roles
     if (typeof window !== 'undefined') {
@@ -114,11 +145,22 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
       localStorage.removeItem('hrm_theme');
     }
 
+    const handleSettingsUpdate = (e: any) => {
+      if (e?.detail?.companyLogoUrl !== undefined) {
+        setCompanyLogoUrl(e.detail.companyLogoUrl);
+      }
+      if (e?.detail?.companyName) {
+        setCompanyName(e.detail.companyName);
+      }
+    };
+
     window.addEventListener('roleChange', loadActiveUser);
     window.addEventListener('employeeChanged', loadActiveUser);
+    window.addEventListener('settingsUpdated', handleSettingsUpdate);
     return () => {
       window.removeEventListener('roleChange', loadActiveUser);
       window.removeEventListener('employeeChanged', loadActiveUser);
+      window.removeEventListener('settingsUpdated', handleSettingsUpdate);
     };
   }, [currentRole]);
 
@@ -234,12 +276,23 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
         </button>
 
         <Link suppressHydrationWarning href={!mounted ? (currentRole === 'ADMIN' ? "/admin" : "/employee") : (isRavinaUser ? "/admin" : "/employee")} onClick={() => setRoleCookie(isRavinaUser ? 'ADMIN' : 'EMPLOYEE')} className="flex items-center space-x-2 sm:space-x-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-base sm:text-lg shadow-md text-white shrink-0">
-            H
-          </div>
+          {companyLogoUrl ? (
+            <div className="h-8 sm:h-9 max-w-[130px] flex items-center justify-center shrink-0">
+              <img
+                src={companyLogoUrl}
+                alt={companyName || 'Company Logo'}
+                className="max-h-8 sm:max-h-9 max-w-[130px] object-contain rounded-lg"
+                onError={() => setCompanyLogoUrl('')}
+              />
+            </div>
+          ) : (
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-base sm:text-lg shadow-md text-white shrink-0">
+              {companyName ? companyName.charAt(0).toUpperCase() : 'H'}
+            </div>
+          )}
           <div>
             <span className="font-black text-sm sm:text-base tracking-tight text-slate-900 dark:text-white font-heading">
-              HRM Pilot
+              {companyName || 'HRM Pilot'}
             </span>
             <span className="hidden xs:inline-block ml-1.5 sm:ml-2 text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 font-bold uppercase tracking-wider">
               WP 1:1

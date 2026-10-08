@@ -24,11 +24,12 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [infoMsg, setInfoMsg] = useState('');
 
-  // Device-isolated saved credentials state
   const [savedAccount, setSavedAccount] = useState<SavedDeviceAccount | null>(null);
   const [useDifferentAccount, setUseDifferentAccount] = useState(false);
   const [showCredentialEditor, setShowCredentialEditor] = useState(false);
   const [isClientMounted, setIsClientMounted] = useState(false);
+  const [companyLogoUrl, setCompanyLogoUrl] = useState<string>('');
+  const [companyName, setCompanyName] = useState<string>('HRM Pilot');
 
   // Read device-only saved account from localStorage on mount
   useEffect(() => {
@@ -46,6 +47,26 @@ export default function LoginPage() {
     } catch (e) {
       console.warn('Failed to load device saved login:', e);
     }
+
+    try {
+      const cachedLogo = localStorage.getItem('hrm_company_logo');
+      const cachedName = localStorage.getItem('hrm_company_name');
+      if (cachedLogo) setCompanyLogoUrl(cachedLogo);
+      if (cachedName) setCompanyName(cachedName);
+      fetch('/api/settings')
+        .then(res => res.json())
+        .then(data => {
+          if (data?.companyLogoUrl) {
+            setCompanyLogoUrl(data.companyLogoUrl);
+            localStorage.setItem('hrm_company_logo', data.companyLogoUrl);
+          }
+          if (data?.companyName) {
+            setCompanyName(data.companyName);
+            localStorage.setItem('hrm_company_name', data.companyName);
+          }
+        })
+        .catch(() => {});
+    } catch (e) {}
   }, []);
 
   const executeLogin = async (targetEmail: string, targetPass: string, shouldSave: boolean) => {
@@ -190,10 +211,23 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-5 sm:space-y-6 z-10">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-xl shadow-blue-500/20 text-white font-extrabold text-xl sm:text-2xl mx-auto">
-            H
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white light:text-slate-900 tracking-tight">HRM Pilot Portal</h1>
+          {companyLogoUrl ? (
+            <div className="inline-flex items-center justify-center max-h-16 max-w-[220px] mx-auto p-1">
+              <img
+                src={companyLogoUrl}
+                alt={companyName || 'Company Logo'}
+                className="max-h-14 sm:max-h-16 max-w-full object-contain drop-shadow-md"
+                onError={() => setCompanyLogoUrl('')}
+              />
+            </div>
+          ) : (
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 shadow-xl shadow-blue-500/20 text-white font-extrabold text-xl sm:text-2xl mx-auto">
+              {companyName ? companyName.charAt(0).toUpperCase() : 'H'}
+            </div>
+          )}
+          <h1 className="text-2xl sm:text-3xl font-black text-white light:text-slate-900 tracking-tight">
+            {companyName ? `${companyName} Portal` : 'HRM Pilot Portal'}
+          </h1>
           <p className="text-[11px] sm:text-xs text-slate-400 light:text-slate-600 font-medium">Enterprise Attendance, Leave Management & Payroll SaaS v2.0</p>
         </div>
 

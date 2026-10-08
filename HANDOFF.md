@@ -56,6 +56,23 @@
     - Created standalone Prisma model `FeedbackTicket` in [prisma/schema.prisma](file:///d:/Ravina/Antigravity/crm-ds/prisma/schema.prisma) with indexes on `employeeId`, `category`, and `status`.
     - Integrated with [src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts) and [src/lib/dbSync.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/dbSync.ts) with decoupled `try/catch` handlers.
     - Attachments stored securely in `data/feedback_attachments/` (ignored in `.gitignore`) and served via API endpoint `/api/feedback/image?id=...` with automatic fallback to data URLs.
+- **Company Logo Upload & Global Brand Identity System**:
+  - **Requirement Addressed**: Provided HR Admin with an intuitive, drag-and-drop / file browser option in **Configuration Rules & Settings** (`/admin/settings`) to directly upload a company logo image (PNG, JPG, JPEG, WEBP, or SVG up to 5 MB) instead of relying solely on manual external URLs.
+  - **Interactive Drag & Drop Upload Zone ([src/components/SettingsTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/SettingsTab.tsx))**:
+    - Built a drag-and-drop upload zone with file type and size validation.
+    - Instant 0ms optimistic preview with dark/transparent contrast card, status badges, and loading spinner during upload.
+    - Added dedicated **"Upload New Logo"** and **"Remove Logo"** actions.
+    - Added an optional toggle for manual direct URL entry for external CDN links.
+    - Dispatches a custom window event (`settingsUpdated`) and updates `localStorage` (`hrm_company_logo`, `hrm_company_name`) for instantaneous cross-tab synchronization.
+  - **Dedicated Logo API Endpoints ([src/app/api/settings/logo/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/settings/logo/route.ts))**:
+    - `POST /api/settings/logo`: Accepts multipart `FormData` or JSON base64 payloads, writes to persistent `data/uploads/company_logo.<ext>`, updates `db.settings.companyLogoUrl = '/api/settings/logo?v=' + Date.now()`, persists DB with non-blocking cloud sync, and returns `success: true`.
+    - `GET /api/settings/logo`: Serves the active logo image binary stream with proper MIME type (`image/png`, `image/jpeg`, `image/webp`, `image/svg+xml`, `image/gif`) and HTTP cache headers (`public, max-age=3600, stale-while-revalidate=86400`). Falls back to embedded data URLs if disk read fails.
+    - `DELETE /api/settings/logo`: Unlinks the logo file on disk, clears `companyLogoUrl` in settings, and persists database state.
+    - Added `/data/uploads/` to [.gitignore](file:///d:/Ravina/Antigravity/crm-ds/.gitignore) to protect uploaded files from Git operations.
+  - **Dynamic Brand Rendering Across Entire Platform**:
+    - **Top Navigation Bar ([src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx))**: Automatically renders the uploaded company logo in the header bar with responsive max-height and aspect ratio constraints, dynamically replacing the default gradient initial box with 0ms delay.
+    - **Login Portal Screen ([src/app/login/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/login/page.tsx))**: Displays the customized company logo and company name above the sign-in card.
+    - **Mobile Off-Canvas Drawer ([src/components/Sidebar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Sidebar.tsx))**: Displays the brand logo in the mobile drawer header.
 - **Integrated WFH Time Tracking & Screenshot Monitoring (v3 - Non-Regressive)**:
   - **Requirement Addressed**: Incorporated dedicated time tracking with session management (Clock In / Clock Out), structured breaks (Tea & Lunch), screenshot capture, automatic retention cleanup, and administrative timesheet reporting without modifying or affecting official biometric attendance, leave records, or existing database tables.
   - **Strict Isolation from Biometric Attendance**:

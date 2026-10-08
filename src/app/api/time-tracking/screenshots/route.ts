@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-import { getDbData, saveDbDataAsync } from '@/lib/store';
+import { getDbData, saveDbDataAsync, ensureCloudSync } from '@/lib/store';
 import { ScreenshotMeta } from '@/lib/types';
 import { getRequestUser, findRequestEmployee, isSameEmployee, canViewEmployee } from '@/lib/requestUser';
 import {
@@ -25,6 +25,12 @@ import {
   saveScreenshot,
 } from '@/lib/screenshotStore';
 
+const NO_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  Pragma: 'no-cache',
+  Expires: '0',
+};
+
 const MAX_FULL_BYTES = 3 * 1024 * 1024;
 const MAX_THUMB_BYTES = 400 * 1024;
 const MIN_GAP_MS = 20 * 1000;
@@ -37,14 +43,16 @@ function isJpeg(buf: Buffer) {
 export async function GET(request: Request) {
   try {
     const user = getRequestUser(request);
-    if (!user.role) return NextResponse.json({ error: 'Please sign in again.' }, { status: 401 });
+    if (!user.role) return NextResponse.json({ error: 'Please sign in again.' }, { status: 401, headers: NO_CACHE_HEADERS });
+    await ensureCloudSync();
     const url = new URL(request.url);
     const db = getDbData();
     const viewer = findRequestEmployee(user, db.employees);
-    const emp = db.employees.find(e => e.id === (url.searchParams.get('employeeId') || viewer?.id));
-    if (!emp) return NextResponse.json({ error: 'Employee not found.' }, { status: 404 });
+    const targetId = String(url.searchParams.get('employeeId') || viewer?.id || '').trim();
+    const emp = db.employees.find(e => e.id === targetId || e.employeeId === targetId);
+    if (!emp) return NextResponse.json({ error: 'Employee not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
     if (!canViewEmployee(user, viewer, emp)) {
-      return NextResponse.json({ error: 'You can only view your own screenshots.' }, { status: 403 });
+      return NextResponse.json({ error: 'You can only view your own screenshots.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
     const date = isDateKey(url.searchParams.get('date')) ? url.searchParams.get('date')! : istDateKey();
     // Auto-delete old screenshots even on days nobody uploads (throttled to every 6h).
@@ -56,9 +64,9 @@ export async function GET(request: Request) {
       dates: listScreenshotDates(emp.id),
       config: getScreenshotConfig(emp, db.timeTrackingSettings),
       canDelete: user.role === 'ADMIN',
-    });
+    }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to load screenshots.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to load screenshots.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -67,43 +75,45 @@ export async function POST(request: Request) {
   try {
     const user = getRequestUser(request);
     const form = await request.formData();
+    await ensureCloudSync();
     const db = getDbData();
-    const emp = db.employees.find(e => e.id === form.get('employeeId'));
-    if (!emp) return NextResponse.json({ error: 'Employee not found.' }, { status: 404 });
-    if (!isSameEmployee(user, emp)) {
-      return NextResponse.json({ error: 'Screenshots can only be uploaded from your own login.' }, { status: 403 });
+    const targetId = String(form.get('employeeId') || '').trim();
+    const emp = db.employees.find(e => e.id === targetId || e.employeeId === targetId);
+    if (!emp) return NextResponse.json({ error: 'Employee not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
+    if (user.role !== 'ADMIN' && !isSameEmployee(user, emp)) {
+      return NextResponse.json({ error: 'Screenshots can only be uploaded from your own login.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
 
     const config = getScreenshotConfig(emp, db.timeTrackingSettings);
     if (!isTimeTrackingEnabled(emp) || !config.enabled) {
-      return NextResponse.json({ error: 'Screenshots are turned off for you.', stop: true, config }, { status: 409 });
+      return NextResponse.json({ error: 'Screenshots are turned off for you.', stop: false, paused: true, config }, { status: 409, headers: NO_CACHE_HEADERS });
     }
-    const open = getOpenEntry(db.timeEntries || [], emp.id);
+    const open = getOpenEntry(db.timeEntries || [], emp.id, emp.employeeId);
     if (!open || getEntryStatus(open) !== 'WORKING') {
-      // Not clocked in or on a break — the client should stop capturing.
+      // Not clocked in or on a break — screenshots paused. DO NOT tell client to kill MediaStream!
       const off = getEntryStatus(open) === 'OFF';
-      return NextResponse.json({ error: off ? 'Not clocked in.' : 'On a break — screenshots paused.', stop: off, config }, { status: 409 });
+      return NextResponse.json({ error: off ? 'Not clocked in.' : 'On a break — screenshots paused.', stop: false, paused: true, config }, { status: 409, headers: NO_CACHE_HEADERS });
     }
 
     const nowMs = Date.now();
     const today = istDateKey(nowMs);
     const last = getLastScreenshotAt(emp.id, today);
     if (last && nowMs - new Date(last).getTime() < MIN_GAP_MS) {
-      return NextResponse.json({ error: 'Too many screenshots.', config }, { status: 429 });
+      return NextResponse.json({ error: 'Too many screenshots.', config }, { status: 429, headers: NO_CACHE_HEADERS });
     }
 
     const full = form.get('full');
     const thumb = form.get('thumb');
     if (!(full instanceof Blob) || !(thumb instanceof Blob)) {
-      return NextResponse.json({ error: 'Image files are missing.' }, { status: 400 });
+      return NextResponse.json({ error: 'Image files are missing.' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
     if (full.size > MAX_FULL_BYTES || thumb.size > MAX_THUMB_BYTES) {
-      return NextResponse.json({ error: 'Screenshot is too large.' }, { status: 413 });
+      return NextResponse.json({ error: 'Screenshot is too large.' }, { status: 413, headers: NO_CACHE_HEADERS });
     }
     const fullBuf = Buffer.from(await full.arrayBuffer());
     const thumbBuf = Buffer.from(await thumb.arrayBuffer());
     if (!isJpeg(fullBuf) || !isJpeg(thumbBuf)) {
-      return NextResponse.json({ error: 'Screenshots must be JPEG images.' }, { status: 400 });
+      return NextResponse.json({ error: 'Screenshots must be JPEG images.' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
     const takenAt = new Date(nowMs).toISOString();
@@ -125,11 +135,12 @@ export async function POST(request: Request) {
     };
     saveScreenshot(meta, fullBuf, thumbBuf);
     rememberCapture(emp.id, takenAt);
+    if (emp.employeeId) rememberCapture(emp.employeeId, takenAt);
     cleanupOldScreenshots(resolveTimeTrackingSettings(db.timeTrackingSettings).screenshotRetentionDays, today);
 
-    return NextResponse.json({ success: true, takenAt, config });
+    return NextResponse.json({ success: true, takenAt, config }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Screenshot upload failed.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Screenshot upload failed.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }
 
@@ -138,12 +149,13 @@ export async function DELETE(request: Request) {
   try {
     const user = getRequestUser(request);
     if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Only HR admins can delete screenshots.' }, { status: 403 });
+      return NextResponse.json({ error: 'Only HR admins can delete screenshots.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
+    await ensureCloudSync();
     const url = new URL(request.url);
     const employeeId = url.searchParams.get('employeeId') || '';
     const removed = deleteScreenshot(employeeId, url.searchParams.get('date') || '', url.searchParams.get('id') || '');
-    if (!removed) return NextResponse.json({ error: 'Screenshot not found.' }, { status: 404 });
+    if (!removed) return NextResponse.json({ error: 'Screenshot not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
     forgetCapture(employeeId);
 
     const db = getDbData();
@@ -159,8 +171,8 @@ export async function DELETE(request: Request) {
       timestamp: new Date().toISOString(),
     });
     await saveDbDataAsync(db);
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true }, { headers: NO_CACHE_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Failed to delete screenshot.' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to delete screenshot.' }, { status: 500, headers: NO_CACHE_HEADERS });
   }
 }

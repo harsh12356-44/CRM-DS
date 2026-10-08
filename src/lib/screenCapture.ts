@@ -91,14 +91,13 @@ class ScreenCaptureManager {
       const displayMediaOptions: any = {
         video: {
           displaySurface: 'monitor',
-          frameRate: 1,
+          frameRate: { ideal: 5, max: 15 },
         },
         audio: false,
         selfBrowserSurface: 'exclude',
         surfaceSwitching: 'exclude',
         systemAudio: 'exclude',
         preferCurrentTab: false,
-        monitorTypeSurfaces: 'include',
       };
 
       const stream = await (navigator.mediaDevices as any).getDisplayMedia(displayMediaOptions);
@@ -347,14 +346,22 @@ class ScreenCaptureManager {
         window.dispatchEvent(new CustomEvent('screenshotCaptured'));
       } else {
         this.set({ uploading: false });
-        if (payload.stop) this.stop();
-        else if (res.status === 409) this.set({ running: false });
-        else if (res.status !== 429) this.set({ error: payload.error || 'Screenshot upload failed — will retry.' });
-        if (res.status >= 500) this.nextShotAt = Date.now() + 30000;
+        if (res.status === 409) {
+          // 409 means not clocked in yet or on a break. NEVER terminate the MediaStream!
+          // Keep the stream alive and schedule retry in 15s.
+          this.set({ error: payload.error || 'Screenshots paused.' });
+          this.nextShotAt = Date.now() + 15000;
+        } else if (res.status === 429) {
+          this.set({ error: 'Screenshots throttled. Retrying shortly.' });
+          this.nextShotAt = Date.now() + 60000;
+        } else {
+          this.set({ error: payload.error || 'Screenshot upload failed — will retry.' });
+          this.nextShotAt = Date.now() + 20000;
+        }
       }
     } catch {
       this.set({ uploading: false, error: 'Screenshot upload failed (network). Will retry.' });
-      this.nextShotAt = Date.now() + 30000;
+      this.nextShotAt = Date.now() + 20000;
     } finally {
       this.inFlight = false;
     }

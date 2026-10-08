@@ -183,7 +183,12 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
   useEffect(() => {
     const mgr = getScreenCapture();
     if (!mgr || !data?.canEdit) return;
-    if (!shotsEnabled || status === 'OFF') {
+    if (busy) return; // Do not interrupt an active clock-in/out or break transition
+    if (!shotsEnabled) {
+      if (mgr.snapshot.sharing || mgr.snapshot.running) mgr.stop();
+      return;
+    }
+    if (status === 'OFF') {
       if (mgr.snapshot.sharing || mgr.snapshot.running) mgr.stop();
       return;
     }
@@ -191,7 +196,7 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
       employeeName: data.employee.name,
       activity: data.activeEntry?.activity || activity,
     });
-  }, [data?.canEdit, data?.employee.name, data?.activeEntry?.activity, activity, shotsEnabled, shotInterval, status, employeeId]);
+  }, [data?.canEdit, data?.employee.name, data?.activeEntry?.activity, activity, shotsEnabled, shotInterval, status, employeeId, busy]);
 
   // Reloading or closing the page ends screen sharing, so warn while it is active.
   const sharingLive = Boolean(capture?.sharing && status !== 'OFF');
@@ -213,6 +218,11 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
     const ok = await mgr.requestScreen(employeeId, data?.employee.name, activity);
     if (!ok) {
       setError(mgr.snapshot.error || 'Company policy requires sharing your Entire Screen.');
+    } else if (status === 'WORKING') {
+      mgr.setRunning(true, employeeId, shotInterval, {
+        employeeName: data?.employee.name,
+        activity: data?.activeEntry?.activity || activity,
+      });
     }
   };
 
@@ -286,6 +296,34 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
           return;
         }
       }
+
+      // Instant optimistic update for CLOCK_IN (0ms delay)
+      if (action === 'CLOCK_IN') {
+        const nowIso = new Date().toISOString();
+        const chosenActivity = (extra.activity as string) || activity || data.activities[0]?.name || 'General';
+        setData(prev => {
+          if (!prev) return prev;
+          const newEntry: TimeEntry = {
+            id: `opt-${Date.now()}`,
+            employeeId: prev.employee.id,
+            date: istDateKey(),
+            activity: chosenActivity,
+            clockIn: nowIso,
+            breaks: [],
+            source: 'WEB',
+            createdAt: nowIso,
+            updatedAt: nowIso,
+          };
+          return {
+            ...prev,
+            status: 'WORKING' as TrackerStatus,
+            activeEntry: newEntry,
+            entries: [newEntry, ...prev.entries],
+          };
+        });
+        window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+      }
+
       const r = rangeFor(viewWeek, data.today);
       const res = await fetch('/api/time-tracking', {
         method: 'POST',

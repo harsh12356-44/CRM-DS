@@ -143,7 +143,7 @@ export async function GET(request: Request) {
     // Every active employee is listed (the tracker is optional for everyone, not only WFH);
     // those who have not turned it on show up as "Tracker off".
     const visible = scoped.filter(e => (e.status || 'ACTIVE') !== 'INACTIVE');
-    const scopedIds = new Set(scoped.map(e => e.id));
+    const scopedIds = new Set(scoped.flatMap(e => [e.id, e.employeeId].filter(Boolean) as string[]));
     const entries = db.timeEntries.filter(e => scopedIds.has(e.employeeId));
 
     return NextResponse.json({

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { getDbData } from '@/lib/store';
+import { getDbData, ensureCloudSync } from '@/lib/store';
 import { getRequestUser, findRequestEmployee, canViewEmployee } from '@/lib/requestUser';
 import { readScreenshotImage } from '@/lib/screenshotStore';
 
@@ -9,9 +9,11 @@ import { readScreenshotImage } from '@/lib/screenshotStore';
 export async function GET(request: Request) {
   const user = getRequestUser(request);
   if (!user.role) return new NextResponse('Unauthorized', { status: 401 });
+  await ensureCloudSync();
   const url = new URL(request.url);
   const db = getDbData();
-  const emp = db.employees.find(e => e.id === url.searchParams.get('employeeId'));
+  const empParam = String(url.searchParams.get('employeeId') || '').trim();
+  const emp = db.employees.find(e => e.id === empParam || e.employeeId === empParam);
   if (!emp) return new NextResponse('Not found', { status: 404 });
   if (!canViewEmployee(user, findRequestEmployee(user, db.employees), emp)) {
     return new NextResponse('Forbidden', { status: 403 });

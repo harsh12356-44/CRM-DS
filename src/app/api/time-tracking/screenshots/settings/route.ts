@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse } from 'next/server';
-import { getDbData, saveDbDataAsync } from '@/lib/store';
+import { getDbData, saveDbDataAsync, ensureCloudSync } from '@/lib/store';
 import { cleanupOldScreenshots } from '@/lib/screenshotStore';
 import { getRequestUser, findRequestEmployee, isManagerOf } from '@/lib/requestUser';
 import {
@@ -24,6 +24,7 @@ export async function POST(request: Request) {
     const user = getRequestUser(request);
     if (!user.role) return NextResponse.json({ error: 'Please sign in again.' }, { status: 401 });
     const body = await request.json();
+    await ensureCloudSync();
     const db = getDbData();
     const actor = findRequestEmployee(user, db.employees);
     const isAdmin = user.role === 'ADMIN';

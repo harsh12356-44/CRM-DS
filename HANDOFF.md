@@ -7,6 +7,24 @@
 ---
 
 ## 2. Current Project Status
+- **Company Branches Management & Zero-Disruption Multi-Branch Architecture**:
+  - **Requirement Addressed**: Allowed Digital Suncity to introduce multiple operational branches without altering or disrupting existing database records, biometric punches, leave records, or portal workflows.
+    - **Main Branch**: Default HQ branch with 1 weekly off (Sunday) and 8 hours working target including 1 hour break (420m actual working time + 60m break).
+    - **SEO Branch**: Dedicated digital marketing branch with 2 weekly offs (Saturday & Sunday) and 9 hours working target including 1 hour break (480m actual working time + 60m break).
+  - **Zero Data Loss Backwards Compatibility ([src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts), [src/lib/types.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/types.ts))**:
+    - Added `Branch` interface and `DEFAULT_BRANCHES` specification.
+    - In `getDbData()`, any employee lacking `branchId` is mapped on-the-fly to `branchId: 'branch-main'` and `branch: 'Main Branch'`. Existing `data/db.json` files require no migration scripts and suffer zero disruption.
+  - **Dedicated Branch Management Desk ([src/app/admin/branches/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/branches/page.tsx), [src/components/BranchesTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/BranchesTab.tsx))**:
+    - Admin suite desk accessible via `/admin/branches` and pinned in Sidebar under "CORE MANAGEMENT".
+    - Metric summary cards: Total Branches, Main Branch (HQ), SEO Branch, and Total Assigned Staff.
+    - Add/Edit Branch modal with customizable shift hours (8h vs 9h), weekly off presets (1-day vs 2-day off), address, and branch codes.
+    - Deletion protection: Primary HQ branch and branches with currently assigned employees cannot be accidentally deleted.
+  - **Full Employee Directory Integration ([src/components/EmployeesTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/EmployeesTab.tsx), [src/app/api/employees/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/employees/route.ts))**:
+    - Directory filter dropdown: Filter employee roster by "All Branches", "Main Branch", or "SEO Branch".
+    - Employee card branch indicator: Displays `📍 Main Branch` or `📍 SEO Branch` badge.
+    - Add/Edit Profile modal: Branch selector dropdown automatically sets default shift target (8h vs 9h) and weekly off schedule (Sunday vs Saturday & Sunday) while preserving granular manual adjustment capabilities.
+  - **Dedicated Branches API Endpoint ([src/app/api/branches/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/branches/route.ts))**:
+    - Full CRUD support (`GET`, `POST`, `PUT`, `DELETE`) with dynamic staff headcount computation and strict no-cache HTTP headers.
 - **Permanent Removal of Light Theme Option & Global Dark Theme Enforcement**:
   - **Requirement Addressed**: Per user directive ("remove light theme option"), completely removed all light theme controls, buttons, toggle states, and stylesheets from the platform.
   - **Global Dark Mode Across All Roles**: The platform now operates exclusively in modern, cohesive Dark Mode across all roles (HR Admin, Manager, and Employee) and views.

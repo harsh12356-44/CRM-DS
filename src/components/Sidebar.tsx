@@ -32,6 +32,7 @@ import {
   UsersRound,
   HelpCircle,
   MessageSquareQuote,
+  MapPin,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -170,6 +171,7 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
         { id: 'employees', label: 'Employees Roster', icon: Users, href: '/admin/employees' },
         { id: 'managers', label: 'Managers Desk', icon: UserCheck2, href: '/admin/managers' },
         { id: 'departments', label: 'Departments', icon: Building2, href: '/admin/departments' },
+        { id: 'branches', label: 'Company Branches', icon: MapPin, href: '/admin/branches' },
       ],
     },
     {

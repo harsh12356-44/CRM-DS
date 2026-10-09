@@ -31,6 +31,8 @@ export interface Employee {
   screenshotIntervalMinutes?: number; // legacy/nominal interval
   screenshotIntervalMinMinutes?: number; // minimum randomized interval minutes (e.g. 5)
   screenshotIntervalMaxMinutes?: number; // maximum randomized interval minutes (e.g. 7)
+  branchId?: string; // e.g. 'branch-main' or 'branch-seo'
+  branch?: string; // e.g. 'Main Branch' or 'SEO Branch'
 }
 
 export interface Department {
@@ -41,6 +43,39 @@ export interface Department {
   description?: string;
   employeeCount?: number;
 }
+
+export interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  dailyWorkingRequirementMinutes: number; // 420 for Main Branch (8h shift) or 480 for SEO Branch (9h shift)
+  weeklyOff: string; // 'Sunday' or 'Saturday & Sunday'
+  address?: string;
+  isDefault?: boolean;
+  employeeCount?: number;
+  createdAt?: string;
+}
+
+export const DEFAULT_BRANCHES: Branch[] = [
+  {
+    id: 'branch-main',
+    name: 'Main Branch',
+    code: 'MAIN',
+    dailyWorkingRequirementMinutes: 420, // 8h Shift (7h work + 1h break)
+    weeklyOff: 'Sunday', // 1 day off
+    address: 'Digital Suncity Head Office',
+    isDefault: true,
+  },
+  {
+    id: 'branch-seo',
+    name: 'SEO Branch',
+    code: 'SEO',
+    dailyWorkingRequirementMinutes: 480, // 9h Shift (8h work + 1h break)
+    weeklyOff: 'Saturday & Sunday', // 2 days off
+    address: 'Digital Suncity SEO & Digital Wing',
+    isDefault: false,
+  },
+];
 
 export interface LeaveRecord {
   id: string;

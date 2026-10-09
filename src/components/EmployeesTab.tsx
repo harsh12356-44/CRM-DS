@@ -21,13 +21,16 @@ import {
   Eye,
   EyeOff,
   Lock,
+  MapPin,
 } from 'lucide-react';
-import { Employee } from '@/lib/types';
+import { Employee, Branch } from '@/lib/types';
 
 export default function EmployeesTab() {
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [search, setSearch] = useState('');
   const [department, setDepartment] = useState('ALL');
+  const [branchFilter, setBranchFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -43,6 +46,8 @@ export default function EmployeesTab() {
   const [password, setPassword] = useState('Employee@123');
   const [showModalPassword, setShowModalPassword] = useState(false);
   const [phone, setPhone] = useState('');
+  const [branchId, setBranchId] = useState('branch-main');
+  const [branch, setBranch] = useState('Main Branch');
   const [dept, setDept] = useState('IT');
   const [designation, setDesignation] = useState('Manager');
   const [role, setRole] = useState<'ADMIN' | 'MANAGER' | 'EMPLOYEE'>('EMPLOYEE');
@@ -52,7 +57,7 @@ export default function EmployeesTab() {
   const [employmentStatus, setEmploymentStatus] = useState('Active');
   const [employeeType, setEmployeeType] = useState('Full Time');
   const [workMode, setWorkMode] = useState<'OFFICE' | 'WFH'>('OFFICE');
-  const [dailyWorkingRequirementMinutes, setDailyWorkingRequirementMinutes] = useState<number>(480);
+  const [dailyWorkingRequirementMinutes, setDailyWorkingRequirementMinutes] = useState<number>(420);
   const [salary, setSalary] = useState(75000);
   const [weeklyOff, setWeeklyOff] = useState('Sunday');
 
@@ -98,6 +103,18 @@ export default function EmployeesTab() {
     setWeeklyOff(next.join(', '));
   };
 
+  const fetchBranches = async () => {
+    try {
+      const res = await fetch(`/api/branches?_t=${Date.now()}`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setBranches(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch branches:', err);
+    }
+  };
+
   const fetchEmployees = async (isSilent = false) => {
     try {
       const res = await fetch(`/api/employees?_t=${Date.now()}`, { cache: 'no-store' });
@@ -109,9 +126,13 @@ export default function EmployeesTab() {
   };
 
   useEffect(() => {
+    fetchBranches();
     fetchEmployees();
 
-    const handleUpdate = () => fetchEmployees(true);
+    const handleUpdate = () => {
+      fetchBranches();
+      fetchEmployees(true);
+    };
     window.addEventListener('employeeDataUpdated', handleUpdate);
     window.addEventListener('focus', handleUpdate);
 
@@ -121,6 +142,16 @@ export default function EmployeesTab() {
     };
   }, []);
 
+  const handleBranchSelect = (selectedId: string) => {
+    setBranchId(selectedId);
+    const found = branches.find(b => b.id === selectedId);
+    if (found) {
+      setBranch(found.name);
+      setDailyWorkingRequirementMinutes(found.dailyWorkingRequirementMinutes);
+      setWeeklyOff(found.weeklyOff);
+    }
+  };
+
   const handleOpenAddModal = () => {
     setSelectedEmp(null);
     setEmployeeId(`EMP${Math.floor(100000 + Math.random() * 900000)}`);
@@ -129,6 +160,8 @@ export default function EmployeesTab() {
     setPassword('Employee@123');
     setShowModalPassword(false);
     setPhone('');
+    setBranchId('branch-main');
+    setBranch('Main Branch');
     setDept('IT');
     setDesignation('Software Engineer');
     setRole('EMPLOYEE');
@@ -138,7 +171,7 @@ export default function EmployeesTab() {
     setEmploymentStatus('Active');
     setEmployeeType('Full Time');
     setWorkMode('OFFICE');
-    setDailyWorkingRequirementMinutes(480);
+    setDailyWorkingRequirementMinutes(420);
     setSalary(75000);
     setWeeklyOff('Sunday');
     setIsModalOpen(true);
@@ -152,6 +185,8 @@ export default function EmployeesTab() {
     setPassword(emp.password || 'Employee@123');
     setShowModalPassword(false);
     setPhone(emp.phone || '');
+    setBranchId(emp.branchId || 'branch-main');
+    setBranch(emp.branch || 'Main Branch');
     setDept(emp.department || 'IT');
     setDesignation(emp.designation || 'Manager');
     setRole((emp.role as any) || 'EMPLOYEE');
@@ -161,7 +196,7 @@ export default function EmployeesTab() {
     setEmploymentStatus(emp.status === 'INACTIVE' ? 'Inactive' : 'Active');
     setEmployeeType(emp.employeeType || 'Full Time');
     setWorkMode(emp.workMode || 'OFFICE');
-    setDailyWorkingRequirementMinutes(emp.dailyWorkingRequirementMinutes || 480);
+    setDailyWorkingRequirementMinutes(emp.dailyWorkingRequirementMinutes || 420);
     setSalary(emp.monthlySalary || 75000);
     setWeeklyOff(emp.weeklyOff || 'Sunday');
     setIsModalOpen(true);
@@ -231,6 +266,8 @@ export default function EmployeesTab() {
           email,
           password,
           phone,
+          branchId,
+          branch,
           department: dept,
           designation,
           role: role || 'EMPLOYEE',
@@ -262,6 +299,7 @@ export default function EmployeesTab() {
     e =>
       (e.name.toLowerCase().includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase()) || (e.employeeId && e.employeeId.toLowerCase().includes(search.toLowerCase()))) &&
       (department === 'ALL' || e.department === department) &&
+      (branchFilter === 'ALL' || (e.branchId || 'branch-main') === branchFilter) &&
       (statusFilter === 'ALL' || e.status === statusFilter)
   );
 
@@ -321,6 +359,19 @@ export default function EmployeesTab() {
             <option value="SEO">SEO</option>
             <option value="Founders Office">Founders Office</option>
             <option value="General">General</option>
+          </select>
+
+          <select
+            value={branchFilter}
+            onChange={e => setBranchFilter(e.target.value)}
+            className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-blue-500 font-medium"
+          >
+            <option value="ALL">All Branches</option>
+            {branches.map(b => (
+              <option key={b.id} value={b.id}>
+                📍 {b.name} ({b.code})
+              </option>
+            ))}
           </select>
 
           <select
@@ -402,6 +453,16 @@ export default function EmployeesTab() {
               </div>
 
               <div className="space-y-1.5 pt-2 border-t border-slate-800/60 text-xs">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="flex items-center space-x-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Branch</span>
+                  </span>
+                  <span className="text-blue-300 font-semibold text-[11px] bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                    {emp.branch || (emp.branchId === 'branch-seo' ? 'SEO Branch' : 'Main Branch')}
+                  </span>
+                </div>
+
                 <div className="flex items-center justify-between text-slate-400">
                   <span className="flex items-center space-x-1.5">
                     <Building className="w-3.5 h-3.5 text-blue-400" />
@@ -554,6 +615,27 @@ export default function EmployeesTab() {
                       placeholder="Phone number"
                       className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-medium focus:border-blue-500 focus:outline-none"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-300 mb-1.5 flex items-center space-x-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Company Branch <span className="text-red-400">*</span></span>
+                    </label>
+                    <select
+                      value={branchId}
+                      onChange={e => handleBranchSelect(e.target.value)}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-medium focus:border-blue-500 focus:outline-none"
+                    >
+                      {branches.map(b => (
+                        <option key={b.id} value={b.id}>
+                          {b.name} ({b.code}) — {b.dailyWorkingRequirementMinutes === 420 ? '8h Shift' : '9h Shift'} • Off: {b.weeklyOff}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Selecting branch sets default shift duration & weekly off days.
+                    </p>
                   </div>
 
                   <div>

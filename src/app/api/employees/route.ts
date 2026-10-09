@@ -107,6 +107,8 @@ export async function POST(request: Request) {
       casualAllowance: Number(body.casualAllowance) || 2,
       plannedAllowance: Number(body.plannedAllowance) || 4,
       sickAllowance: Number(body.sickAllowance) || 4,
+      branchId: body.branchId || 'branch-main',
+      branch: body.branch || 'Main Branch',
     };
 
     db.employees.push(newEmp);

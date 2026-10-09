@@ -13,6 +13,8 @@ import {
   TimeActivity,
   TimeTrackingSettings,
   FeedbackItem,
+  Branch,
+  DEFAULT_BRANCHES,
 } from './types';
 import fs from 'fs';
 import path from 'path';
@@ -35,6 +37,7 @@ export interface InitialState {
   notifications: NotificationItem[];
   departments?: any[];
   deletedDepartments?: string[];
+  branches?: Branch[];
   timeEntries?: TimeEntry[];
   timeActivities?: TimeActivity[];
   timeTrackingSettings?: TimeTrackingSettings;
@@ -543,12 +546,20 @@ export function getDbData(): InitialState {
           }
         });
 
-        const employeesList = rawList.map((e: any) => ({
-          ...e,
-          casualAllowance: e.casualAllowance ?? 2,
-          plannedAllowance: e.plannedAllowance ?? 4,
-          sickAllowance: e.sickAllowance ?? 4,
-        }));
+        const rawBranches = Array.isArray(data.branches) && data.branches.length > 0 ? data.branches : DEFAULT_BRANCHES;
+        const branchMap = new Map(rawBranches.map((b: any) => [b.id, b.name]));
+
+        const employeesList = rawList.map((e: any) => {
+          const bId = e.branchId || 'branch-main';
+          return {
+            ...e,
+            branchId: bId,
+            branch: e.branch || branchMap.get(bId) || 'Main Branch',
+            casualAllowance: e.casualAllowance ?? 2,
+            plannedAllowance: e.plannedAllowance ?? 4,
+            sickAllowance: e.sickAllowance ?? 4,
+          };
+        });
 
         const rawLeaves = Array.isArray(data.leaveRecords) ? data.leaveRecords : [];
         const cleanedLeaves = rawLeaves.filter((l: any) => l.id !== 'l-1789898879360');
@@ -565,6 +576,7 @@ export function getDbData(): InitialState {
           attendanceImports: data.attendanceImports || [],
           notifications: data.notifications || DEFAULT_NOTIFICATIONS,
           departments: data.departments || [],
+          branches: rawBranches,
           timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
           timeActivities: Array.isArray(data.timeActivities) ? data.timeActivities : undefined,
           timeTrackingSettings: data.timeTrackingSettings || undefined,
@@ -615,6 +627,7 @@ export function getDbData(): InitialState {
     attendanceImports: [],
     notifications: DEFAULT_NOTIFICATIONS,
     departments: [],
+    branches: DEFAULT_BRANCHES,
     timeEntries: [],
     feedbackItems: [],
   };

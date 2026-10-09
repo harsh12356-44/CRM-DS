@@ -112,7 +112,9 @@ function scopeEmployees(db: InitialState, role: string, viewer: Employee | undef
 
 export async function GET(request: Request) {
   try {
-    await ensureCloudSync();
+    const url = new URL(request.url);
+    const forceSync = url.searchParams.get('sync') === '1';
+    await ensureCloudSync(forceSync);
     const user = getRequestUser(request);
     if (!user.role) {
       return NextResponse.json({ error: 'Please sign in again.' }, { status: 401 });
@@ -130,7 +132,6 @@ export async function GET(request: Request) {
       await saveDbDataAsync(db);
     }
 
-    const url = new URL(request.url);
     const today = istDateKey();
     let to = isDateKey(url.searchParams.get('to')) ? url.searchParams.get('to')! : today;
     let from = isDateKey(url.searchParams.get('from')) ? url.searchParams.get('from')! : addDays(to, -6);

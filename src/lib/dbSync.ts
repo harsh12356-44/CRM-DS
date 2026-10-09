@@ -434,8 +434,8 @@ async function persistTimeTrackingToPrisma(data: InitialState): Promise<void> {
     // Only the most recently touched sessions change between saves.
     const recent = [...(data.timeEntries || [])]
       .sort((a, b) => (b.updatedAt || b.createdAt).localeCompare(a.updatedAt || a.createdAt))
-      .slice(0, 100);
-    for (const e of recent) {
+      .slice(0, 30);
+    await Promise.all(recent.map(async e => {
       const fields = {
         employeeId: e.employeeId,
         date: e.date,
@@ -454,7 +454,7 @@ async function persistTimeTrackingToPrisma(data: InitialState): Promise<void> {
         update: fields,
         create: { id: e.id, createdAt: new Date(e.createdAt), ...fields },
       });
-    }
+    }));
   } catch (error) {
     console.warn('[dbSync] Failed to persist time tracking data:', error);
   }

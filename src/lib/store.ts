@@ -622,11 +622,26 @@ export function getDbData(): InitialState {
   return memoryDb;
 }
 
-export async function ensureCloudSync() {
+let lastCloudSyncTime = 0;
+const CLOUD_SYNC_THROTTLE_MS = 15000;
+
+export async function ensureCloudSync(force = false) {
+  const now = Date.now();
+  if (!force && lastCloudSyncTime && now - lastCloudSyncTime < CLOUD_SYNC_THROTTLE_MS) {
+    return;
+  }
+  lastCloudSyncTime = now;
+
   try {
     // 1. Prioritize reading directly from Supabase PostgreSQL in cloud/Vercel environments
     const cloudData = await loadDataFromPrisma();
     if (cloudData && cloudData.employees && cloudData.employees.length > 0) {
+      if (memoryDb && Array.isArray(memoryDb.timeEntries) && memoryDb.timeEntries.length > 0) {
+        cloudData.timeEntries = mergeTimeEntriesNonRegressive(memoryDb.timeEntries, cloudData.timeEntries || []);
+      }
+      if (memoryDb && Array.isArray(memoryDb.leaveRecords) && memoryDb.leaveRecords.length > 0) {
+        cloudData.leaveRecords = mergeLeavesNonRegressive(memoryDb.leaveRecords, cloudData.leaveRecords || []);
+      }
       memoryDb = cloudData;
       (globalThis as any)._inMemoryDbData = cloudData;
       return;
@@ -644,6 +659,9 @@ export async function ensureCloudSync() {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed.leaveRecords) && db.leaveRecords.length > 0) {
           db.leaveRecords = mergeLeavesNonRegressive(db.leaveRecords || [], parsed.leaveRecords);
+        }
+        if (Array.isArray(parsed.timeEntries) && db.timeEntries && db.timeEntries.length > 0) {
+          db.timeEntries = mergeTimeEntriesNonRegressive(db.timeEntries, parsed.timeEntries);
         }
         if (Array.isArray(parsed.attendanceLogs) && parsed.attendanceLogs.length > 0) {
           parsed.attendanceLogs.forEach((l: AttendanceLog) => {
@@ -943,6 +961,44 @@ export function mergeLeavesNonRegressive(primaryList: LeaveRecord[], secondaryLi
     if (!record) return;
     const cleanId = record.id ? String(record.id).trim() : '';
     if (cleanId && !map.has(cleanId)) map.set(cleanId, { ...record });
+  });
+
+  return Array.from(map.values());
+}
+
+export function mergeTimeEntriesNonRegressive(primaryList: TimeEntry[] = [], secondaryList: TimeEntry[] = []): TimeEntry[] {
+  if (!Array.isArray(primaryList)) primaryList = [];
+  if (!Array.isArray(secondaryList)) secondaryList = [];
+
+  const map = new Map<string, TimeEntry>();
+
+  // 1. Put secondary list entries (cloud) in map
+  secondaryList.forEach(entry => {
+    if (!entry || !entry.id) return;
+    map.set(entry.id, { ...entry });
+  });
+
+  // 2. Overlay primary list entries (local in-memory/disk) with terminal state protection
+  primaryList.forEach(entry => {
+    if (!entry || !entry.id) return;
+    const existing = map.get(entry.id);
+    if (!existing) {
+      map.set(entry.id, { ...entry });
+    } else {
+      const primaryClockedOut = Boolean(entry.clockOut);
+      const secondaryClockedOut = Boolean(existing.clockOut);
+
+      // Rule: Never revert a clocked-out session back to running!
+      if (primaryClockedOut && !secondaryClockedOut) {
+        map.set(entry.id, { ...entry });
+      } else if (!primaryClockedOut && secondaryClockedOut) {
+        map.set(entry.id, { ...existing });
+      } else {
+        const pTime = new Date(entry.updatedAt || entry.createdAt || 0).getTime();
+        const sTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+        map.set(entry.id, pTime >= sTime ? { ...entry } : { ...existing });
+      }
+    }
   });
 
   return Array.from(map.values());

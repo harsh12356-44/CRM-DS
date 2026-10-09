@@ -40,6 +40,24 @@ import {
   computeExtraHours,
   summarizeRange,
 } from '@/lib/timeTracking';
+export function broadcastTrackerSync(detail: {
+  action: string;
+  employeeId: string;
+  clockOut?: string;
+  status: TrackerStatus;
+  timestamp: number;
+}) {
+  if (typeof window === 'undefined') return;
+  try {
+    const bc = new BroadcastChannel('crm_time_tracker_sync');
+    bc.postMessage(detail);
+    bc.close();
+  } catch (e) {}
+
+  try {
+    localStorage.setItem('crm_time_tracker_sync_event', JSON.stringify(detail));
+  } catch (e) {}
+}
 
 interface TrackerPayload {
   employee: { id: string; name: string; dailyWorkingRequirementMinutes: number; workMode: string };
@@ -262,6 +280,13 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
           entries: prev.entries.map(e => (!e.clockOut ? { ...e, clockOut: nowIso } : e)),
         };
       });
+      broadcastTrackerSync({
+        action: 'CLOCK_OUT',
+        employeeId,
+        clockOut: nowIso,
+        status: 'OFF',
+        timestamp: Date.now(),
+      });
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     } else if (action === 'BREAK_START') {
       const nowIso = new Date().toISOString();
@@ -275,6 +300,12 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
           status: 'ON_BREAK' as TrackerStatus,
           activeEntry: { ...prev.activeEntry, breaks },
         };
+      });
+      broadcastTrackerSync({
+        action: 'BREAK_START',
+        employeeId,
+        status: 'ON_BREAK',
+        timestamp: Date.now(),
       });
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     } else if (action === 'BREAK_END') {
@@ -290,6 +321,12 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
           status: 'WORKING' as TrackerStatus,
           activeEntry: { ...prev.activeEntry, breaks },
         };
+      });
+      broadcastTrackerSync({
+        action: 'BREAK_END',
+        employeeId,
+        status: 'WORKING',
+        timestamp: Date.now(),
       });
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     }
@@ -329,6 +366,12 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
             entries: [newEntry, ...prev.entries],
           };
         });
+        broadcastTrackerSync({
+          action: 'CLOCK_IN',
+          employeeId,
+          status: 'WORKING',
+          timestamp: Date.now(),
+        });
         window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
       }
 
@@ -352,6 +395,13 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
       };
       setFlash(messages[action] || 'Saved.');
       if (action === 'CLOCK_IN' || action === 'CLOCK_OUT') setNote('');
+      broadcastTrackerSync({
+        action,
+        employeeId,
+        clockOut: action === 'CLOCK_OUT' ? (payload.activeEntry?.clockOut || new Date().toISOString()) : undefined,
+        status: payload.status,
+        timestamp: Date.now(),
+      });
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     } catch (err: any) {
       if (prevData) setData(prevData);

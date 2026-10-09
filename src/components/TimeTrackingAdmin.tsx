@@ -200,18 +200,96 @@ export default function TimeTrackingAdmin() {
 
   const rangeRef = React.useRef(range);
   rangeRef.current = range;
+
+  // Cross-tab broadcast & multi-device sync
   useEffect(() => {
     fetchData();
-    const poll = setInterval(() => fetchData(rangeRef.current), 5000);
+    // Fast polling on live board (2.5s)
+    const poll = setInterval(() => fetchData(rangeRef.current), 2500);
     const onSync = () => fetchData(rangeRef.current);
+    const onVisibility = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchData(rangeRef.current);
+      }
+    };
+
     window.addEventListener('timeTrackerChanged', onSync);
     window.addEventListener('focus', onSync);
+    window.addEventListener('visibilitychange', onVisibility);
     window.addEventListener('screenshotCaptured', onSync);
+
+    const handleSyncEvent = (detail: { action?: string; employeeId?: string; clockOut?: string; status?: TrackerStatus }) => {
+      if (!detail || !detail.employeeId) return;
+      const targetEmpId = String(detail.employeeId);
+      const nowIso = detail.clockOut || new Date().toISOString();
+
+      setData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          live: prev.live.map(l => {
+            const emp = prev.employees.find(e => e.id === l.employeeId || (e.employeeId && e.employeeId === l.employeeId));
+            const matches = l.employeeId === targetEmpId || (emp && (emp.id === targetEmpId || emp.employeeId === targetEmpId));
+            if (!matches) return l;
+
+            if (detail.action === 'CLOCK_OUT') {
+              return {
+                ...l,
+                status: 'OFF' as TrackerStatus,
+                activeEntry: l.activeEntry ? { ...l.activeEntry, clockOut: nowIso } : null,
+              };
+            }
+            if (detail.action === 'BREAK_START') {
+              return { ...l, status: 'ON_BREAK' as TrackerStatus };
+            }
+            if (detail.action === 'BREAK_END' || detail.action === 'CLOCK_IN') {
+              return { ...l, status: 'WORKING' as TrackerStatus };
+            }
+            return l;
+          }),
+          entries: prev.entries.map(e => {
+            const emp = prev.employees.find(em => em.id === e.employeeId || (em.employeeId && em.employeeId === e.employeeId));
+            const matches = e.employeeId === targetEmpId || (emp && (emp.id === targetEmpId || emp.employeeId === targetEmpId));
+            if (matches && detail.action === 'CLOCK_OUT' && !e.clockOut) {
+              return { ...e, clockOut: nowIso };
+            }
+            return e;
+          }),
+        };
+      });
+
+      // Background reconcile with server
+      fetchData(rangeRef.current);
+    };
+
+    // 1. BroadcastChannel across tabs/windows
+    let bc: BroadcastChannel | null = null;
+    try {
+      bc = new BroadcastChannel('crm_time_tracker_sync');
+      bc.onmessage = (event) => {
+        if (event.data) handleSyncEvent(event.data);
+      };
+    } catch (e) {}
+
+    // 2. Storage event across tabs
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'crm_time_tracker_sync_event' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          handleSyncEvent(parsed);
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', onStorage);
+
     return () => {
       clearInterval(poll);
       window.removeEventListener('timeTrackerChanged', onSync);
       window.removeEventListener('focus', onSync);
+      window.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('screenshotCaptured', onSync);
+      window.removeEventListener('storage', onStorage);
+      if (bc) bc.close();
     };
   }, [fetchData]);
 
@@ -229,7 +307,16 @@ export default function TimeTrackingAdmin() {
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await fetchData(rangeRef.current || range);
+      const params = new URLSearchParams({ t: String(Date.now()), sync: '1' });
+      if (rangeRef.current) {
+        params.set('from', rangeRef.current.from);
+        params.set('to', rangeRef.current.to);
+      }
+      const res = await fetch(`/api/time-tracking/admin?${params}`, { cache: 'no-store' });
+      const payload = await res.json();
+      if (!res.ok) throw new Error(payload.error || 'Failed to load time tracking.');
+      setData(payload);
+      setClockOffset(new Date(payload.serverTime).getTime() - Date.now());
       setFlash('Records refreshed.');
       setTimeout(() => setFlash(''), 3000);
     } finally {
@@ -271,6 +358,14 @@ export default function TimeTrackingAdmin() {
           }),
         };
       });
+      try {
+        const bc = new BroadcastChannel('crm_time_tracker_sync');
+        bc.postMessage({ action: 'CLOCK_OUT', employeeId: targetEmpId, clockOut: nowIso, status: 'OFF', timestamp: Date.now() });
+        bc.close();
+      } catch (e) {}
+      try {
+        localStorage.setItem('crm_time_tracker_sync_event', JSON.stringify({ action: 'CLOCK_OUT', employeeId: targetEmpId, clockOut: nowIso, status: 'OFF', timestamp: Date.now() }));
+      } catch (e) {}
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     } else if (body.action === 'SET_TRACKING') {
       const targetEmpId = String(body.employeeId || '');
@@ -417,7 +512,7 @@ export default function TimeTrackingAdmin() {
     const rows: (string | number)[][] = [header];
     const h = (ms: number) => (ms / 3600000).toFixed(2);
     visibleTracked.forEach(emp => {
-      const own = rangeEntries.filter(e => e.employeeId === emp.id);
+      const own = rangeEntries.filter(e => e.employeeId === emp.id || (emp.employeeId && e.employeeId === emp.employeeId));
       const r = summarizeRange(own, rangeDays, emp.dailyWorkingRequirementMinutes * 60000, nowMs);
       rows.push([
         emp.name,
@@ -457,8 +552,7 @@ export default function TimeTrackingAdmin() {
 
   // ---- Live board numbers ----
   const liveRows = allEmployees.map(emp => {
-    const live = data.live.find(l => l.employeeId === emp.id);
-    const todaySummary = summarizeDay(data.entries.filter(e => e.employeeId === emp.id), today, nowMs);
+    const live = data.live.find(l => l.employeeId === emp.id || (emp.employeeId && l.employeeId === emp.employeeId));
     const status = live?.status || ('OFF' as TrackerStatus);
     const active = live?.activeEntry || null;
     const lastBreakEnd = active?.breaks.filter(b => b.end).map(b => b.end!).pop();
@@ -467,6 +561,18 @@ export default function TimeTrackingAdmin() {
       : false;
     // A session still running (e.g. tracker switched off mid-day) counts as on.
     const trackerOn = emp.trackingEnabled || status !== 'OFF';
+
+    // If status is OFF, cap any unclosed entries so the live clock stops immediately and never ticks while offline
+    const empEntries = data.entries
+      .filter(e => e.employeeId === emp.id || (emp.employeeId && e.employeeId === emp.employeeId))
+      .map(e => {
+        if (status === 'OFF' && !e.clockOut) {
+          return { ...e, clockOut: e.updatedAt || e.createdAt || new Date(nowMs).toISOString() };
+        }
+        return e;
+      });
+    const todaySummary = summarizeDay(empEntries, today, nowMs);
+
     return { emp, status, active, todaySummary, lastShotAt: live?.lastScreenshotAt || null, shotsOverdue, trackerOn };
   });
   const workingCount = liveRows.filter(r => r.status === 'WORKING').length;

@@ -335,7 +335,7 @@ export async function persistDataToPrisma(data: InitialState): Promise<void> {
 
 // Time tracking tables are synced separately so a missing table (schema not pushed yet)
 // never blocks the core HR data sync.
-type EmployeeTrackingPrefs = Pick<Employee, 'timeTrackingEnabled' | 'screenshotsEnabled' | 'screenshotIntervalMinutes'>;
+type EmployeeTrackingPrefs = Pick<Employee, 'timeTrackingEnabled' | 'screenshotsEnabled' | 'screenshotIntervalMinutes' | 'screenshotIntervalMinMinutes' | 'screenshotIntervalMaxMinutes'>;
 
 async function loadTimeTrackingFromPrisma(): Promise<Pick<InitialState, 'timeEntries' | 'timeActivities' | 'timeTrackingSettings'> & { prefs: Map<string, EmployeeTrackingPrefs> }> {
   try {
@@ -350,10 +350,14 @@ async function loadTimeTrackingFromPrisma(): Promise<Pick<InitialState, 'timeEnt
         timeTrackingEnabled: o.enabled || undefined,
         screenshotsEnabled: o.screenshotsEnabled ?? undefined,
         screenshotIntervalMinutes: o.screenshotInterval ?? undefined,
+        screenshotIntervalMinMinutes: (o as any).screenshotIntervalMin ?? undefined,
+        screenshotIntervalMaxMinutes: (o as any).screenshotIntervalMax ?? undefined,
       }])),
       timeTrackingSettings: settings ? {
         screenshotsEnabledByDefault: settings.screenshotsEnabledByDefault,
         defaultScreenshotIntervalMinutes: settings.defaultScreenshotIntervalMinutes,
+        defaultScreenshotIntervalMinMinutes: (settings as any).defaultScreenshotIntervalMinMinutes ?? undefined,
+        defaultScreenshotIntervalMaxMinutes: (settings as any).defaultScreenshotIntervalMaxMinutes ?? undefined,
         screenshotRetentionDays: settings.screenshotRetentionDays ?? 7,
         breaks: Array.isArray((settings as any).breaks) ? ((settings as any).breaks as unknown as BreakConfig[]) : undefined,
       } : undefined,

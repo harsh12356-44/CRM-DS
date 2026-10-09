@@ -41,13 +41,42 @@ export const RETENTION_POLICY_VERSION = 2;
 
 export const DEFAULT_TIME_TRACKING_SETTINGS: TimeTrackingSettings = {
   screenshotsEnabledByDefault: true,
-  defaultScreenshotIntervalMinutes: 10,
+  defaultScreenshotIntervalMinutes: 6,
+  defaultScreenshotIntervalMinMinutes: 5,
+  defaultScreenshotIntervalMaxMinutes: 7,
   screenshotRetentionDays: DEFAULT_RETENTION_DAYS,
   retentionPolicyVersion: RETENTION_POLICY_VERSION,
   breaks: DEFAULT_BREAK_CONFIGS,
 };
 
 export const SCREENSHOT_INTERVAL_OPTIONS = [1, 2, 3, 5, 10, 15, 30];
+
+export interface ScreenshotRangeOption {
+  id: string;
+  min: number;
+  max: number;
+  label: string;
+}
+
+export const SCREENSHOT_RANGE_OPTIONS: ScreenshotRangeOption[] = [
+  { id: '1-3', min: 1, max: 3, label: '1 – 3 min (Testing)' },
+  { id: '3-5', min: 3, max: 5, label: '3 – 5 min (Randomized)' },
+  { id: '5-7', min: 5, max: 7, label: '5 – 7 min (Randomized)' },
+  { id: '5-10', min: 5, max: 10, label: '5 – 10 min (Randomized)' },
+  { id: '8-12', min: 8, max: 12, label: '8 – 12 min (Randomized)' },
+  { id: '10-15', min: 10, max: 15, label: '10 – 15 min (Randomized)' },
+  { id: '15-20', min: 15, max: 20, label: '15 – 20 min (Randomized)' },
+  { id: '20-30', min: 20, max: 30, label: '20 – 30 min (Randomized)' },
+];
+
+export function findRangeOption(min?: number, max?: number): ScreenshotRangeOption {
+  if (min && max) {
+    const match = SCREENSHOT_RANGE_OPTIONS.find(r => r.min === min && r.max === max);
+    if (match) return match;
+    return { id: `${min}-${max}`, min, max, label: `${min} – ${max} min (Randomized)` };
+  }
+  return SCREENSHOT_RANGE_OPTIONS[2]; // Default: 5 - 7 min
+}
 
 export function isValidBreakMinutes(v: unknown): v is number {
   return typeof v === 'number' && Number.isInteger(v) && v >= BREAK_MINUTES_MIN && v <= BREAK_MINUTES_MAX;
@@ -78,10 +107,31 @@ export function breakNameFor(type: string | undefined): string {
 export function resolveTimeTrackingSettings(s?: Partial<TimeTrackingSettings> | null): TimeTrackingSettings {
   const savedRetention = Number(s?.screenshotRetentionDays);
   const retentionCurrent = s?.retentionPolicyVersion === RETENTION_POLICY_VERSION;
-  const interval = Number(s?.defaultScreenshotIntervalMinutes);
+  
+  let min = Number(s?.defaultScreenshotIntervalMinMinutes);
+  let max = Number(s?.defaultScreenshotIntervalMaxMinutes);
+  const legacyInterval = Number(s?.defaultScreenshotIntervalMinutes);
+
+  if (!min || !max || min <= 0 || max < min) {
+    if (SCREENSHOT_INTERVAL_OPTIONS.includes(legacyInterval)) {
+      if (legacyInterval <= 3) { min = 1; max = 3; }
+      else if (legacyInterval <= 5) { min = 3; max = 5; }
+      else if (legacyInterval <= 10) { min = 5; max = 7; }
+      else if (legacyInterval <= 15) { min = 10; max = 15; }
+      else { min = 20; max = 30; }
+    } else {
+      min = DEFAULT_TIME_TRACKING_SETTINGS.defaultScreenshotIntervalMinMinutes!;
+      max = DEFAULT_TIME_TRACKING_SETTINGS.defaultScreenshotIntervalMaxMinutes!;
+    }
+  }
+
+  const interval = Math.round((min + max) / 2);
+
   return {
     screenshotsEnabledByDefault: s?.screenshotsEnabledByDefault ?? DEFAULT_TIME_TRACKING_SETTINGS.screenshotsEnabledByDefault,
-    defaultScreenshotIntervalMinutes: SCREENSHOT_INTERVAL_OPTIONS.includes(interval) ? interval : DEFAULT_TIME_TRACKING_SETTINGS.defaultScreenshotIntervalMinutes,
+    defaultScreenshotIntervalMinutes: interval,
+    defaultScreenshotIntervalMinMinutes: min,
+    defaultScreenshotIntervalMaxMinutes: max,
     screenshotRetentionDays: retentionCurrent && isValidRetentionDays(savedRetention) ? savedRetention : DEFAULT_RETENTION_DAYS,
     retentionPolicyVersion: RETENTION_POLICY_VERSION,
     breaks: normalizeBreaks(s?.breaks),
@@ -91,25 +141,48 @@ export function resolveTimeTrackingSettings(s?: Partial<TimeTrackingSettings> | 
 export interface ScreenshotConfig {
   enabled: boolean;
   intervalMinutes: number;
+  intervalMinMinutes: number;
+  intervalMaxMinutes: number;
   isCustom: boolean; // employee has an override instead of the company default
 }
 
 export function getScreenshotConfig(
-  emp: Pick<Employee, 'screenshotsEnabled' | 'screenshotIntervalMinutes'>,
+  emp: Pick<Employee, 'screenshotsEnabled' | 'screenshotIntervalMinutes' | 'screenshotIntervalMinMinutes' | 'screenshotIntervalMaxMinutes'>,
   settings?: Partial<TimeTrackingSettings> | null
 ): ScreenshotConfig {
   const s = resolveTimeTrackingSettings(settings);
+
+  let min = emp.screenshotIntervalMinMinutes;
+  let max = emp.screenshotIntervalMaxMinutes;
+
+  if ((!min || !max) && emp.screenshotIntervalMinutes) {
+    const legacy = emp.screenshotIntervalMinutes;
+    if (legacy <= 3) { min = 1; max = 3; }
+    else if (legacy <= 5) { min = 3; max = 5; }
+    else if (legacy <= 10) { min = 5; max = 7; }
+    else if (legacy <= 15) { min = 10; max = 15; }
+    else { min = 20; max = 30; }
+  }
+
+  const finalMin = min && max && min > 0 && max >= min ? min : s.defaultScreenshotIntervalMinMinutes!;
+  const finalMax = min && max && min > 0 && max >= min ? max : s.defaultScreenshotIntervalMaxMinutes!;
+  const finalAvg = Math.round((finalMin + finalMax) / 2);
+
+  const isCustom = emp.screenshotsEnabled !== undefined || Boolean(emp.screenshotIntervalMinutes || emp.screenshotIntervalMinMinutes || emp.screenshotIntervalMaxMinutes);
+
   return {
     enabled: emp.screenshotsEnabled ?? s.screenshotsEnabledByDefault,
-    intervalMinutes: emp.screenshotIntervalMinutes || s.defaultScreenshotIntervalMinutes,
-    isCustom: emp.screenshotsEnabled !== undefined || Boolean(emp.screenshotIntervalMinutes),
+    intervalMinutes: emp.screenshotIntervalMinutes || finalAvg,
+    intervalMinMinutes: finalMin,
+    intervalMaxMinutes: finalMax,
+    isCustom,
   };
 }
 
-// A working employee is "not capturing" when no screenshot arrived within two intervals (+1 min grace).
-export function isScreenshotOverdue(lastAt: string | undefined, sessionStart: string, intervalMinutes: number, nowMs: number): boolean {
+// A working employee is "not capturing" when no screenshot arrived within two max intervals (+1 min grace).
+export function isScreenshotOverdue(lastAt: string | undefined, sessionStart: string, maxIntervalMinutes: number, nowMs: number): boolean {
   const since = Math.max(lastAt ? new Date(lastAt).getTime() : 0, new Date(sessionStart).getTime());
-  return nowMs - since > (intervalMinutes * 2 + 1) * 60000;
+  return nowMs - since > (maxIntervalMinutes * 2 + 1) * 60000;
 }
 
 // The tracker is optional: any active employee can switch it on (e.g. on a WFH day).

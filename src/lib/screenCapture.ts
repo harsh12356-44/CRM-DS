@@ -36,7 +36,8 @@ class ScreenCaptureManager {
   private employeeId = '';
   private employeeName = '';
   private currentActivity = '';
-  private intervalMs = 60000;
+  private intervalMinMinutes = 5;
+  private intervalMaxMinutes = 7;
   private nextShotAt = 0;
   private inFlight = false;
   private listeners = new Set<Listener>();
@@ -67,6 +68,12 @@ class ScreenCaptureManager {
   private set(patch: Partial<CaptureState>) {
     this.state = { ...this.state, ...patch };
     this.listeners.forEach(l => l(this.state));
+  }
+
+  private getRandomDelayMs(): number {
+    const minMs = Math.max(1, this.intervalMinMinutes) * 60000;
+    const maxMs = Math.max(minMs, this.intervalMaxMinutes * 60000);
+    return Math.floor(minMs + Math.random() * (maxMs - minMs + 1));
   }
 
   // Must be called directly from a click handler (browsers require a user gesture).
@@ -148,18 +155,40 @@ class ScreenCaptureManager {
 
   // Called whenever the tracker status/config changes.
   // Note: Pausing on break does NOT release or stop the MediaStream, so resuming never re-prompts!
-  setRunning(running: boolean, employeeId: string, intervalMinutes: number, meta?: { employeeName?: string; activity?: string }) {
+  setRunning(
+    running: boolean,
+    employeeId: string,
+    intervalOrMin: number,
+    intervalMaxOrMeta?: number | { employeeName?: string; activity?: string },
+    meta?: { employeeName?: string; activity?: string }
+  ) {
     this.employeeId = employeeId;
-    if (meta?.employeeName) this.employeeName = meta.employeeName;
-    if (meta?.activity) this.currentActivity = meta.activity;
+    let actualMeta = meta;
+    let minMinutes = 5;
+    let maxMinutes = 7;
 
-    const newInterval = Math.max(1, intervalMinutes) * 60000;
-    if (newInterval !== this.intervalMs) {
-      this.intervalMs = newInterval;
-      if (this.state.lastAt) this.nextShotAt = this.state.lastAt + newInterval;
+    if (typeof intervalMaxOrMeta === 'number') {
+      minMinutes = Math.max(1, intervalOrMin);
+      maxMinutes = Math.max(minMinutes, intervalMaxOrMeta);
+    } else {
+      actualMeta = intervalMaxOrMeta;
+      const base = Math.max(1, intervalOrMin);
+      minMinutes = Math.max(1, base <= 3 ? 1 : base - 1);
+      maxMinutes = base <= 3 ? 3 : base + 1;
+    }
+
+    if (actualMeta?.employeeName) this.employeeName = actualMeta.employeeName;
+    if (actualMeta?.activity) this.currentActivity = actualMeta.activity;
+
+    const changed = minMinutes !== this.intervalMinMinutes || maxMinutes !== this.intervalMaxMinutes;
+    this.intervalMinMinutes = minMinutes;
+    this.intervalMaxMinutes = maxMinutes;
+
+    if (changed && this.state.lastAt) {
+      this.nextShotAt = this.state.lastAt + this.getRandomDelayMs();
     }
     if (running && !this.state.running) {
-      // Starting or resuming after a break: take one shortly, then follow the interval.
+      // Starting or resuming after a break: take one shortly, then follow the randomized interval.
       this.nextShotAt = Math.min(this.nextShotAt || Infinity, Date.now() + FIRST_SHOT_DELAY_MS);
     }
     if (running !== this.state.running) this.set({ running });
@@ -306,7 +335,7 @@ class ScreenCaptureManager {
 
   async captureNow() {
     this.inFlight = true;
-    this.nextShotAt = Date.now() + this.intervalMs;
+    this.nextShotAt = Date.now() + this.getRandomDelayMs();
     try {
       const frame = await this.grabFrame();
       if (!frame || !frame.width) return;

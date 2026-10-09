@@ -28,7 +28,9 @@ export interface Employee {
   workMode?: 'OFFICE' | 'WFH';
   timeTrackingEnabled?: boolean; // employee opted in to the time tracker (always on for WFH work mode)
   screenshotsEnabled?: boolean; // overrides the company default set by HR
-  screenshotIntervalMinutes?: number; // overrides the company default interval
+  screenshotIntervalMinutes?: number; // legacy/nominal interval
+  screenshotIntervalMinMinutes?: number; // minimum randomized interval minutes (e.g. 5)
+  screenshotIntervalMaxMinutes?: number; // maximum randomized interval minutes (e.g. 7)
 }
 
 export interface Department {
@@ -209,6 +211,8 @@ export interface TimeActivity {
 export interface TimeTrackingSettings {
   screenshotsEnabledByDefault: boolean;
   defaultScreenshotIntervalMinutes: number;
+  defaultScreenshotIntervalMinMinutes?: number; // minimum randomized interval minutes (e.g. 5)
+  defaultScreenshotIntervalMaxMinutes?: number; // maximum randomized interval minutes (e.g. 7)
   screenshotRetentionDays: number;
   retentionPolicyVersion?: number;
   breaks?: BreakConfig[];

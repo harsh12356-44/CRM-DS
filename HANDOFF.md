@@ -122,7 +122,12 @@
         - **Remote Database Table Guard ([src/lib/dbSync.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/dbSync.ts))**:
           - Wrapped `timeTrackerOptIn` upserts in an isolated `try/catch` guard so if remote Prisma migrations haven't run on the cloud DB, core tracking persistence continues without throwing unhandled exceptions.
     - Single permission stream is re-used across break pauses and work resumption without repeated browser permission prompts.
-    - Captures at configurable intervals (default: 10 mins).
+    - **Randomized Interval Capture (Unpredictable Window)**:
+      - Replaced static minute intervals with randomized capture windows (e.g. `03–05 min`, `05–07 min`, `05–10 min`, `08–12 min`, `10–15 min`, etc.; default is `05–07 min`).
+      - In [src/lib/screenCapture.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/screenCapture.ts), each subsequent screenshot delay is chosen randomly and uniformly within the configured range (`minMinutes` to `maxMinutes`). Screenshots occur unpredictably, preventing circumvention or scheduled prediction.
+    - **Complete Duration Concealment from Employees**:
+      - Employees are notified and guided that periodic screenshots are active (`"Screenshots active"`), but all specific duration intervals and countdowns are strictly concealed from their UI, banners, notifications, and galleries ([src/components/TimeTracker.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTracker.tsx), [src/components/ScreenshotGallery.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/ScreenshotGallery.tsx), [src/app/api/time-tracking/screenshots/settings/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/time-tracking/screenshots/settings/route.ts)).
+      - Admins and Managers retain full visibility and range configuration control in the Admin Suite ([src/components/TimeTrackingAdmin.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTrackingAdmin.tsx)).
     - Stores images as plain files on disk under `/data/screenshots/` (indexed via `index.json`) to keep `db.json` and database operations fast and bloat-free.
     - 7-day automated retention policy: an hourly background task and standalone cron script (`scripts/cleanup_screenshots.js`) automatically purge images older than 7 days.
   - **Admin Time Tracking Suite ([src/app/admin/time-tracking/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/time-tracking/page.tsx))**:

@@ -130,7 +130,7 @@ export default function ScreenshotGallery({ employeeId, employeeName, activities
           </h3>
           <p className="text-xs text-slate-400">
             {data?.config.enabled
-              ? `Captured every ${data.config.intervalMinutes} min while clocked in · times in IST`
+              ? 'Captured periodically while clocked in · times in IST'
               : 'Screenshots are currently turned off for this employee'}
           </p>
         </div>

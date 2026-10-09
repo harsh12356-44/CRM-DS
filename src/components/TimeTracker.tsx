@@ -51,7 +51,14 @@ interface TrackerPayload {
   breaksConfig?: BreakConfig[];
   entries: TimeEntry[];
   activities: TimeActivity[];
-  screenshots: { enabled: boolean; intervalMinutes: number; lastAt: string | null; todayCount: number };
+  screenshots: {
+    enabled: boolean;
+    intervalMinutes?: number;
+    intervalMinMinutes?: number;
+    intervalMaxMinutes?: number;
+    lastAt: string | null;
+    todayCount: number;
+  };
   serverTime: string;
   today: string;
 }
@@ -179,7 +186,8 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
 
   // Screenshots follow the tracker: capture only while WORKING, stop on clock-out or when HR turns them off.
   const shotsEnabled = Boolean(data?.enabled && data.screenshots?.enabled);
-  const shotInterval = data?.screenshots?.intervalMinutes || 1;
+  const shotMin = data?.screenshots?.intervalMinMinutes || 5;
+  const shotMax = data?.screenshots?.intervalMaxMinutes || 7;
   useEffect(() => {
     const mgr = getScreenCapture();
     if (!mgr || !data?.canEdit) return;
@@ -192,11 +200,11 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
       if (mgr.snapshot.sharing || mgr.snapshot.running) mgr.stop();
       return;
     }
-    mgr.setRunning(status === 'WORKING', employeeId, shotInterval, {
+    mgr.setRunning(status === 'WORKING', employeeId, shotMin, shotMax, {
       employeeName: data.employee.name,
       activity: data.activeEntry?.activity || activity,
     });
-  }, [data?.canEdit, data?.employee.name, data?.activeEntry?.activity, activity, shotsEnabled, shotInterval, status, employeeId, busy]);
+  }, [data?.canEdit, data?.employee.name, data?.activeEntry?.activity, activity, shotsEnabled, shotMin, shotMax, status, employeeId, busy]);
 
   // Reloading or closing the page ends screen sharing, so warn while it is active.
   const sharingLive = Boolean(capture?.sharing && status !== 'OFF');
@@ -209,7 +217,7 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
 
   // Another tab/window of this employee may be the one sharing the screen.
   const serverLastShot = data?.screenshots?.lastAt ? new Date(data.screenshots.lastAt).getTime() : 0;
-  const serverCapturing = !capture?.sharing && serverLastShot > 0 && Date.now() - serverLastShot < (shotInterval * 2 + 1) * 60000;
+  const serverCapturing = !capture?.sharing && serverLastShot > 0 && Date.now() - serverLastShot < (shotMax * 2 + 1) * 60000;
 
   const startSharing = async () => {
     const mgr = getScreenCapture();
@@ -219,7 +227,7 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
     if (!ok) {
       setError(mgr.snapshot.error || 'Company policy requires sharing your Entire Screen.');
     } else if (status === 'WORKING') {
-      mgr.setRunning(true, employeeId, shotInterval, {
+      mgr.setRunning(true, employeeId, shotMin, shotMax, {
         employeeName: data?.employee.name,
         activity: data?.activeEntry?.activity || activity,
       });
@@ -391,7 +399,7 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
               <p className="text-sm font-extrabold text-white">Time Tracker <span className="text-[10px] font-bold text-purple-300 uppercase tracking-wider ml-1">Optional</span></p>
               <p className="text-xs text-slate-400 max-w-md">
                 Turn it on to clock in, take breaks and keep a timesheet of your hours (office or work from home) — you can turn it off any time.
-                {data.screenshots?.enabled && ` While you are clocked in, a screenshot of your screen is taken every ${data.screenshots.intervalMinutes} min (your browser will ask you to share your screen).`}
+                {data.screenshots?.enabled && ` While you are clocked in, periodic screenshots of your screen are taken automatically (your browser will ask you to share your screen).`}
               </p>
             </div>
           </div>
@@ -686,14 +694,11 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
             <span className="inline-flex items-center space-x-1.5 font-bold text-purple-300">
               <Camera className="w-3.5 h-3.5" />
-              <span>Screenshots every {shotInterval} min</span>
+              <span>Screenshots active</span>
             </span>
             {status === 'OFF' && <span>· start automatically when you clock in</span>}
             {status === 'ON_BREAK' && <span>· paused during break</span>}
-            {status === 'WORKING' && (() => {
-              const last = capture?.lastAt || (data.screenshots.lastAt ? new Date(data.screenshots.lastAt).getTime() : 0);
-              return last ? <span>· last {agoLabel(Date.now() - last)}</span> : <span>· first one in a few seconds</span>;
-            })()}
+            {status === 'WORKING' && <span>· monitoring active</span>}
             <span>· {data.screenshots.todayCount} today</span>
             {capture?.sharing && capture.error && <span className="text-amber-300 font-semibold">· {capture.error}</span>}
           </div>

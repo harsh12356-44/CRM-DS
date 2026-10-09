@@ -42,6 +42,8 @@ import {
   isoToIstTimeInput,
   isScreenshotOverdue,
   SCREENSHOT_INTERVAL_OPTIONS,
+  SCREENSHOT_RANGE_OPTIONS,
+  findRangeOption,
   istDateKey,
   summarizeDay,
   weekStart,
@@ -66,7 +68,7 @@ interface TrackedEmployee {
   workMode: string;
   trackingEnabled: boolean;
   trackingMandatory: boolean;
-  screenshots: { enabled: boolean; intervalMinutes: number; isCustom: boolean };
+  screenshots: { enabled: boolean; intervalMinutes: number; intervalMinMinutes?: number; intervalMaxMinutes?: number; isCustom: boolean };
   dailyWorkingRequirementMinutes: number;
 }
 
@@ -450,7 +452,7 @@ export default function TimeTrackingAdmin() {
     const active = live?.activeEntry || null;
     const lastBreakEnd = active?.breaks.filter(b => b.end).map(b => b.end!).pop();
     const shotsOverdue = status === 'WORKING' && emp.screenshots.enabled && active
-      ? isScreenshotOverdue(live?.lastScreenshotAt || undefined, lastBreakEnd && lastBreakEnd > active.clockIn ? lastBreakEnd : active.clockIn, emp.screenshots.intervalMinutes, nowMs)
+      ? isScreenshotOverdue(live?.lastScreenshotAt || undefined, lastBreakEnd && lastBreakEnd > active.clockIn ? lastBreakEnd : active.clockIn, emp.screenshots.intervalMaxMinutes || emp.screenshots.intervalMinutes, nowMs)
       : false;
     // A session still running (e.g. tracker switched off mid-day) counts as on.
     const trackerOn = emp.trackingEnabled || status !== 'OFF';
@@ -669,7 +671,7 @@ export default function TimeTrackingAdmin() {
                     ) : (
                       <p className="text-[11px] text-slate-400 flex items-center space-x-1.5">
                         <Camera className="w-3.5 h-3.5 shrink-0 text-purple-300" />
-                        <span>Every {emp.screenshots.intervalMinutes} min{lastShotAt ? ` · last ${formatIstTime(lastShotAt)}` : ''}</span>
+                        <span>Randomized {emp.screenshots.intervalMinMinutes || 5}–{emp.screenshots.intervalMaxMinutes || 7} min{lastShotAt ? ` · last ${formatIstTime(lastShotAt)}` : ''}</span>
                       </p>
                     )
                   ) : (
@@ -906,7 +908,7 @@ export default function TimeTrackingAdmin() {
                       <span className="min-w-0">
                         <span className={`block text-xs font-bold truncate ${isSel ? 'text-purple-300' : 'text-white'}`}>{e.name}</span>
                         <span className="block text-[10px] text-slate-500">
-                          {e.trackingEnabled ? '' : 'Tracker off · '}{e.screenshots.enabled ? `Every ${e.screenshots.intervalMinutes} min${e.screenshots.isCustom ? ' · custom' : ''}` : 'Screenshots off'}
+                          {e.trackingEnabled ? '' : 'Tracker off · '}{e.screenshots.enabled ? `Randomized ${e.screenshots.intervalMinMinutes || 5}–${e.screenshots.intervalMaxMinutes || 7} min${e.screenshots.isCustom ? ' · custom' : ''}` : 'Screenshots off'}
                         </span>
                       </span>
                       {row?.shotsOverdue
@@ -923,8 +925,8 @@ export default function TimeTrackingAdmin() {
                 <div className="min-w-0">
                   <p className="text-sm font-extrabold text-white">{selected.name} · screenshot settings</p>
                   <p className="text-[11px] text-slate-400">
-                    {cfg.isCustom ? 'Custom setting for this employee.' : `Following the company default (${data.settings.screenshotsEnabledByDefault ? `every ${data.settings.defaultScreenshotIntervalMinutes} min` : 'off'}).`}
-                    {' '}Changes reach the employee&apos;s tracker within 30 seconds, even mid-session.
+                    {cfg.isCustom ? 'Custom randomized range for this employee.' : `Following company default (${data.settings.screenshotsEnabledByDefault ? `randomized ${data.settings.defaultScreenshotIntervalMinMinutes || 5}–${data.settings.defaultScreenshotIntervalMaxMinutes || 7} min` : 'off'}).`}
+                    {' '}Screenshots are taken at unpredictable times within this range. Employees cannot see this duration.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -941,13 +943,13 @@ export default function TimeTrackingAdmin() {
                     <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${cfg.enabled ? 'translate-x-5' : ''}`} />
                   </button>
                   <select
-                    value={cfg.intervalMinutes}
+                    value={findRangeOption(cfg.intervalMinMinutes, cfg.intervalMaxMinutes).id}
                     disabled={!cfg.enabled || busyKey === key}
-                    onChange={e => post(key, { action: 'SET_EMPLOYEE', employeeId: selected.id, intervalMinutes: Number(e.target.value) }, '/api/time-tracking/screenshots/settings')}
+                    onChange={e => post(key, { action: 'SET_EMPLOYEE', employeeId: selected.id, rangeId: e.target.value }, '/api/time-tracking/screenshots/settings')}
                     className="px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-white disabled:opacity-50"
-                    aria-label="Screenshot interval"
+                    aria-label="Screenshot randomized interval range"
                   >
-                    {SCREENSHOT_INTERVAL_OPTIONS.map(m => <option key={m} value={m}>Every {m} min</option>)}
+                    {SCREENSHOT_RANGE_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                   </select>
                   {cfg.isCustom && (
                     <button
@@ -1115,9 +1117,26 @@ export default function TimeTrackingAdmin() {
                   <input type="checkbox" checked={df.screenshotsEnabledByDefault} onChange={e => setDefaultsForm({ ...df, screenshotsEnabledByDefault: e.target.checked })} className="w-4 h-4 accent-purple-600" />
                 </label>
                 <label className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-200">
-                  <span>Default interval</span>
-                  <select value={df.defaultScreenshotIntervalMinutes} onChange={e => setDefaultsForm({ ...df, defaultScreenshotIntervalMinutes: Number(e.target.value) })} className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white">
-                    {SCREENSHOT_INTERVAL_OPTIONS.map(m => <option key={m} value={m}>Every {m} min</option>)}
+                  <div className="space-y-0.5">
+                    <span>Default randomized interval range</span>
+                    <p className="text-[10px] text-slate-400 font-normal">Captures are taken unpredictably within this window. Employees do not see this duration.</p>
+                  </div>
+                  <select
+                    value={findRangeOption(df.defaultScreenshotIntervalMinMinutes, df.defaultScreenshotIntervalMaxMinutes).id}
+                    onChange={e => {
+                      const matched = SCREENSHOT_RANGE_OPTIONS.find(r => r.id === e.target.value);
+                      if (matched) {
+                        setDefaultsForm({
+                          ...df,
+                          defaultScreenshotIntervalMinMinutes: matched.min,
+                          defaultScreenshotIntervalMaxMinutes: matched.max,
+                          defaultScreenshotIntervalMinutes: Math.round((matched.min + matched.max) / 2),
+                        });
+                      }
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white"
+                  >
+                    {SCREENSHOT_RANGE_OPTIONS.map(opt => <option key={opt.id} value={opt.id}>{opt.label}</option>)}
                   </select>
                 </label>
                 <label className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-200">

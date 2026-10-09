@@ -11,6 +11,8 @@ import {
   RETENTION_DAYS_MAX,
   RETENTION_DAYS_MIN,
   SCREENSHOT_INTERVAL_OPTIONS,
+  SCREENSHOT_RANGE_OPTIONS,
+  findRangeOption,
   getScreenshotConfig,
   isValidBreakMinutes,
   isValidRetentionDays,
@@ -46,11 +48,25 @@ export async function POST(request: Request) {
     if (body.action === 'SET_DEFAULTS') {
       if (!isAdmin) return NextResponse.json({ error: 'Only HR admins can change company defaults.' }, { status: 403 });
       const before = resolveTimeTrackingSettings(db.timeTrackingSettings);
-      const interval = Number(body.defaultScreenshotIntervalMinutes ?? before.defaultScreenshotIntervalMinutes);
-      const retention = Number(body.screenshotRetentionDays ?? before.screenshotRetentionDays);
-      if (!SCREENSHOT_INTERVAL_OPTIONS.includes(interval)) {
-        return NextResponse.json({ error: 'Choose a valid screenshot interval.' }, { status: 400 });
+      
+      let min = Number(body.defaultScreenshotIntervalMinMinutes);
+      let max = Number(body.defaultScreenshotIntervalMaxMinutes);
+
+      if (body.rangeId) {
+        const matched = SCREENSHOT_RANGE_OPTIONS.find(r => r.id === body.rangeId);
+        if (matched) {
+          min = matched.min;
+          max = matched.max;
+        }
       }
+
+      if (!min || !max || min <= 0 || max < min) {
+        min = before.defaultScreenshotIntervalMinMinutes || 5;
+        max = before.defaultScreenshotIntervalMaxMinutes || 7;
+      }
+
+      const interval = Math.round((min + max) / 2);
+      const retention = Number(body.screenshotRetentionDays ?? before.screenshotRetentionDays);
       if (!isValidRetentionDays(retention)) {
         return NextResponse.json({ error: `Screenshot retention must be a whole number from ${RETENTION_DAYS_MIN} to ${RETENTION_DAYS_MAX} days.` }, { status: 400 });
       }
@@ -58,6 +74,8 @@ export async function POST(request: Request) {
         ...before,
         screenshotsEnabledByDefault: typeof body.screenshotsEnabledByDefault === 'boolean' ? body.screenshotsEnabledByDefault : before.screenshotsEnabledByDefault,
         defaultScreenshotIntervalMinutes: interval,
+        defaultScreenshotIntervalMinMinutes: min,
+        defaultScreenshotIntervalMaxMinutes: max,
         screenshotRetentionDays: retention,
       };
       audit('Update Screenshot Defaults', 'default', before, db.timeTrackingSettings);
@@ -98,19 +116,35 @@ export async function POST(request: Request) {
       if (body.reset === true) {
         delete emp.screenshotsEnabled;
         delete emp.screenshotIntervalMinutes;
+        delete emp.screenshotIntervalMinMinutes;
+        delete emp.screenshotIntervalMaxMinutes;
       } else {
         if (typeof body.enabled === 'boolean') emp.screenshotsEnabled = body.enabled;
-        if (body.intervalMinutes !== undefined) {
-          const interval = Number(body.intervalMinutes);
-          if (!SCREENSHOT_INTERVAL_OPTIONS.includes(interval)) {
-            return NextResponse.json({ error: 'Choose a valid screenshot interval.' }, { status: 400 });
+        if (body.rangeId) {
+          const matched = SCREENSHOT_RANGE_OPTIONS.find(r => r.id === body.rangeId);
+          if (matched) {
+            emp.screenshotIntervalMinMinutes = matched.min;
+            emp.screenshotIntervalMaxMinutes = matched.max;
+            emp.screenshotIntervalMinutes = Math.round((matched.min + matched.max) / 2);
           }
+        } else if (body.intervalMinMinutes !== undefined && body.intervalMaxMinutes !== undefined) {
+          const min = Number(body.intervalMinMinutes);
+          const max = Number(body.intervalMaxMinutes);
+          if (min > 0 && max >= min) {
+            emp.screenshotIntervalMinMinutes = min;
+            emp.screenshotIntervalMaxMinutes = max;
+            emp.screenshotIntervalMinutes = Math.round((min + max) / 2);
+          }
+        } else if (body.intervalMinutes !== undefined) {
+          const interval = Number(body.intervalMinutes);
           emp.screenshotIntervalMinutes = interval;
+          emp.screenshotIntervalMinMinutes = Math.max(1, interval - 2);
+          emp.screenshotIntervalMaxMinutes = interval + 2;
         }
       }
       const after = getScreenshotConfig(emp, db.timeTrackingSettings);
       audit('Update Employee Screenshot Settings', emp.id, before, after);
-      if (before.enabled !== after.enabled || before.intervalMinutes !== after.intervalMinutes) {
+      if (before.enabled !== after.enabled || before.intervalMinMinutes !== after.intervalMinMinutes || before.intervalMaxMinutes !== after.intervalMaxMinutes) {
         if (!db.notifications) db.notifications = [];
         db.notifications.unshift({
           id: `notif-${Date.now()}`,
@@ -118,7 +152,7 @@ export async function POST(request: Request) {
           type: 'TIME_TRACKING',
           title: 'Screenshot settings updated',
           message: after.enabled
-            ? `While you are clocked in, a screenshot will be taken every ${after.intervalMinutes} minute(s).`
+            ? 'While you are clocked in, periodic screenshots of your screen will be taken automatically.'
             : 'Screenshots are turned off for your Time Tracker.',
           isRead: false,
           createdAt: nowIso,
@@ -127,7 +161,7 @@ export async function POST(request: Request) {
       await saveDbDataAsync(db);
       return NextResponse.json({
         success: true,
-        message: after.enabled ? `${emp.name}: screenshots every ${after.intervalMinutes} min.` : `${emp.name}: screenshots off.`,
+        message: after.enabled ? `${emp.name}: screenshots randomized (${after.intervalMinMinutes}–${after.intervalMaxMinutes} min).` : `${emp.name}: screenshots off.`,
         config: after,
       });
     }

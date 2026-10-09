@@ -76,6 +76,33 @@ class ScreenCaptureManager {
     return Math.floor(minMs + Math.random() * (maxMs - minMs + 1));
   }
 
+  private ensureVideo() {
+    if (typeof document === 'undefined') return;
+    if (!this.video) {
+      const v = document.createElement('video');
+      v.muted = true;
+      v.playsInline = true;
+      v.autoplay = true;
+      v.setAttribute('playsinline', '');
+      v.setAttribute('muted', '');
+      v.setAttribute('autoplay', '');
+      v.style.position = 'fixed';
+      v.style.top = '-9999px';
+      v.style.left = '-9999px';
+      v.style.width = '10px';
+      v.style.height = '10px';
+      v.style.opacity = '0';
+      v.style.pointerEvents = 'none';
+      v.style.zIndex = '-9999';
+      document.body.appendChild(v);
+      this.video = v;
+    }
+    if (this.video && this.stream && this.video.srcObject !== this.stream) {
+      this.video.srcObject = this.stream;
+      this.video.play().catch(() => {});
+    }
+  }
+
   // Must be called directly from a click handler (browsers require a user gesture).
   // Re-uses active stream without asking for permission again if already granted.
   async requestScreen(employeeId: string, employeeName?: string, activity?: string): Promise<boolean> {
@@ -84,6 +111,7 @@ class ScreenCaptureManager {
     if (activity) this.currentActivity = activity;
 
     if (this.hasLiveStream()) {
+      this.ensureVideo();
       this.set({ sharing: true, error: undefined });
       return true;
     }
@@ -133,7 +161,20 @@ class ScreenCaptureManager {
       }
 
       track.addEventListener('ended', () => this.releaseStream('Screen sharing was stopped from browser controls. Screenshots are paused until you share again.'));
+      track.addEventListener('mute', () => {
+        // Track may mute momentarily when user clicks "Hide" or when window is minimizing
+      });
+      track.addEventListener('unmute', () => {
+        // When unmuted, if we are waiting for a frame, retry promptly
+        if (this.state.running && this.hasLiveStream()) {
+          if (this.nextShotAt > Date.now() + 5000) {
+            this.nextShotAt = Date.now() + 2000;
+          }
+        }
+      });
+
       this.stream = stream;
+      this.ensureVideo();
       this.set({
         sharing: true,
         surface,
@@ -192,7 +233,10 @@ class ScreenCaptureManager {
       this.nextShotAt = Math.min(this.nextShotAt || Infinity, Date.now() + FIRST_SHOT_DELAY_MS);
     }
     if (running !== this.state.running) this.set({ running });
-    if (running) this.ensureTicker();
+    if (running) {
+      this.ensureVideo();
+      this.ensureTicker();
+    }
   }
 
   // Clock-out / tracker turned off / screenshots disabled completely.
@@ -206,6 +250,9 @@ class ScreenCaptureManager {
     this.stream = null;
     if (this.video) {
       this.video.srcObject = null;
+      if (this.video.parentNode) {
+        this.video.parentNode.removeChild(this.video);
+      }
       this.video = null;
     }
     this.stopTicker();
@@ -219,9 +266,10 @@ class ScreenCaptureManager {
     try {
       const src = `setInterval(() => postMessage('tick'), ${TICK_MS});`;
       const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
-      this.worker = new Worker(url);
-      this.worker.onmessage = () => this.tick();
-      URL.revokeObjectURL(url);
+      const worker = new Worker(url);
+      worker.onmessage = () => this.tick();
+      this.worker = worker;
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } catch {
       this.fallbackTimer = setInterval(() => this.tick(), TICK_MS);
     }
@@ -243,24 +291,36 @@ class ScreenCaptureManager {
   private async grabFrame(): Promise<CanvasImageSource & { width: number; height: number } | null> {
     const track = this.stream?.getVideoTracks()[0];
     if (!track || track.readyState !== 'live') return null;
+
+    // 1. Try ImageCapture first (fastest and cleanest when supported)
     const IC = (window as unknown as { ImageCapture?: new (t: MediaStreamTrack) => ImageCaptureLike }).ImageCapture;
     if (IC) {
       try {
-        return await new IC(track).grabFrame();
-      } catch {}
+        const frame = await new IC(track).grabFrame();
+        if (frame && frame.width > 0 && frame.height > 0) {
+          return frame;
+        }
+      } catch {
+        // ImageCapture may fail in background tabs or while UI minimizes; fall through to video
+      }
     }
-    // Fallback: draw from a hidden <video> element.
-    if (!this.video) {
-      this.video = document.createElement('video');
-      this.video.muted = true;
-      this.video.playsInline = true;
-      this.video.srcObject = this.stream;
-      await this.video.play().catch(() => {});
-      await new Promise(r => setTimeout(r, 300));
-    }
+
+    // 2. Fallback: draw from hidden DOM-attached <video> element
+    this.ensureVideo();
     const v = this.video;
-    if (!v.videoWidth) return null;
-    return Object.assign(v, { width: v.videoWidth, height: v.videoHeight });
+    if (v) {
+      if (v.paused) {
+        await v.play().catch(() => {});
+      }
+      if (v.readyState < 2) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+      if (v.videoWidth > 0 && v.videoHeight > 0) {
+        return Object.assign(v, { width: v.videoWidth, height: v.videoHeight });
+      }
+    }
+
+    return null;
   }
 
   // Generates JPEG with indelible Date & Time stamp banner drawn directly on the canvas image
@@ -335,10 +395,14 @@ class ScreenCaptureManager {
 
   async captureNow() {
     this.inFlight = true;
-    this.nextShotAt = Date.now() + this.getRandomDelayMs();
     try {
       const frame = await this.grabFrame();
-      if (!frame || !frame.width) return;
+      if (!frame || !frame.width || !frame.height) {
+        // Frame temporarily unavailable (e.g. background tab throttling, track muted during hide bar, etc.):
+        // RETRY in 5 seconds instead of delaying 5-7 minutes!
+        this.nextShotAt = Date.now() + 5000;
+        return;
+      }
       // Read the size first: ImageBitmap.close() resets width/height to 0.
       const width = frame.width;
       const height = frame.height;
@@ -357,8 +421,11 @@ class ScreenCaptureManager {
         this.toJpeg(frame, width, height, FULL_MAX_WIDTH, 0.6, meta),
         this.toJpeg(frame, width, height, THUMB_WIDTH, 0.55, meta),
       ]);
-      if ('close' in frame && typeof frame.close === 'function') frame.close();
-      if (!full || !thumb) return;
+      if ('close' in frame && typeof (frame as any).close === 'function') (frame as any).close();
+      if (!full || !thumb) {
+        this.nextShotAt = Date.now() + 5000;
+        return;
+      }
 
       this.set({ uploading: true });
       const form = new FormData();
@@ -371,6 +438,8 @@ class ScreenCaptureManager {
       const res = await fetch('/api/time-tracking/screenshots', { method: 'POST', body: form });
       const payload = await res.json().catch(() => ({}));
       if (res.ok) {
+        // SUCCESS: Schedule the next random interval (e.g. 5-7 minutes)
+        this.nextShotAt = Date.now() + this.getRandomDelayMs();
         this.set({ lastAt: Date.now(), count: this.state.count + 1, uploading: false, error: this.state.surface && this.state.surface !== 'monitor' ? this.state.error : undefined });
         window.dispatchEvent(new CustomEvent('screenshotCaptured'));
       } else {

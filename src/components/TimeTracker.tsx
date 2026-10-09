@@ -700,6 +700,11 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
             {status === 'ON_BREAK' && <span>· paused during break</span>}
             {status === 'WORKING' && <span>· monitoring active</span>}
             <span>· {data.screenshots.todayCount} today</span>
+            {capture?.sharing && status === 'WORKING' && (
+              <span className="text-slate-400 text-[10px]">
+                (💡 You can click &quot;Hide&quot; on the bottom bar to tuck it away)
+              </span>
+            )}
             {capture?.sharing && capture.error && <span className="text-amber-300 font-semibold">· {capture.error}</span>}
           </div>
         )

@@ -216,6 +216,7 @@ export interface TimeTrackingSettings {
   screenshotRetentionDays: number;
   retentionPolicyVersion?: number;
   breaks?: BreakConfig[];
+  defaultDailyWorkingRequirementMinutes?: number; // 480 for 9h shift (8h work + 1h break) or 420 for 8h shift (7h work + 1h break)
 }
 
 // One captured screen image (files live on disk; this is the gallery index row)

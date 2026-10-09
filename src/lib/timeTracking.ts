@@ -39,6 +39,8 @@ export const DEFAULT_RETENTION_DAYS = 7;
 // (no policy marker) fall back to the 7-day default instead of the old 30-day value.
 export const RETENTION_POLICY_VERSION = 2;
 
+export const DEFAULT_DAILY_WORKING_MINUTES = 480; // 8 hours actual work (9 hours shift including 1h break)
+
 export const DEFAULT_TIME_TRACKING_SETTINGS: TimeTrackingSettings = {
   screenshotsEnabledByDefault: true,
   defaultScreenshotIntervalMinutes: 6,
@@ -47,7 +49,21 @@ export const DEFAULT_TIME_TRACKING_SETTINGS: TimeTrackingSettings = {
   screenshotRetentionDays: DEFAULT_RETENTION_DAYS,
   retentionPolicyVersion: RETENTION_POLICY_VERSION,
   breaks: DEFAULT_BREAK_CONFIGS,
+  defaultDailyWorkingRequirementMinutes: DEFAULT_DAILY_WORKING_MINUTES,
 };
+
+export const SHIFT_OPTIONS = [
+  { hours: 9, workMinutes: 480, breakMinutes: 60, label: '9h Shift (8h Work + 1h Break)' },
+  { hours: 8, workMinutes: 420, breakMinutes: 60, label: '8h Shift (7h Work + 1h Break)' },
+] as const;
+
+export function shiftLabelFor(workMinutes?: number): string {
+  const m = Number(workMinutes) || 480;
+  if (m === 480) return '9h Shift (8h work + 1h break)';
+  if (m === 420) return '8h Shift (7h work + 1h break)';
+  const h = Math.round(m / 60);
+  return `${h + 1}h Shift (${h}h work + 1h break)`;
+}
 
 export const SCREENSHOT_INTERVAL_OPTIONS = [1, 2, 3, 5, 10, 15, 30];
 
@@ -135,6 +151,7 @@ export function resolveTimeTrackingSettings(s?: Partial<TimeTrackingSettings> | 
     screenshotRetentionDays: retentionCurrent && isValidRetentionDays(savedRetention) ? savedRetention : DEFAULT_RETENTION_DAYS,
     retentionPolicyVersion: RETENTION_POLICY_VERSION,
     breaks: normalizeBreaks(s?.breaks),
+    defaultDailyWorkingRequirementMinutes: Number(s?.defaultDailyWorkingRequirementMinutes) || DEFAULT_DAILY_WORKING_MINUTES,
   };
 }
 

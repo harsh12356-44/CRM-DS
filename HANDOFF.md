@@ -137,6 +137,20 @@
     - **Complete Duration Concealment from Employees**:
       - Employees are notified and guided that periodic screenshots are active (`"Screenshots active"`), but all specific duration intervals and countdowns are strictly concealed from their UI, banners, notifications, and galleries ([src/components/TimeTracker.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTracker.tsx), [src/components/ScreenshotGallery.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/ScreenshotGallery.tsx), [src/app/api/time-tracking/screenshots/settings/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/time-tracking/screenshots/settings/route.ts)).
       - Admins and Managers retain full visibility and range configuration control in the Admin Suite ([src/components/TimeTrackingAdmin.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTrackingAdmin.tsx)).
+       - **Configurable Daily Target Shifts (9-Hour vs 8-Hour Daily Shift with 1-Hour Break Deduction)**:
+         - **Requirement Addressed**: Addressed requirement where some employees need to complete 9 hours daily and some 8 hours daily, both including a 1-hour break (45m lunch break + 15m tea break).
+         - **Mathematical Calculation Rule**:
+           - **9-Hour Daily Shift**: Requires 8 hours (480 minutes) of net actual work + 1 hour total break (45m lunch + 15m tea). Total gross logged time = 9 hours.
+           - **8-Hour Daily Shift**: Requires 7 hours (420 minutes) of net actual work + 1 hour total break (45m lunch + 15m tea). Total gross logged time = 8 hours.
+           - **Deduction & Overtime**: Break time is deducted from gross logged time to evaluate target completion, short hours, and overtime across all timesheet and progress views.
+         - **Dual Configuration Surfaces**:
+           - **Company Defaults**: Admin can configure company-wide default daily shift requirement (`defaultDailyWorkingRequirementMinutes`) in Time Tracking Settings.
+           - **Per-Employee Shift Selection**: Configurable per-employee in both **Time Tracking Settings -> Employees list** ([TimeTrackingAdmin.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTrackingAdmin.tsx)) and the **Add / Edit Employee Profile Modal** ([EmployeesTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/EmployeesTab.tsx)).
+           - **0ms Optimistic Updates**: Changes to employee shifts update immediately (0ms delay) via the `SET_EMPLOYEE_TARGET` action in [src/app/api/time-tracking/screenshots/settings/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/time-tracking/screenshots/settings/route.ts).
+         - **Visual Identifiers & Employee Guidance**:
+           - Employee Directory cards display a dedicated shift badge: `9h Shift (8h work)` or `8h Shift (7h work)`.
+           - Admin Live Board displays `pct% of target (9h shift)` or `(8h shift)`.
+           - Employee Time Tracker hero card ([TimeTracker.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/TimeTracker.tsx)) clearly indicates: `Daily target 8h 00m · 9h shift (incl. 1h break)` or `Daily target 7h 00m · 8h shift (incl. 1h break)`.
     - Stores images as plain files on disk under `/data/screenshots/` (indexed via `index.json`) to keep `db.json` and database operations fast and bloat-free.
     - 7-day automated retention policy: an hourly background task and standalone cron script (`scripts/cleanup_screenshots.js`) automatically purge images older than 7 days.
   - **Admin Time Tracking Suite ([src/app/admin/time-tracking/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/time-tracking/page.tsx))**:

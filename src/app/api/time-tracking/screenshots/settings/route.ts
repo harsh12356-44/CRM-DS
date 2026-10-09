@@ -77,11 +77,30 @@ export async function POST(request: Request) {
         defaultScreenshotIntervalMinMinutes: min,
         defaultScreenshotIntervalMaxMinutes: max,
         screenshotRetentionDays: retention,
+        defaultDailyWorkingRequirementMinutes: Number(body.defaultDailyWorkingRequirementMinutes) || before.defaultDailyWorkingRequirementMinutes || 480,
       };
       audit('Update Screenshot Defaults', 'default', before, db.timeTrackingSettings);
       await saveDbDataAsync(db);
       if (retention !== before.screenshotRetentionDays) cleanupOldScreenshots(retention, undefined, { force: true });
-      return NextResponse.json({ success: true, message: 'Company screenshot defaults saved.', settings: db.timeTrackingSettings });
+      return NextResponse.json({ success: true, message: 'Company settings saved.', settings: db.timeTrackingSettings });
+    }
+
+    // Master Admin / Manager: Daily shift and working hours target per employee
+    if (body.action === 'SET_EMPLOYEE_TARGET') {
+      const emp = db.employees.find(e => e.id === body.employeeId);
+      if (!emp) return NextResponse.json({ error: 'Employee not found.' }, { status: 404 });
+      if (!isAdmin && !isManagerOf(actor, emp)) {
+        return NextResponse.json({ error: 'You can only change targets for your own team.' }, { status: 403 });
+      }
+      const minutes = Number(body.dailyWorkingRequirementMinutes);
+      if (!minutes || minutes < 60 || minutes > 960) {
+        return NextResponse.json({ error: 'Invalid working requirement.' }, { status: 400 });
+      }
+      const before = emp.dailyWorkingRequirementMinutes || 480;
+      emp.dailyWorkingRequirementMinutes = minutes;
+      audit('Update Employee Target', emp.id, before, minutes);
+      await saveDbDataAsync(db);
+      return NextResponse.json({ success: true, message: `Updated daily requirement for ${emp.name}`, employee: emp, employees: db.employees });
     }
 
     // Master Admin: Tea / Lunch break durations (the two break types are fixed).

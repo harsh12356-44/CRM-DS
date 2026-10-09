@@ -52,6 +52,7 @@ export default function EmployeesTab() {
   const [employmentStatus, setEmploymentStatus] = useState('Active');
   const [employeeType, setEmployeeType] = useState('Full Time');
   const [workMode, setWorkMode] = useState<'OFFICE' | 'WFH'>('OFFICE');
+  const [dailyWorkingRequirementMinutes, setDailyWorkingRequirementMinutes] = useState<number>(480);
   const [salary, setSalary] = useState(75000);
   const [weeklyOff, setWeeklyOff] = useState('Sunday');
 
@@ -137,6 +138,7 @@ export default function EmployeesTab() {
     setEmploymentStatus('Active');
     setEmployeeType('Full Time');
     setWorkMode('OFFICE');
+    setDailyWorkingRequirementMinutes(480);
     setSalary(75000);
     setWeeklyOff('Sunday');
     setIsModalOpen(true);
@@ -159,6 +161,7 @@ export default function EmployeesTab() {
     setEmploymentStatus(emp.status === 'INACTIVE' ? 'Inactive' : 'Active');
     setEmployeeType(emp.employeeType || 'Full Time');
     setWorkMode(emp.workMode || 'OFFICE');
+    setDailyWorkingRequirementMinutes(emp.dailyWorkingRequirementMinutes || 480);
     setSalary(emp.monthlySalary || 75000);
     setWeeklyOff(emp.weeklyOff || 'Sunday');
     setIsModalOpen(true);
@@ -237,6 +240,7 @@ export default function EmployeesTab() {
           status: employmentStatus.toUpperCase() === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
           employeeType,
           workMode,
+          dailyWorkingRequirementMinutes,
           monthlySalary: salary,
           weeklyOff,
         }),
@@ -469,6 +473,9 @@ export default function EmployeesTab() {
                       🏠 WFH
                     </span>
                   )}
+                  <span className="px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 font-bold text-[10px]" title="Daily Shift Target (1h break deducted)">
+                    {emp.dailyWorkingRequirementMinutes === 420 ? '8h Shift (7h work)' : '9h Shift (8h work)'}
+                  </span>
                   <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700/80 font-bold text-[10px]" title="Weekly Off Schedule">
                     Off: {emp.weeklyOff || 'Sunday'}
                   </span>
@@ -681,6 +688,23 @@ export default function EmployeesTab() {
                       <option value="OFFICE">🏢 Office (In-Person)</option>
                       <option value="WFH">🏠 Work From Home (Remote)</option>
                     </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-300 mb-1.5">
+                      Daily Shift & Working Target <span className="text-red-400">*</span>
+                    </label>
+                    <select
+                      value={dailyWorkingRequirementMinutes}
+                      onChange={e => setDailyWorkingRequirementMinutes(Number(e.target.value))}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white font-medium focus:border-blue-500 focus:outline-none font-bold"
+                    >
+                      <option value={480}>9 Hours Shift (8h Actual Work + 1h Break)</option>
+                      <option value={420}>8 Hours Shift (7h Actual Work + 1h Break)</option>
+                    </select>
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      1 hour break (45m lunch + 15m tea) is deducted to calculate actual worked hours and overtime.
+                    </p>
                   </div>
 
                   <div>

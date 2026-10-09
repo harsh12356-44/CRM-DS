@@ -283,6 +283,17 @@ export default function TimeTrackingAdmin() {
         };
       });
       window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
+    } else if (body.action === 'SET_EMPLOYEE_TARGET') {
+      const targetEmpId = String(body.employeeId || '');
+      const reqMinutes = Number(body.dailyWorkingRequirementMinutes) || 480;
+      setData(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          employees: prev.employees.map(e => e.id === targetEmpId ? { ...e, dailyWorkingRequirementMinutes: reqMinutes } : e),
+        };
+      });
+      window.dispatchEvent(new CustomEvent('timeTrackerChanged'));
     }
 
     try {
@@ -647,7 +658,7 @@ export default function TimeTrackingAdmin() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[11px] font-bold text-slate-400">{pct}% of {formatDuration(target)}</p>
+                      <p className="text-[11px] font-bold text-slate-400">{pct}% of {formatDuration(target)} ({target === 480 * 60000 ? '9h' : '8h'} shift)</p>
                       {todaySummary.workMs > target && (
                         <p className="text-[10px] font-extrabold text-emerald-400">+{formatDuration(todaySummary.workMs - target)} OT</p>
                       )}
@@ -1002,10 +1013,23 @@ export default function TimeTrackingAdmin() {
                           <p className="text-[10px] text-slate-500 truncate">{e.employeeId} · {e.department}</p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3 shrink-0">
-                        <span className={`hidden sm:inline-flex items-center space-x-1 text-[10px] font-bold ${isOn ? 'text-purple-300' : 'text-slate-500'}`}>
+                      <div className="flex items-center space-x-2 shrink-0">
+                        <select
+                          value={e.dailyWorkingRequirementMinutes || 480}
+                          disabled={busyKey === `tgt-${e.id}`}
+                          onChange={async ev => {
+                            const val = Number(ev.target.value);
+                            await post(`tgt-${e.id}`, { action: 'SET_EMPLOYEE_TARGET', employeeId: e.id, dailyWorkingRequirementMinutes: val }, '/api/time-tracking/screenshots/settings');
+                          }}
+                          className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-purple-500 cursor-pointer"
+                          title="Daily Shift Target (1 hour break is deducted from gross shift to compute actual work hours)"
+                        >
+                          <option value={480}>9h Shift (8h work)</option>
+                          <option value={420}>8h Shift (7h work)</option>
+                        </select>
+                        <span className={`hidden md:inline-flex items-center space-x-1 text-[10px] font-bold ${isOn ? 'text-purple-300' : 'text-slate-500'}`}>
                           {locked ? <Home className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
-                          <span>{locked ? 'WFH mode · always on' : isOn ? 'Tracker on' : 'Tracker off'}</span>
+                          <span>{locked ? 'WFH mode' : isOn ? 'Tracker on' : 'Tracker off'}</span>
                         </span>
                         <button
                           type="button"
@@ -1142,6 +1166,20 @@ export default function TimeTrackingAdmin() {
                 <label className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-200">
                   <span>Keep screenshots for (days)</span>
                   <input type="number" inputMode="numeric" min={RETENTION_DAYS_MIN} max={RETENTION_DAYS_MAX} step={1} value={Number.isNaN(df.screenshotRetentionDays) ? '' : df.screenshotRetentionDays} onChange={e => setDefaultsForm({ ...df, screenshotRetentionDays: e.target.value === '' ? NaN : Number(e.target.value) })} aria-invalid={!retentionOk} className={`w-20 px-2.5 py-1.5 rounded-lg bg-slate-800 border text-xs text-white ${retentionOk ? 'border-slate-700' : 'border-rose-500'}`} />
+                </label>
+                <label className="flex items-center justify-between gap-3 text-xs font-semibold text-slate-200">
+                  <div className="space-y-0.5">
+                    <span>Default Company Daily Shift</span>
+                    <p className="text-[10px] text-slate-400 font-normal">Standard daily shift target (1 hour break is deducted from gross shift).</p>
+                  </div>
+                  <select
+                    value={df.defaultDailyWorkingRequirementMinutes || 480}
+                    onChange={e => setDefaultsForm({ ...df, defaultDailyWorkingRequirementMinutes: Number(e.target.value) })}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs text-white"
+                  >
+                    <option value={480}>9h Shift (8h work + 1h break)</option>
+                    <option value={420}>8h Shift (7h work + 1h break)</option>
+                  </select>
                 </label>
                 {retentionOk
                   ? <p className="text-[10px] text-slate-500">Screenshots older than {df.screenshotRetentionDays} days are permanently deleted automatically (image files and records). Attendance and time entries are never deleted.</p>

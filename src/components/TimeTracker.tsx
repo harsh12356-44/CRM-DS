@@ -647,7 +647,12 @@ export default function TimeTracker({ employeeId, compact = false }: TimeTracker
 
       <div className="space-y-1.5">
         <div className="flex items-center justify-between text-[11px] font-semibold">
-          <span className="text-slate-400">Daily target {formatDuration(targetMs)}</span>
+          <span className="text-slate-400">
+            Daily target {formatDuration(targetMs)}
+            <span className="text-[10px] text-slate-400 font-normal ml-1.5">
+              · {targetMs === 480 * 60000 ? '9h shift' : targetMs === 420 * 60000 ? '8h shift' : `${Math.round(targetMs / 3600000 + 1)}h shift`} (incl. 1h break)
+            </span>
+          </span>
           <span className={progress >= 100 ? 'text-emerald-300 font-bold' : 'text-slate-300'}>
             {progress}%{progress >= 100 ? ' ✓ target met' : ''}
           </span>

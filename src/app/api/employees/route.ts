@@ -8,7 +8,8 @@ import { Employee } from '@/lib/types';
 export async function GET(request: Request) {
   const db = getDbData();
   const cookieHeader = request.headers.get('cookie') || '';
-  const isAdmin = cookieHeader.includes('hrm_user_role=ADMIN');
+  const isSuperAdmin = cookieHeader.includes('hrm_user_role=SUPER_ADMIN');
+  const isAdmin = isSuperAdmin || cookieHeader.includes('hrm_user_role=ADMIN');
 
   if (isAdmin) {
     return NextResponse.json(db.employees);
@@ -27,7 +28,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const db = getDbData();
     const cookieHeader = request.headers.get('cookie') || '';
-    const isAdmin = cookieHeader.includes('hrm_user_role=ADMIN');
+    const isSuperAdmin = cookieHeader.includes('hrm_user_role=SUPER_ADMIN');
+    const isAdmin = isSuperAdmin || cookieHeader.includes('hrm_user_role=ADMIN');
 
     const targetId = body.id || body.employeeId;
     const targetEmail = body.email ? body.email.toLowerCase().trim() : '';
@@ -129,7 +131,8 @@ export async function PUT(request: Request) {
     const targetName = body.name ? body.name.toLowerCase().trim() : '';
 
     const cookieHeader = request.headers.get('cookie') || '';
-    const isAdmin = cookieHeader.includes('hrm_user_role=ADMIN');
+    const isSuperAdmin = cookieHeader.includes('hrm_user_role=SUPER_ADMIN');
+    const isAdmin = isSuperAdmin || cookieHeader.includes('hrm_user_role=ADMIN');
 
     const db = getDbData();
     const index = db.employees.findIndex(e => {
@@ -206,7 +209,8 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const cookieHeader = request.headers.get('cookie') || '';
-    const isAdmin = cookieHeader.includes('hrm_user_role=ADMIN');
+    const isSuperAdmin = cookieHeader.includes('hrm_user_role=SUPER_ADMIN');
+    const isAdmin = isSuperAdmin || cookieHeader.includes('hrm_user_role=ADMIN');
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized. Only admins can delete employees.' }, { status: 403 });
     }
@@ -226,6 +230,10 @@ export async function DELETE(request: Request) {
     }
 
     const deletedEmp = db.employees[index];
+    if (deletedEmp.role === 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Super Admin accounts are protected and cannot be deleted.' }, { status: 403 });
+    }
+
     db.employees.splice(index, 1);
     logAudit('Delete Employee', 'Employee', id, JSON.stringify(deletedEmp), undefined);
     saveDbData(db);

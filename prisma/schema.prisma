@@ -18,7 +18,9 @@ model Employee {
   department                      String          @default("General")
   designation                     String?
   dateOfJoining                   String?
-  role                            String          @default("EMPLOYEE") // ADMIN, MANAGER, EMPLOYEE
+  role                            String          @default("EMPLOYEE") // SUPER_ADMIN, ADMIN, MANAGER, EMPLOYEE
+  companyId                       String?         @default("company-main")
+  companyName                     String?         @default("Digital Suncity")
   status                          String          @default("ACTIVE")   // ACTIVE, INACTIVE, UNUSED
   monthlySalary                   Float           @default(50000)
   dailyWorkingRequirementMinutes Int             @default(480)
@@ -190,5 +192,23 @@ model FeedbackTicket {
   @@index([employeeId])
   @@index([category])
   @@index([status])
+}
+
+// Multi-tenant corporate workspaces
+model Company {
+  id                             String    @id @default(uuid())
+  code                           String    @unique
+  name                           String
+  slug                           String    @unique
+  logoUrl                        String?
+  status                         String    @default("ACTIVE") // ACTIVE, SUSPENDED
+  contactEmail                   String?
+  contactPhone                   String?
+  shiftStartTime                 String?   @default("09:00")
+  lunchBreakMinutes              Int?      @default(60)
+  dailyWorkingRequirementMinutes Int?      @default(480)
+  weeklyOff                      String?   @default("Sunday")
+  createdAt                      DateTime  @default(now())
+  updatedAt                      DateTime  @updatedAt
 }
 

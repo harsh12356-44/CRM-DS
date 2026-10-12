@@ -19,15 +19,22 @@ export function middleware(request: NextRequest) {
   }
 
   // 2. Role-Based Access Control (RBAC) Enforcement
-  // ADMIN has full access to /admin, /manager, and /employee
+  // SUPER_ADMIN and ADMIN have full access to /admin, /manager, and /employee
   // MANAGER has access to /manager and /employee
   // EMPLOYEE has access to /employee
-  if (isProtectedAdmin && userRole !== 'ADMIN') {
+  const isAdminRole = userRole === 'SUPER_ADMIN' || userRole === 'ADMIN';
+
+  // Routes like /admin/companies are strictly restricted to SUPER_ADMIN
+  if (pathname.startsWith('/admin/companies') && userRole !== 'SUPER_ADMIN') {
+    return NextResponse.redirect(new URL('/admin', request.url));
+  }
+
+  if (isProtectedAdmin && !isAdminRole) {
     const target = userRole === 'MANAGER' ? '/manager' : '/employee';
     return NextResponse.redirect(new URL(target, request.url));
   }
 
-  if (isProtectedManager && userRole !== 'MANAGER' && userRole !== 'ADMIN') {
+  if (isProtectedManager && userRole !== 'MANAGER' && !isAdminRole) {
     return NextResponse.redirect(new URL('/employee', request.url));
   }
 

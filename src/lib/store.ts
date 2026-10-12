@@ -15,6 +15,8 @@ import {
   FeedbackItem,
   Branch,
   DEFAULT_BRANCHES,
+  Company,
+  DEFAULT_COMPANIES,
 } from './types';
 import fs from 'fs';
 import path from 'path';
@@ -38,6 +40,7 @@ export interface InitialState {
   departments?: any[];
   deletedDepartments?: string[];
   branches?: Branch[];
+  companies?: Company[];
   timeEntries?: TimeEntry[];
   timeActivities?: TimeActivity[];
   timeTrackingSettings?: TimeTrackingSettings;
@@ -55,8 +58,10 @@ const DEFAULT_EMPLOYEES: Employee[] = [
     department: 'Human Resources',
     designation: 'HR / COO',
     dateOfJoining: '2024-01-01',
-    role: 'ADMIN',
+    role: 'SUPER_ADMIN',
     status: 'ACTIVE',
+    companyId: 'company-main',
+    companyName: 'Digital Suncity',
     monthlySalary: 95000,
     dailyWorkingRequirementMinutes: 480,
     weeklyOff: 'Sunday',
@@ -549,10 +554,24 @@ export function getDbData(): InitialState {
         const rawBranches = Array.isArray(data.branches) && data.branches.length > 0 ? data.branches : DEFAULT_BRANCHES;
         const branchMap = new Map(rawBranches.map((b: any) => [b.id, b.name]));
 
+        const rawCompanies = Array.isArray(data.companies) && data.companies.length > 0 ? data.companies : DEFAULT_COMPANIES;
+        const companyMap = new Map(rawCompanies.map((c: any) => [c.id, c.name]));
+
         const employeesList = rawList.map((e: any) => {
           const bId = e.branchId || 'branch-main';
+          const cId = e.companyId || 'company-main';
+
+          // Seamless promote: Ravina Khimani is always given SUPER_ADMIN
+          let empRole = e.role;
+          if ((e.id === 'emp-1' || (e.employeeId && e.employeeId.toUpperCase() === 'RK001')) && (empRole === 'ADMIN' || !empRole)) {
+            empRole = 'SUPER_ADMIN';
+          }
+
           return {
             ...e,
+            role: empRole,
+            companyId: cId,
+            companyName: e.companyName || companyMap.get(cId) || 'Digital Suncity',
             branchId: bId,
             branch: e.branch || branchMap.get(bId) || 'Main Branch',
             casualAllowance: e.casualAllowance ?? 2,
@@ -577,6 +596,7 @@ export function getDbData(): InitialState {
           notifications: data.notifications || DEFAULT_NOTIFICATIONS,
           departments: data.departments || [],
           branches: rawBranches,
+          companies: rawCompanies,
           timeEntries: Array.isArray(data.timeEntries) ? data.timeEntries : [],
           timeActivities: Array.isArray(data.timeActivities) ? data.timeActivities : undefined,
           timeTrackingSettings: data.timeTrackingSettings || undefined,
@@ -628,6 +648,7 @@ export function getDbData(): InitialState {
     notifications: DEFAULT_NOTIFICATIONS,
     departments: [],
     branches: DEFAULT_BRANCHES,
+    companies: DEFAULT_COMPANIES,
     timeEntries: [],
     feedbackItems: [],
   };

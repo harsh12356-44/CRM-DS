@@ -49,4 +49,7 @@ next_build.tar.gz
 # General user uploads (e.g. company logo)
 /data/uploads/
 
+# Database backup snapshots
+data/*backup*.json
+
 

@@ -33,6 +33,7 @@ import {
   HelpCircle,
   MessageSquareQuote,
   MapPin,
+  Layers,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -154,20 +155,24 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
 
   // Determine effective role based on current path and active user identity
   const storedEmpId = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-  const isRavinaKhimani = !mounted || storedEmpId === 'emp-1' || storedEmpId === 'rk001' || !storedEmpId;
+  const storedRole = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
+  const isSuperAdmin = storedRole === 'SUPER_ADMIN' || !mounted || storedEmpId === 'emp-1' || storedEmpId === 'rk001' || !storedEmpId;
+  const isRavinaKhimani = isSuperAdmin;
+  const isAdminRole = isSuperAdmin || storedRole === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'ADMIN';
 
-  const effectiveRole = isRavinaKhimani && pathname.startsWith('/admin')
+  const effectiveRole = isAdminRole && pathname.startsWith('/admin')
     ? 'ADMIN'
     : pathname.startsWith('/manager')
     ? 'MANAGER'
     : 'EMPLOYEE';
 
-  // 1. Admin Suite Sections (Strictly for Ravina Khimani)
+  // 1. Admin Suite Sections
   const adminSections = [
     {
       title: 'CORE MANAGEMENT',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
+        ...(isSuperAdmin ? [{ id: 'companies', label: 'Company Tenants', icon: Layers, href: '/admin/companies' }] : []),
         { id: 'employees', label: 'Employees Roster', icon: Users, href: '/admin/employees' },
         { id: 'managers', label: 'Managers Desk', icon: UserCheck2, href: '/admin/managers' },
         { id: 'departments', label: 'Departments', icon: Building2, href: '/admin/departments' },

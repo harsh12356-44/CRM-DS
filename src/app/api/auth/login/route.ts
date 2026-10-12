@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     // Determine expected password
-    const expectedPassword = emp.password || (emp.role === 'ADMIN' ? 'Admin@123' : emp.role === 'MANAGER' ? 'Manager@123' : 'Employee@123');
+    const expectedPassword = emp.password || (emp.role === 'SUPER_ADMIN' || emp.role === 'ADMIN' ? 'Admin@123' : emp.role === 'MANAGER' ? 'Manager@123' : 'Employee@123');
 
     if (password !== expectedPassword) {
       return NextResponse.json({ 
@@ -54,13 +54,18 @@ export async function POST(request: Request) {
     }
 
     // Role and Employee details
-    const targetRole = (emp.role as 'ADMIN' | 'MANAGER' | 'EMPLOYEE') || 'EMPLOYEE';
+    const targetRole = (emp.role as 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE') || 'EMPLOYEE';
+    const targetCompanyId = emp.companyId || 'company-main';
+    const targetCompanyName = emp.companyName || 'Digital Suncity';
+
     const safeEmployee = {
       id: emp.id,
       employeeId: emp.employeeId,
       name: emp.name,
       email: emp.email,
       role: targetRole,
+      companyId: targetCompanyId,
+      companyName: targetCompanyName,
       department: emp.department || 'General',
       designation: emp.designation || 'Staff',
       status: emp.status || 'ACTIVE',
@@ -85,6 +90,11 @@ export async function POST(request: Request) {
       sameSite: 'lax',
     });
     response.cookies.set('hrm_user_id', emp.id, {
+      path: '/',
+      maxAge: 86400 * 30,
+      sameSite: 'lax',
+    });
+    response.cookies.set('hrm_user_company', targetCompanyId, {
       path: '/',
       maxAge: 86400 * 30,
       sameSite: 'lax',

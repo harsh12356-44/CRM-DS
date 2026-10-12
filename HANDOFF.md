@@ -7,6 +7,32 @@
 ---
 
 ## 2. Current Project Status
+- **Super Admin & Multi-Company Tenant Architecture (Zero-Disruption Isolation)**:
+  - **Requirement Addressed**: Implemented a multi-company (multi-tenant) architecture allowing Digital Suncity and other client/corporate entities to maintain completely separate workspaces, branding, staff rosters, shift targets, and branch allocations, with a master `SUPER_ADMIN` role for overall platform governance.
+  - **Guaranteed Zero-Disruption Backwards Compatibility ([src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts), [src/lib/types.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/types.ts))**:
+    - Automatic snapshot backup created at `data/db_backup_before_multi_company.json`.
+    - Defined `Company` interface and initialized `DEFAULT_COMPANIES` with primary default company `company-main` (`Digital Suncity`, `DS`).
+    - Added on-the-fly normalization in `getDbData()`: any existing employee, department, or branch lacking `companyId` is automatically attributed to `company-main` and `Digital Suncity`.
+    - Ravina Khimani (`RK001`, `emp-1`) seamlessly promoted from `ADMIN` to `SUPER_ADMIN`.
+    - Zero data loss, zero table drops, zero reset required for active biometric punch logs or existing users.
+  - **Super Admin Protection & Multi-Tier RBAC ([src/middleware.ts](file:///d:/Ravina/Antigravity/crm-ds/src/middleware.ts), [src/app/api/employees/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/employees/route.ts))**:
+    - Extended `Role` to `'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE'`.
+    - Both `SUPER_ADMIN` and `ADMIN` have full access to `/admin`, `/manager`, and `/employee`.
+    - Dedicated `/admin/companies` route is strictly gated to `SUPER_ADMIN`.
+    - Super Admin deletion protection: Super Admin accounts cannot be deleted or demoted by standard Admins.
+  - **Dedicated Companies Management Desk ([src/app/admin/companies/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/companies/page.tsx), [src/components/CompaniesTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/CompaniesTab.tsx))**:
+    - Admin suite desk accessible via `/admin/companies` and pinned in Sidebar under "CORE MANAGEMENT" for Super Admins.
+    - Summary metrics: Total Companies, Active Workspaces, Global Staff Count, and Primary HQ.
+    - Company cards displaying staff count, branch count, shift start time, shift working target (8h vs 9h), weekly off schedule, and operational status.
+    - 1-click "Switch to Space" action allowing Super Admin to switch active company context with instant real-time synchronization.
+    - Add New Company modal with live code/slug generation, shift defaults, and optional initial Admin account onboarding.
+    - Delete protection: Default HQ company and companies with active assigned staff cannot be deleted.
+  - **Dedicated Companies API Endpoint ([src/app/api/companies/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/companies/route.ts))**:
+    - Full CRUD support (`GET`, `POST`, `PUT`, `DELETE`) with dynamic staff headcount computation, branch count computation, and strict no-cache HTTP headers.
+  - **Dynamic Navbar Workspace Switcher ([src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx))**:
+    - Added a sleek Company Switcher pill dropdown beside the logo for Super Admin to toggle between corporate workspaces.
+    - Dispatches custom `companyChange` events for 0ms cross-component UI updates.
+    - Added `👑 SUPER ADMIN` role badge.
 - **Company Branches Management & Zero-Disruption Multi-Branch Architecture**:
   - **Requirement Addressed**: Allowed Digital Suncity to introduce multiple operational branches without altering or disrupting existing database records, biometric punches, leave records, or portal workflows.
     - **Main Branch**: Default HQ branch with 1 weekly off (Sunday) and 8 hours working target including 1 hour break (420m actual working time + 60m break).

@@ -1,4 +1,41 @@
-export type Role = 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+export type Role = 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE';
+
+export interface Company {
+  id: string; // e.g. 'company-main'
+  name: string; // e.g. 'Digital Suncity'
+  code: string; // e.g. 'DS'
+  slug: string; // e.g. 'digital-suncity'
+  logoUrl?: string;
+  status: 'ACTIVE' | 'SUSPENDED';
+  contactEmail?: string;
+  contactPhone?: string;
+  shiftStartTime?: string; // e.g. '09:00'
+  lunchBreakMinutes?: number; // 60
+  dailyWorkingRequirementMinutes?: number; // 420 or 480
+  weeklyOff?: string; // e.g. 'Sunday'
+  isDefault?: boolean;
+  employeeCount?: number;
+  branchesCount?: number;
+  createdAt?: string;
+}
+
+export const DEFAULT_COMPANIES: Company[] = [
+  {
+    id: 'company-main',
+    name: 'Digital Suncity',
+    code: 'DS',
+    slug: 'digital-suncity',
+    logoUrl: '',
+    status: 'ACTIVE',
+    contactEmail: 'ravina@hrmpilot.com',
+    shiftStartTime: '09:00',
+    lunchBreakMinutes: 60,
+    dailyWorkingRequirementMinutes: 480,
+    weeklyOff: 'Sunday',
+    isDefault: true,
+    createdAt: '2024-01-01',
+  },
+];
 
 export interface Employee {
   id: string;
@@ -33,6 +70,8 @@ export interface Employee {
   screenshotIntervalMaxMinutes?: number; // maximum randomized interval minutes (e.g. 7)
   branchId?: string; // e.g. 'branch-main' or 'branch-seo'
   branch?: string; // e.g. 'Main Branch' or 'SEO Branch'
+  companyId?: string; // e.g. 'company-main'
+  companyName?: string; // e.g. 'Digital Suncity'
 }
 
 export interface Department {
@@ -42,6 +81,7 @@ export interface Department {
   managerName?: string;
   description?: string;
   employeeCount?: number;
+  companyId?: string;
 }
 
 export interface Branch {
@@ -53,6 +93,7 @@ export interface Branch {
   address?: string;
   isDefault?: boolean;
   employeeCount?: number;
+  companyId?: string;
   createdAt?: string;
 }
 
@@ -64,6 +105,7 @@ export const DEFAULT_BRANCHES: Branch[] = [
     dailyWorkingRequirementMinutes: 420, // 8h Shift (7h work + 1h break)
     weeklyOff: 'Sunday', // 1 day off
     address: 'Digital Suncity Head Office',
+    companyId: 'company-main',
     isDefault: true,
   },
   {
@@ -73,6 +115,7 @@ export const DEFAULT_BRANCHES: Branch[] = [
     dailyWorkingRequirementMinutes: 480, // 9h Shift (8h work + 1h break)
     weeklyOff: 'Saturday & Sunday', // 2 days off
     address: 'Digital Suncity SEO & Digital Wing',
+    companyId: 'company-main',
     isDefault: false,
   },
 ];

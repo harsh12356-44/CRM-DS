@@ -4,6 +4,7 @@ export interface RequestUser {
   role: string;
   id: string;
   email: string;
+  companyId: string;
 }
 
 function readCookie(cookieHeader: string, name: string): string {
@@ -18,7 +19,16 @@ export function getRequestUser(request: Request): RequestUser {
     role: readCookie(cookieHeader, 'hrm_user_role'),
     id: readCookie(cookieHeader, 'hrm_user_id'),
     email: readCookie(cookieHeader, 'hrm_user_email').toLowerCase(),
+    companyId: readCookie(cookieHeader, 'hrm_user_company') || 'company-main',
   };
+}
+
+export function isAdmin(user: RequestUser): boolean {
+  return user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+}
+
+export function isSuperAdmin(user: RequestUser): boolean {
+  return user.role === 'SUPER_ADMIN';
 }
 
 export function findRequestEmployee(user: RequestUser, employees: Employee[]): Employee | undefined {
@@ -46,7 +56,7 @@ export function isManagerOf(manager: Employee | undefined, emp: Employee): boole
 
 // Self, HR admins, and the employee's own managers may view tracker data (time + screenshots).
 export function canViewEmployee(user: RequestUser, viewer: Employee | undefined, emp: Employee): boolean {
-  if (user.role === 'ADMIN') return true;
+  if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') return true;
   if (isSameEmployee(user, emp)) return true;
   return isManagerOf(viewer, emp);
 }

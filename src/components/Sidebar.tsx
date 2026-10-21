@@ -48,10 +48,10 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   const activeTab = activeTabParam || currentTab || 'dashboard';
 
   const [mounted, setMounted] = useState<boolean>(false);
-  const [activeRole, setActiveRole] = useState<string>('ADMIN');
+  const [activeRole, setActiveRole] = useState<string>(role || 'EMPLOYEE');
   const [isManager, setIsManager] = useState<boolean>(false);
   const [isWfh, setIsWfh] = useState<boolean>(false);
-  const [empCodeDisplay, setEmpCodeDisplay] = useState<string>('NB002');
+  const [empCodeDisplay, setEmpCodeDisplay] = useState<string>('...');
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
   const [companyLogoUrl, setCompanyLogoUrl] = useState<string>('');
@@ -118,26 +118,28 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
       setActiveRole(currentRole);
 
         if (typeof window !== 'undefined') {
-          const storedId = localStorage.getItem('hrm_active_employee_id');
-          const storedEmail = localStorage.getItem('hrm_active_employee_email');
-          const isMgr =
-            localStorage.getItem('hrm_active_employee_is_manager') === 'true' ||
-            localStorage.getItem('hrm_active_employee_role') === 'MANAGER' ||
-            localStorage.getItem('hrm_active_employee_role') === 'ADMIN';
-          setIsManager(isMgr);
+          const storedId = localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id');
+          const storedEmail = localStorage.getItem('hrm_auth_user_email') || localStorage.getItem('hrm_active_employee_email');
+          const storedRole = localStorage.getItem('hrm_auth_user_role') || localStorage.getItem('hrm_active_employee_role');
+          const cleanId = (storedId || '').trim().toLowerCase();
+          const cleanEmail = (storedEmail || '').trim().toLowerCase();
 
           try {
             const res = await fetch(`/api/employees?t=${Date.now()}`);
             const data = await res.json();
             const employeesList: any[] = Array.isArray(data) ? data : data.employees || [];
             const emp = employeesList.find((e: any) =>
-              (storedId && (e.id === storedId || e.employeeId === storedId || e.id.toLowerCase() === storedId.toLowerCase())) ||
-              (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
-              (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim().split('@')[0]) ||
-              (storedEmail && e.name && e.name.toLowerCase().includes(storedEmail.toLowerCase().trim().split('@')[0]))
+              (cleanId && ((e.id && e.id.toLowerCase() === cleanId) || (e.employeeId && e.employeeId.toLowerCase() === cleanId))) ||
+              (cleanEmail && e.email && e.email.toLowerCase().trim() === cleanEmail)
             );
+
+            const isMgr = Boolean(
+              emp ? (emp.role === 'MANAGER' || emp.role === 'ADMIN' || emp.role === 'SUPER_ADMIN') :
+              (storedRole === 'MANAGER' || storedRole === 'ADMIN' || storedRole === 'SUPER_ADMIN')
+            );
+            setIsManager(isMgr);
             setIsWfh(emp?.workMode === 'WFH');
-            const newCode = emp ? (emp.employeeId || emp.id) : (storedId || 'EMP');
+            const newCode = emp ? (emp.employeeId || emp.id) : (cleanId ? cleanId.toUpperCase() : 'EMP');
             setEmpCodeDisplay(prev => prev === newCode ? prev : newCode);
           } catch (e) {}
         }
@@ -156,20 +158,15 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   // Determine effective role based on current path and active user identity
   const authEmpId = mounted && typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : null;
   const authEmpRole = mounted && typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_role') || localStorage.getItem('hrm_active_employee_role')) : null;
-  const storedEmpId = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-  const storedRole = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
+  const cleanAuthId = (authEmpId || '').toLowerCase().trim();
 
   const isSuperAdmin = mounted && Boolean(
     authEmpRole === 'SUPER_ADMIN' ||
-    storedRole === 'SUPER_ADMIN' ||
     role === 'SUPER_ADMIN' ||
-    authEmpId === 'emp-1' ||
-    authEmpId === 'rk001' ||
-    storedEmpId === 'emp-1' ||
-    storedEmpId === 'rk001'
+    ((authEmpRole === 'ADMIN' || !authEmpRole) && (cleanAuthId === 'emp-1' || cleanAuthId === 'rk001'))
   );
   const isRavinaKhimani = isSuperAdmin;
-  const isAdminRole = isSuperAdmin || authEmpRole === 'ADMIN' || (storedRole === 'ADMIN' && role !== 'EMPLOYEE') || role === 'ADMIN';
+  const isAdminRole = isSuperAdmin || authEmpRole === 'ADMIN' || (role === 'ADMIN' && authEmpRole !== 'EMPLOYEE');
 
   const effectiveRole = isAdminRole && pathname.startsWith('/admin')
     ? 'ADMIN'

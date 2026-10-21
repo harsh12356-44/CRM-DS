@@ -15,6 +15,7 @@ export async function GET(request: Request) {
   const year = searchParams.get('year') || '2026';
   const monthYear = searchParams.get('monthYear');
   const department = searchParams.get('department') || 'ALL';
+  const employeeId = searchParams.get('employeeId');
 
   const db = getDbData();
   let logs = db.attendanceLogs || [];
@@ -24,6 +25,23 @@ export async function GET(request: Request) {
     employees = employees.filter(e => e.department === department);
     const deptEmpIds = new Set(employees.flatMap(e => [e.id, e.employeeId, e.name.toLowerCase()]));
     logs = logs.filter(l => deptEmpIds.has(l.employeeId) || deptEmpIds.has(l.employeeId?.toLowerCase()));
+  }
+
+  if (employeeId) {
+    const cleanEmpId = employeeId.toLowerCase().trim();
+    const targetEmpObj = db.employees.find(e =>
+      (e.id && e.id.toLowerCase() === cleanEmpId) ||
+      (e.employeeId && e.employeeId.toLowerCase() === cleanEmpId) ||
+      (e.name && e.name.toLowerCase() === cleanEmpId)
+    );
+    const validIds = new Set([
+      cleanEmpId,
+      ...(targetEmpObj ? [targetEmpObj.id.toLowerCase(), (targetEmpObj.employeeId || '').toLowerCase(), (targetEmpObj.name || '').toLowerCase()] : [])
+    ]);
+    logs = logs.filter(l => l.employeeId && validIds.has(String(l.employeeId).toLowerCase().trim()));
+    if (targetEmpObj) {
+      employees = [targetEmpObj];
+    }
   }
 
   if (date) {

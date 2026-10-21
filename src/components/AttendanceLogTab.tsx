@@ -91,42 +91,32 @@ export default function AttendanceLogTab({ hideImport = false, targetEmployeeId,
 
       // If in Employee Portal mode (hideImport=true or targetEmployeeId provided), strictly show target employee only
       if (hideImport || targetEmployeeId) {
-        let storedId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-        let storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
-        let storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
-        let targetId = (targetEmployeeId || storedId || '').toLowerCase().trim();
+        const storedId = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : null;
+        const storedEmail = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_email') || localStorage.getItem('hrm_active_employee_email')) : null;
+        const targetId = (targetEmployeeId || storedId || '').toLowerCase().trim();
+        const targetEmail = (storedEmail || '').toLowerCase().trim();
 
         let found = null;
         if (targetId) {
           found = empsList.find((e: any) =>
             (e.id && e.id.toLowerCase().trim() === targetId) ||
-            (e.employeeId && e.employeeId.toLowerCase().trim() === targetId) ||
-            (e.name && e.name.toLowerCase().includes(targetId))
+            (e.employeeId && e.employeeId.toLowerCase().trim() === targetId)
           );
         }
-        if (!found && storedEmail) {
-          const cleanEmail = storedEmail.toLowerCase().trim();
-          const prefix = cleanEmail.split('@')[0];
-          found = empsList.find((e: any) =>
-            (e.email && e.email.toLowerCase().trim() === cleanEmail) ||
-            (e.email && e.email.toLowerCase().split('@')[0] === prefix) ||
-            (e.name && e.name.toLowerCase().includes(prefix))
-          );
+        if (!found && targetEmail) {
+          found = empsList.find((e: any) => e.email && e.email.toLowerCase().trim() === targetEmail);
         }
-        if (!found) {
-          const matchingEmps = empsList.filter((e: any) => e.role === storedRole);
-          found = matchingEmps[0] || empsList[0];
-        }
+
         if (found) {
           empsList = [found];
-        }
-        const activeEmp = empsList[0];
-        if (activeEmp) {
           logsList = logsList.filter((l: any) =>
-            l.employeeId === activeEmp.id ||
-            l.employeeId === activeEmp.employeeId ||
-            (l.employeeId && activeEmp.name && l.employeeId.toLowerCase().trim() === activeEmp.name.toLowerCase().trim())
+            l.employeeId === found.id ||
+            l.employeeId === found.employeeId ||
+            (l.employeeId && found.name && l.employeeId.toLowerCase().trim() === found.name.toLowerCase().trim())
           );
+        } else {
+          empsList = [];
+          logsList = [];
         }
       }
 

@@ -55,11 +55,31 @@ export async function GET(request: Request) {
     const summaries = getQuarterlyLeaveSummaries(quarter, department);
     const sortedRecords = [...(db.leaveRecords || [])].sort((a, b) => getLeaveTimestamp(b) - getLeaveTimestamp(a));
 
+    const employeeId = searchParams.get('employeeId');
+    let records = sortedRecords;
+    if (employeeId) {
+      const cleanEmpId = employeeId.toLowerCase().trim();
+      const targetEmp = db.employees.find(e =>
+        (e.id && e.id.toLowerCase() === cleanEmpId) ||
+        (e.employeeId && e.employeeId.toLowerCase() === cleanEmpId) ||
+        (e.name && e.name.toLowerCase() === cleanEmpId)
+      );
+      const validEmpIds = new Set([
+        cleanEmpId,
+        ...(targetEmp ? [targetEmp.id.toLowerCase(), (targetEmp.employeeId || '').toLowerCase(), (targetEmp.name || '').toLowerCase()] : [])
+      ]);
+      records = records.filter(l => {
+        const lEmpId = String(l.employeeId || '').toLowerCase().trim();
+        const lEmpName = String(l.employeeName || '').toLowerCase().trim();
+        return validEmpIds.has(lEmpId) || validEmpIds.has(lEmpName);
+      });
+    }
+
     return NextResponse.json({
       quarter,
       department,
       summaries,
-      records: sortedRecords,
+      records,
       employees: db.employees || [],
     });
   } catch (err: any) {
@@ -359,7 +379,11 @@ export async function POST(request: Request) {
     }
 
     // 3. Regular Leave Submission / Record Leave Period
-    const employeeId = body.employeeId || 'emp-12';
+    const employeeId = body.employeeId;
+    if (!employeeId) {
+      return NextResponse.json({ error: 'Missing employee identification' }, { status: 400 });
+    }
+
     const { leaveType, dayType, startDate, endDate, note, handoverNote, emergencyContact, reason } = body;
 
     if (!startDate) {
@@ -367,13 +391,16 @@ export async function POST(request: Request) {
     }
 
     const db = getDbData();
+    const cleanId = String(employeeId).trim().toLowerCase();
     const emp = db.employees.find(e =>
-      e.id === employeeId ||
-      e.employeeId === employeeId ||
-      (body.employeeName && e.name.toLowerCase().trim() === String(body.employeeName).toLowerCase().trim()) ||
-      (employeeId && String(e.id).toLowerCase() === String(employeeId).toLowerCase()) ||
-      (employeeId && String(e.employeeId).toLowerCase() === String(employeeId).toLowerCase())
-    ) || db.employees[0];
+      (e.id && e.id.toLowerCase() === cleanId) ||
+      (e.employeeId && e.employeeId.toLowerCase() === cleanId) ||
+      (body.employeeName && e.name && e.name.toLowerCase().trim() === String(body.employeeName).toLowerCase().trim())
+    );
+
+    if (!emp) {
+      return NextResponse.json({ error: 'Employee account not found.' }, { status: 404 });
+    }
 
     const start = new Date(startDate);
     const end = endDate ? new Date(endDate) : start;

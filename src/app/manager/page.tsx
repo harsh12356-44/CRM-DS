@@ -32,16 +32,16 @@ export default function ManagerPortalPage() {
       setEmployees(empList);
 
       if (typeof window !== 'undefined') {
-        const storedId = localStorage.getItem('hrm_active_employee_id');
-        const storedEmail = localStorage.getItem('hrm_active_employee_email');
+        const storedId = localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id');
+        const storedEmail = localStorage.getItem('hrm_auth_user_email') || localStorage.getItem('hrm_active_employee_email');
+        const cleanId = (storedId || '').trim().toLowerCase();
+        const cleanEmail = (storedEmail || '').trim().toLowerCase();
+
         const mgr = empList.find(e =>
-          (storedId && (e.id === storedId || e.employeeId === storedId || e.id.toLowerCase() === storedId.toLowerCase())) ||
-          (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
-          (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim().split('@')[0]) ||
-          (storedEmail && e.name && e.name.toLowerCase().includes(storedEmail.toLowerCase().trim().split('@')[0])) ||
-          (storedEmail && (storedEmail.includes('meenal') || storedEmail.includes('mn005')) && e.id === 'emp-5')
-        ) || (storedEmail && (storedEmail.includes('meenal') || storedEmail.includes('mn005')) ? empList.find(e => e.id === 'emp-5') : null) || empList.find(e => e.role === 'MANAGER') || null;
-        setActiveManager(mgr);
+          (cleanId && ((e.id && e.id.toLowerCase() === cleanId) || (e.employeeId && e.employeeId.toLowerCase() === cleanId))) ||
+          (cleanEmail && e.email && e.email.toLowerCase() === cleanEmail)
+        );
+        setActiveManager(mgr || null);
       }
     } catch (err) {
       console.error(err);

@@ -31,11 +31,10 @@ export async function POST(request: Request) {
 
       return (
         eEmail === identifier ||
+        (eCode && eCode === identifier) ||
+        (e.id && e.id.toLowerCase().trim() === identifier) ||
         (ePrefix && ePrefix === identifier) ||
-        (ePrefix && cleanPrefix && ePrefix === cleanPrefix) ||
-        (eCode && (eCode === identifier || eCode === cleanPrefix)) ||
-        (eName && (eName === identifier || eName === cleanPrefix || identifier.includes(eName) || eName.includes(cleanPrefix))) ||
-        (identifier.length > 2 && eEmail.startsWith(identifier))
+        (eName && eName === identifier)
       );
     });
 

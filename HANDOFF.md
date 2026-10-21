@@ -7,6 +7,26 @@
 ---
 
 ## 2. Current Project Status
+- **Employee Account Isolation & Cross-Account Access Prevention (2026-10-21)**:
+  - **Requirement Addressed**: "Each employee should be able to access their own account. for example if its an employee he or she should see their own account and not any other employee or managers account."
+  - **Complete Elimination of View Switcher Dropdown ([src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx))**:
+    - Removed the `<select>` employee dropdown (`Active Employee View:`) from the top bar of the Employee Portal.
+    - Replaced with a static, read-only account indicator badge: `Active Account: {employee.name} ({employee.employeeId})`.
+    - No employee or manager can view, browse, or switch into another employee's account from the Employee Portal.
+  - **Elimination of Hardcoded Employee ID Fallbacks**:
+    - [src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx): Removed initial `selectedEmployeeId = 'emp-12'` (Sonu Goswami). Removed fallbacks to `'emp-12'` and `'emp-2'` (Naman Bangia) in punch in/out and leave applications.
+    - [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx): Removed hardcoded initial state `activeUser = Ravina Khimani (RK001)`. Neutralized initial state to `'...'` and removed `employeesList[0]` fallback so employees never see Ravina Khimani in their navbar.
+    - [src/components/Sidebar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Sidebar.tsx): Removed hardcoded `empCodeDisplay = 'NB002'`. Neutralized to `'...'` and resolved strictly from logged-in session.
+    - [src/components/AttendanceLogTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/AttendanceLogTab.tsx): Removed fallback to `empsList[0]` (Ravina Khimani); strictly filters attendance to target employee.
+    - [src/app/api/leaves/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/leaves/route.ts): Removed default `employeeId = 'emp-12'` and `db.employees[0]`. Requests without valid employee IDs return 400/404. Added `employeeId` query parameter filtering.
+    - [src/app/api/attendance/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/attendance/route.ts): Added direct `employeeId` query parameter filtering.
+    - [src/app/manager/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/manager/page.tsx): Strictly resolved authenticated manager without arbitrary fallbacks to other managers.
+  - **Manager Workspace Isolation in Employee Portal**:
+    - Strictly gated `team-approvals` and `team-time` tabs: regular employees (`role === 'EMPLOYEE'`) are never flagged as managers and cannot view managed subordinates or team leave requests.
+    - Added dedicated `Access Restricted` screens with a `Return to My Dashboard` button for non-managers who attempt to navigate to manager tabs.
+  - **Strict Exact-Match Authentication ([src/app/api/auth/login/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/auth/login/route.ts))**:
+    - Enforced exact equality matching on email, employee ID, database ID, username prefix, or full name. Removed loose substring checks (`identifier.includes(eName)` and `eEmail.startsWith(identifier)`).
+
 - **Role-Based Header Suite Switcher & Save Database Security (2026-10-21)**:
   - **Requirement Addressed**: Gated the header suite switcher (`[ HR Admin Suite ]`, `[ Manager Desk ]`, `[ Employee Portal ]`) and the `[ 💾 Save Database ]` button so they are strictly accessible only to HR and Super Admin. Regular employees (and managers) no longer see or have access to switch suites or perform database backups.
   - **Strict Multi-Tier Authorization ([src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx))**:

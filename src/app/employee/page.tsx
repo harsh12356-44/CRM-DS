@@ -102,7 +102,7 @@ function EmployeePortalContent() {
   }, [router]);
 
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('emp-12'); // Default: Sonu Goswami (SG012)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [attendance, setAttendance] = useState<AttendanceLog[]>([]);
   const [leaves, setLeaves] = useState<LeaveRecord[]>([]);
@@ -174,9 +174,9 @@ function EmployeePortalContent() {
 
     setPasswordLoading(true);
     try {
-      const storedEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : '';
-      const storedEmpEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : '';
-      const activeEmpId = employee?.id || storedEmpId || selectedEmployeeId || 'emp-5';
+      const storedEmpId = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : '';
+      const storedEmpEmail = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_email') || localStorage.getItem('hrm_active_employee_email')) : '';
+      const activeEmpId = employee?.id || storedEmpId || selectedEmployeeId || '';
       const activeEmpEmail = employee?.email || storedEmpEmail || '';
 
       const res = await fetch('/api/employees', {
@@ -253,24 +253,24 @@ function EmployeePortalContent() {
       setAllEmployees(employeesList);
       setAllLeaves(leavesList);
 
-      // Resolve target active employee ID (respecting storedRole, storedEmail and storedId)
-      let activeTargetId = '';
+      // Resolve target active employee ID (strictly matching authenticated user ID or email)
+      let currentEmp: Employee | null = null;
       if (typeof window !== 'undefined') {
-        const storedId = localStorage.getItem('hrm_active_employee_id');
-        const storedEmail = localStorage.getItem('hrm_active_employee_email');
-        const storedRole = localStorage.getItem('hrm_active_employee_role');
+        const storedId = localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id');
+        const storedEmail = localStorage.getItem('hrm_auth_user_email') || localStorage.getItem('hrm_active_employee_email');
+        const cleanId = (storedId || '').trim().toLowerCase();
+        const cleanEmail = (storedEmail || '').trim().toLowerCase();
 
-        let matched = employeesList.find(
+        currentEmp = employeesList.find(
           e =>
-            (storedId && (e.id === storedId || e.employeeId === storedId || e.id.toLowerCase() === storedId.toLowerCase())) ||
-            (storedEmail && e.email && e.email.toLowerCase().trim() === storedEmail.toLowerCase().trim()) ||
-            (storedEmail && e.email && e.email.toLowerCase().split('@')[0] === storedEmail.toLowerCase().trim().split('@')[0]) ||
-            (storedEmail && e.name && e.name.toLowerCase().includes(storedEmail.toLowerCase().trim().split('@')[0]))
-        );
+            (cleanId && ((e.id && e.id.toLowerCase() === cleanId) || (e.employeeId && e.employeeId.toLowerCase() === cleanId))) ||
+            (cleanEmail && e.email && e.email.toLowerCase().trim() === cleanEmail)
+        ) || null;
 
-        if (matched) {
-          activeTargetId = matched.id;
-          localStorage.setItem('hrm_active_employee_id', activeTargetId);
+        if (currentEmp) {
+          localStorage.setItem('hrm_active_employee_id', currentEmp.id);
+          localStorage.setItem('hrm_active_employee_email', currentEmp.email);
+          localStorage.setItem('hrm_active_employee_role', currentEmp.role || 'EMPLOYEE');
         } else {
           // Strictly prevent cross-account fallback; require proper authentication
           router.push('/login');
@@ -278,26 +278,23 @@ function EmployeePortalContent() {
         }
       }
 
-      // Match selected employee by ID, employeeId, or name
-      const currentEmp = employeesList.find(
-        e => e && e.id && (e.id === activeTargetId || e.employeeId === activeTargetId || (e.name && activeTargetId && e.name.toLowerCase().includes(activeTargetId.toLowerCase())))
-      );
-
       if (!currentEmp) {
         router.push('/login');
         return;
       }
 
       setEmployee(currentEmp);
+      setSelectedEmployeeId(currentEmp.id);
 
       if (currentEmp) {
         const isMgr = Boolean(
           currentEmp.role === 'MANAGER' ||
           currentEmp.role === 'ADMIN' ||
-          employeesList.some(e =>
+          currentEmp.role === 'SUPER_ADMIN' ||
+          (currentEmp.role !== 'EMPLOYEE' && employeesList.some(e =>
             (e && e.primaryManager && currentEmp.name && e.primaryManager.toLowerCase() === currentEmp.name.toLowerCase()) ||
             (e && e.secondaryManager && currentEmp.name && e.secondaryManager.toLowerCase() === currentEmp.name.toLowerCase())
-          )
+          ))
         );
 
         if (typeof window !== 'undefined') {
@@ -353,7 +350,7 @@ function EmployeePortalContent() {
     } finally {
       if (!isSilent) setLoading(false);
     }
-  }, [selectedEmployeeId]);
+  }, [router]);
 
   useEffect(() => {
     fetchEmployeeDashboardData(false);
@@ -398,7 +395,7 @@ function EmployeePortalContent() {
       const res = await fetch('/api/attendance/punch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ employeeId: employee?.id || selectedEmployeeId || 'emp-2', action }),
+        body: JSON.stringify({ employeeId: employee?.id || selectedEmployeeId, action }),
       });
       await res.json();
 
@@ -441,7 +438,7 @@ function EmployeePortalContent() {
     setLoading(true);
     setFormMsg('');
     try {
-      const activeEmpId = employee?.id || employee?.employeeId || selectedEmployeeId || (typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : '') || 'emp-12';
+      const activeEmpId = employee?.id || employee?.employeeId || selectedEmployeeId || '';
       const activeEmpName = employee?.name || '';
       const computedDays = calcDaysCount();
 
@@ -508,7 +505,7 @@ function EmployeePortalContent() {
   // Compute Employee Own & Team Statistics
   const empName = employee?.name ? employee.name.trim().split(' ')[0] : 'Employee';
   const empId = employee?.employeeId || 'EMP';
-  const managerName = employee?.primaryManager || 'Ravina Khimani';
+  const managerName = employee?.primaryManager || 'HR Admin';
 
   const safeAttendance = Array.isArray(attendance) ? attendance : [];
   const safeLeaves = Array.isArray(leaves) ? leaves : [];
@@ -518,20 +515,21 @@ function EmployeePortalContent() {
     employee && (
       employee.role === 'MANAGER' ||
       employee.role === 'ADMIN' ||
-      safeAllEmployees.some(e =>
+      employee.role === 'SUPER_ADMIN' ||
+      (employee.role !== 'EMPLOYEE' && safeAllEmployees.some(e =>
         (e && e.primaryManager && employee.name && e.primaryManager.toLowerCase() === employee.name.toLowerCase()) ||
         (e && e.secondaryManager && employee.name && e.secondaryManager.toLowerCase() === employee.name.toLowerCase())
-      )
+      ))
     )
   );
 
-  const teamSubordinates = safeAllEmployees.filter(
+  const teamSubordinates = isManager ? safeAllEmployees.filter(
     e => e && e.id !== employee?.id && (
       (e.primaryManager && employee?.name && e.primaryManager.toLowerCase() === employee.name.toLowerCase()) ||
       (e.secondaryManager && employee?.name && e.secondaryManager.toLowerCase() === employee.name.toLowerCase()) ||
-      employee?.role === 'ADMIN'
+      (employee?.role === 'ADMIN' || employee?.role === 'SUPER_ADMIN')
     )
-  );
+  ) : [];
 
   const teamSubordinateIds = teamSubordinates.map(e => e.id);
   const teamSubordinateNames = teamSubordinates.map(e => (e.name || '').toLowerCase());
@@ -677,8 +675,8 @@ function EmployeePortalContent() {
     dashboardQuarterFilter === 'ALL' ? currentQuarter : dashboardQuarterFilter;
 
   // Leave Balance & Leaves applied for active quarter
-  const currentEmpId = employee?.id || selectedEmployeeId || 'emp-12';
-  const currentEmpCode = employee?.employeeId || 'SG012';
+  const currentEmpId = employee?.id || selectedEmployeeId || '';
+  const currentEmpCode = employee?.employeeId || '';
   const currentEmpName = (employee?.name || '').toLowerCase().trim();
 
   const isLeaveRejected = (l: LeaveRecord) =>
@@ -803,75 +801,17 @@ function EmployeePortalContent() {
       <div className="flex flex-1">
         <Sidebar currentTab={activeTab} role="EMPLOYEE" />
         <main className="flex-1 p-3 sm:p-6 md:p-8 w-full space-y-5 sm:space-y-6 overflow-y-auto overflow-x-hidden pb-32 md:pb-8">
-          {/* Top Date Header & Active View Indicator (Strictly restricted dropdown for HR Admin Ravina Khimani) */}
+          {/* Top Date Header & Active Account Indicator */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 border-b border-slate-800 pb-3">
             <span>{now.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })} • Live HRM Portal</span>
             <div className="flex items-center space-x-2">
-              {(() => {
-                const isHrOrSuper = Boolean(
-                  (typeof window !== 'undefined' && (
-                    localStorage.getItem('hrm_auth_user_role') === 'SUPER_ADMIN' ||
-                    localStorage.getItem('hrm_auth_user_role') === 'ADMIN' ||
-                    localStorage.getItem('hrm_auth_user_id') === 'emp-1' ||
-                    localStorage.getItem('hrm_auth_user_id') === 'rk001' ||
-                    localStorage.getItem('hrm_active_employee_role') === 'ADMIN' ||
-                    localStorage.getItem('hrm_active_employee_role') === 'SUPER_ADMIN'
-                  )) ||
-                  selectedEmployeeId === 'emp-1' ||
-                  selectedEmployeeId === 'rk001' ||
-                  (employee && (employee.role === 'ADMIN' || employee.role === 'SUPER_ADMIN' || employee.employeeId === 'RK001'))
-                );
-
-                if (isHrOrSuper) {
-                  return (
-                    <>
-                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        Active Employee View:
-                      </span>
-                      <select
-                        value={employee?.id || selectedEmployeeId || 'emp-12'}
-                        onChange={(e) => {
-                          const newId = e.target.value;
-                          setSelectedEmployeeId(newId);
-                          if (typeof window !== 'undefined') {
-                            localStorage.setItem('hrm_active_employee_id', newId);
-                            const selectedEmp = safeAllEmployees.find(emp => emp.id === newId || emp.employeeId === newId);
-                            const isRavina = newId === 'emp-1' || (selectedEmp && selectedEmp.employeeId === 'RK001');
-                            if (isRavina) {
-                              localStorage.setItem('hrm_active_employee_role', 'ADMIN');
-                              document.cookie = `hrm_user_role=ADMIN; path=/; max-age=86400`;
-                            } else {
-                              const empRole = (selectedEmp && selectedEmp.role) || 'EMPLOYEE';
-                              localStorage.setItem('hrm_active_employee_role', empRole);
-                              document.cookie = `hrm_user_role=${empRole}; path=/; max-age=86400`;
-                            }
-                            window.dispatchEvent(new Event('employeeChanged'));
-                            window.dispatchEvent(new Event('roleChange'));
-                          }
-                        }}
-                        className="bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-blue-500"
-                      >
-                        {allEmployees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.name} ({emp.employeeId})
-                          </option>
-                        ))}
-                      </select>
-                    </>
-                  );
-                }
-
-                return (
-                  <>
-                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      Active Account:
-                    </span>
-                    <span className="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-xs">
-                      {employee ? `${employee.name} (${employee.employeeId})` : 'Employee Account'}
-                    </span>
-                  </>
-                );
-              })()}
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Active Account:
+              </span>
+              <span className="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>{employee ? `${employee.name} (${employee.employeeId})` : 'Employee Account'}</span>
+              </span>
             </div>
           </div>
 
@@ -2012,12 +1952,17 @@ function EmployeePortalContent() {
             !isManager ? (
               <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-8 text-center space-y-4 shadow-xl">
                 <AlertCircle className="w-12 h-12 text-amber-400 mx-auto" />
-                <h2 className="text-xl font-bold text-white font-heading">Access Restricted to Managers</h2>
+                <h2 className="text-xl font-bold text-white font-heading">Access Restricted</h2>
                 <p className="text-sm text-slate-300 max-w-md mx-auto">
-                  The <strong className="text-purple-300">Team Approvals</strong> desk is strictly reserved for Managers, Team Leads, and Admins. Your active profile (<span className="text-blue-300 font-bold">{employee?.name}</span>) is assigned as a non-manager Employee.
+                  The <strong className="text-purple-300">Team Approvals</strong> desk is strictly reserved for authorized Managers and Administrators. Your active profile (<span className="text-blue-300 font-bold">{employee?.name}</span>) is assigned as an Employee.
                 </p>
                 <div className="pt-2">
-                  <span className="text-xs text-slate-400">To test Manager features, switch to a Manager profile in the top bar (e.g., Naman Bangia or Jigyasa Sen).</span>
+                  <button
+                    onClick={() => handleTabChange('dashboard')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
+                  >
+                    Return to My Dashboard
+                  </button>
                 </div>
               </div>
             ) : (
@@ -2277,7 +2222,27 @@ function EmployeePortalContent() {
           {activeTab === 'time-tracker' && employee && <TimeTracker employeeId={employee.id} />}
 
           {/* TAB: TEAM TIME TRACKER (managers see their reports) */}
-          {activeTab === 'team-time' && <TimeTrackingAdmin />}
+          {activeTab === 'team-time' && (
+            !isManager ? (
+              <div className="bg-slate-900 border border-amber-500/30 rounded-2xl p-8 text-center space-y-4 shadow-xl">
+                <AlertCircle className="w-12 h-12 text-amber-400 mx-auto" />
+                <h2 className="text-xl font-bold text-white font-heading">Access Restricted</h2>
+                <p className="text-sm text-slate-300 max-w-md mx-auto">
+                  The <strong className="text-purple-300">Team Time Tracker</strong> is strictly reserved for authorized Managers and Administrators.
+                </p>
+                <div className="pt-2">
+                  <button
+                    onClick={() => handleTabChange('dashboard')}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition shadow-md cursor-pointer"
+                  >
+                    Return to My Dashboard
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <TimeTrackingAdmin />
+            )
+          )}
 
           {/* TAB: HELP, COMPLAINT, SUGGESTION & SUPPORT */}
           {(activeTab === 'support' || activeTab === 'help' || activeTab === 'feedback') && employee && (
@@ -2331,11 +2296,11 @@ function EmployeePortalContent() {
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Reporting & Contact</p>
                   <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Primary Manager:</span>
-                    <span className="font-bold text-indigo-300">{employee.primaryManager || 'Ravina Khimani'}</span>
+                    <span className="font-bold text-indigo-300">{employee.primaryManager || 'Not Assigned'}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Secondary Manager:</span>
-                    <span className="font-bold text-indigo-300">{employee.secondaryManager || 'Ravina Khimani'}</span>
+                    <span className="font-bold text-indigo-300">{employee.secondaryManager || 'Not Assigned'}</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-slate-700/40">
                     <span className="text-slate-400">Work Email:</span>

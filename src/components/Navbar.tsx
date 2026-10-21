@@ -70,19 +70,19 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     role?: string;
     department?: string;
   }>({
-    name: 'Ravina Khimani',
-    designation: 'HR / COO',
-    initials: 'RK',
-    employeeId: 'RK001',
-    role: 'ADMIN',
-    department: 'Human Resources',
+    name: '',
+    designation: '',
+    initials: '',
+    employeeId: '',
+    role: '',
+    department: '',
   });
 
   const loadActiveUser = async () => {
     try {
-      const storedId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-      const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
-      const storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
+      const storedId = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : null;
+      const storedEmail = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_email') || localStorage.getItem('hrm_active_employee_email')) : null;
+      const storedRole = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_role') || localStorage.getItem('hrm_active_employee_role')) : null;
       const res = await fetch(`/api/employees?t=${Date.now()}`);
       const data = await res.json();
       const employeesList: any[] = Array.isArray(data) ? data : data.employees || [];
@@ -96,23 +96,13 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
 
       if (!currentEmp && storedEmail) {
         const cleanStoredEmail = storedEmail.toLowerCase().trim();
-        const prefix = cleanStoredEmail.split('@')[0];
         currentEmp = employeesList.find(
-          (e: any) =>
-            (e.email && e.email.toLowerCase().trim() === cleanStoredEmail) ||
-            (e.email && e.email.toLowerCase().split('@')[0] === prefix) ||
-            (e.name && e.name.toLowerCase().trim().includes(prefix))
+          (e: any) => e.email && e.email.toLowerCase().trim() === cleanStoredEmail
         );
       }
 
-      if (!currentEmp && storedEmail && (storedEmail.includes('meenal') || storedEmail.includes('mn005'))) {
-        currentEmp = employeesList.find((e: any) => e.id === 'emp-5' || e.employeeId === 'MN005' || e.name.toLowerCase().includes('meenal'));
-      }
-
-      if (!currentEmp) {
-        const effectiveRole = storedRole || currentRole;
-        const matchingRoleEmps = employeesList.filter((e: any) => e.role === effectiveRole);
-        currentEmp = matchingRoleEmps[0] || employeesList[0];
+      if (!currentEmp && (storedRole === 'ADMIN' || storedRole === 'SUPER_ADMIN') && currentRole === 'ADMIN') {
+        currentEmp = employeesList.find((e: any) => e.role === 'ADMIN' || e.role === 'SUPER_ADMIN');
       }
 
       if (currentEmp) {
@@ -258,14 +248,13 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     (storedEmail && (storedEmail.toLowerCase() === 'digitalsuncityoffice@gmail.com' || storedEmail.toLowerCase() === 'ravina@hrmpilot.com'))
   );
 
-  // 2. Strict HR identification (HR / COO, Human Resources department, or ADMIN role)
+  // 2. Strict HR identification (HR / Admin role only)
   // Regular employees (e.g. Nandini Gupta, Sonu Goswami, Anup Sen, etc.) and regular managers will NEVER evaluate to true here.
   const isHrUser = Boolean(
     isSuperAdminUser ||
-    authUserRole === 'ADMIN' ||
+    (authUserRole === 'ADMIN' && currentRole !== 'EMPLOYEE') ||
     (storedRole === 'ADMIN' && currentRole !== 'EMPLOYEE') ||
-    (activeUser?.department && (activeUser.department.toLowerCase().includes('human resources') || activeUser.department.toLowerCase() === 'hr')) ||
-    (activeUser?.designation && activeUser.designation.toUpperCase().includes('HR'))
+    (activeUser?.role === 'ADMIN' || activeUser?.role === 'SUPER_ADMIN')
   );
 
   const setRoleCookie = (role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE') => {
@@ -589,14 +578,14 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
 
         <div className="flex items-center space-x-3 pl-3 border-l border-slate-200 dark:border-slate-800">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow ring-2 ring-blue-500/20">
-            {activeUser.initials}
+            {activeUser.initials || '...'}
           </div>
           <div className="hidden md:block text-left">
             <p className="text-xs font-bold text-slate-900 dark:text-white tracking-tight">
-              {activeUser.name}
+              {activeUser.name || 'Active Account'}
             </p>
             <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-              {activeUser.designation}
+              {activeUser.designation || (currentRole === 'ADMIN' ? 'Administrator' : currentRole === 'MANAGER' ? 'Manager' : 'Employee')}
             </p>
           </div>
           <button

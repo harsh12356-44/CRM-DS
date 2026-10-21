@@ -67,11 +67,15 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     designation: string;
     initials: string;
     employeeId: string;
+    role?: string;
+    department?: string;
   }>({
     name: 'Ravina Khimani',
     designation: 'HR / COO',
     initials: 'RK',
     employeeId: 'RK001',
+    role: 'ADMIN',
+    department: 'Human Resources',
   });
 
   const loadActiveUser = async () => {
@@ -121,7 +125,13 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
         const newDesignation = currentEmp.designation || (currentEmp.role === 'ADMIN' ? 'HR / COO' : currentEmp.role === 'MANAGER' ? 'Senior Development Manager' : 'Employee');
 
         setActiveUser(prev => {
-          if (prev.name === currentEmp.name && prev.employeeId === newEmpId && prev.designation === newDesignation) {
+          if (
+            prev.name === currentEmp.name &&
+            prev.employeeId === newEmpId &&
+            prev.designation === newDesignation &&
+            prev.role === currentEmp.role &&
+            prev.department === currentEmp.department
+          ) {
             return prev;
           }
           return {
@@ -129,6 +139,8 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
             designation: newDesignation,
             initials,
             employeeId: newEmpId,
+            role: currentEmp.role,
+            department: currentEmp.department,
           };
         });
       }
@@ -186,11 +198,17 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     document.cookie = 'hrm_user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     document.cookie = 'hrm_user_email=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     document.cookie = 'hrm_user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    document.cookie = 'hrm_auth_role=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    document.cookie = 'hrm_auth_id=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+    document.cookie = 'hrm_auth_email=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
     if (typeof window !== 'undefined') {
       localStorage.removeItem('hrm_active_employee_id');
       localStorage.removeItem('hrm_active_employee_role');
       localStorage.removeItem('hrm_active_employee_email');
       localStorage.removeItem('hrm_active_employee_is_manager');
+      localStorage.removeItem('hrm_auth_user_id');
+      localStorage.removeItem('hrm_auth_user_role');
+      localStorage.removeItem('hrm_auth_user_email');
       window.location.href = '/login';
     }
   };
@@ -219,18 +237,48 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     }
   };
 
+  const activeEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
+  const storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
+  const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
+
+  const authUserId = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || activeEmpId) : null;
+  const authUserRole = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_role') || storedRole) : null;
+  const authUserEmail = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_email') || storedEmail) : null;
+
+  // 1. Strict Super Admin identification (Ravina Khimani / Founder account)
+  const isSuperAdminUser = Boolean(
+    authUserRole === 'SUPER_ADMIN' ||
+    storedRole === 'SUPER_ADMIN' ||
+    currentRole === 'SUPER_ADMIN' ||
+    authUserId === 'emp-1' ||
+    authUserId === 'rk001' ||
+    activeEmpId === 'emp-1' ||
+    activeEmpId === 'rk001' ||
+    (authUserEmail && (authUserEmail.toLowerCase() === 'digitalsuncityoffice@gmail.com' || authUserEmail.toLowerCase() === 'ravina@hrmpilot.com')) ||
+    (storedEmail && (storedEmail.toLowerCase() === 'digitalsuncityoffice@gmail.com' || storedEmail.toLowerCase() === 'ravina@hrmpilot.com'))
+  );
+
+  // 2. Strict HR identification (HR / COO, Human Resources department, or ADMIN role)
+  // Regular employees (e.g. Nandini Gupta, Sonu Goswami, Anup Sen, etc.) and regular managers will NEVER evaluate to true here.
+  const isHrUser = Boolean(
+    isSuperAdminUser ||
+    authUserRole === 'ADMIN' ||
+    (storedRole === 'ADMIN' && currentRole !== 'EMPLOYEE') ||
+    (activeUser?.department && (activeUser.department.toLowerCase().includes('human resources') || activeUser.department.toLowerCase() === 'hr')) ||
+    (activeUser?.designation && activeUser.designation.toUpperCase().includes('HR'))
+  );
+
   const setRoleCookie = (role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'EMPLOYEE') => {
     if (typeof window !== 'undefined') {
-      const activeId = localStorage.getItem('hrm_active_employee_id');
-      const isSuper = isSuperAdminUser || activeId === 'emp-1' || activeId === 'rk001';
-
-      if (isSuper && (role === 'SUPER_ADMIN' || role === 'ADMIN')) {
+      if (isSuperAdminUser && (role === 'SUPER_ADMIN' || role === 'ADMIN')) {
         document.cookie = `hrm_user_role=SUPER_ADMIN; path=/; max-age=86400`;
         localStorage.setItem('hrm_active_employee_role', 'SUPER_ADMIN');
+      } else if (isHrUser && role === 'ADMIN') {
+        document.cookie = `hrm_user_role=ADMIN; path=/; max-age=86400`;
+        localStorage.setItem('hrm_active_employee_role', 'ADMIN');
       } else {
-        const safeRole = role === 'SUPER_ADMIN' || role === 'ADMIN' ? 'MANAGER' : role;
-        document.cookie = `hrm_user_role=${safeRole}; path=/; max-age=86400`;
-        localStorage.setItem('hrm_active_employee_role', safeRole);
+        document.cookie = `hrm_user_role=${role}; path=/; max-age=86400`;
+        localStorage.setItem('hrm_active_employee_role', role);
       }
       window.dispatchEvent(new Event('roleChange'));
     }
@@ -281,18 +329,6 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     return () => window.removeEventListener('companyChange', handleCompanyChange);
   }, []);
 
-  const activeEmpId = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
-  const storedRole = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
-  const storedEmail = typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_email') : null;
-
-  const isSuperAdminUser = storedRole === 'SUPER_ADMIN' || currentRole === 'SUPER_ADMIN' || activeEmpId === 'emp-1' || activeEmpId === 'rk001';
-  const isAdminPage = pathname ? pathname.startsWith('/admin') : false;
-  const isAdminRole = isSuperAdminUser || currentRole === 'ADMIN' || storedRole === 'ADMIN';
-  const isAdminUser = isSuperAdminUser || Boolean(storedEmail && (storedEmail.includes('ravina') || storedEmail.includes('admin') || storedEmail.includes('digitalsuncity') || storedEmail.includes('harshit')));
-
-  const isRavinaUser = isSuperAdminUser || isAdminUser || isAdminRole;
-  const isAdminAccount = isAdminPage || isAdminRole || isAdminUser;
-
   return (
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 sticky top-0 z-40 px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between shadow-sm transition-colors duration-300">
       <div className="flex items-center space-x-2 sm:space-x-6">
@@ -311,7 +347,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
           <Menu className="w-5 h-5 text-blue-500" />
         </button>
 
-        <Link suppressHydrationWarning href={!mounted ? (currentRole === 'ADMIN' ? "/admin" : "/employee") : (isRavinaUser ? "/admin" : "/employee")} onClick={() => setRoleCookie(isRavinaUser ? 'ADMIN' : 'EMPLOYEE')} className="flex items-center space-x-2 sm:space-x-3">
+        <Link suppressHydrationWarning href={!mounted ? (currentRole === 'ADMIN' ? "/admin" : "/employee") : (isHrUser ? "/admin" : "/employee")} onClick={() => setRoleCookie(isHrUser ? 'ADMIN' : 'EMPLOYEE')} className="flex items-center space-x-2 sm:space-x-3">
           {companyLogoUrl ? (
             <div className="h-8 sm:h-9 max-w-[130px] flex items-center justify-center shrink-0">
               <img
@@ -403,8 +439,8 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
           </div>
         )}
 
-        {/* Dynamic Portal Switcher Links (Strictly restricted to HR Admin Ravina) */}
-        {isRavinaUser && (
+        {/* Dynamic Portal Switcher Links (Strictly restricted to HR and Super Admin) */}
+        {isHrUser && (
           <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 space-x-1">
             <Link
               href="/admin"
@@ -453,7 +489,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
         <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
           {isSuperAdminUser ? (
             <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          ) : isAdminRole ? (
+          ) : isHrUser ? (
             <Shield className="w-3.5 h-3.5 text-blue-600" />
           ) : (
             <UserCheck className="w-3.5 h-3.5 text-purple-600" />
@@ -463,8 +499,8 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
           </span>
         </div>
 
-        {/* Admin Save & Sync Database Button (Strictly for Admin Accounts) */}
-        {isAdminAccount && (
+        {/* Admin Save & Sync Database Button (Strictly restricted to HR and Super Admin) */}
+        {isHrUser && (
           <button
             onClick={handleSaveDb}
             disabled={savingDb}

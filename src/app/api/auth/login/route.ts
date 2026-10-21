@@ -94,6 +94,21 @@ export async function POST(request: Request) {
       maxAge: 86400 * 30,
       sameSite: 'lax',
     });
+    response.cookies.set('hrm_auth_role', targetRole, {
+      path: '/',
+      maxAge: 86400 * 30,
+      sameSite: 'lax',
+    });
+    response.cookies.set('hrm_auth_id', emp.id, {
+      path: '/',
+      maxAge: 86400 * 30,
+      sameSite: 'lax',
+    });
+    response.cookies.set('hrm_auth_email', emp.email, {
+      path: '/',
+      maxAge: 86400 * 30,
+      sameSite: 'lax',
+    });
     response.cookies.set('hrm_user_company', targetCompanyId, {
       path: '/',
       maxAge: 86400 * 30,

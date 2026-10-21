@@ -154,11 +154,22 @@ function SidebarContent({ currentTab, role }: SidebarProps) {
   }, [role, pathname]);
 
   // Determine effective role based on current path and active user identity
+  const authEmpId = mounted && typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : null;
+  const authEmpRole = mounted && typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_role') || localStorage.getItem('hrm_active_employee_role')) : null;
   const storedEmpId = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_id') : null;
   const storedRole = mounted && typeof window !== 'undefined' ? localStorage.getItem('hrm_active_employee_role') : null;
-  const isSuperAdmin = storedRole === 'SUPER_ADMIN' || !mounted || storedEmpId === 'emp-1' || storedEmpId === 'rk001' || !storedEmpId;
+
+  const isSuperAdmin = mounted && Boolean(
+    authEmpRole === 'SUPER_ADMIN' ||
+    storedRole === 'SUPER_ADMIN' ||
+    role === 'SUPER_ADMIN' ||
+    authEmpId === 'emp-1' ||
+    authEmpId === 'rk001' ||
+    storedEmpId === 'emp-1' ||
+    storedEmpId === 'rk001'
+  );
   const isRavinaKhimani = isSuperAdmin;
-  const isAdminRole = isSuperAdmin || storedRole === 'ADMIN' || role === 'SUPER_ADMIN' || role === 'ADMIN';
+  const isAdminRole = isSuperAdmin || authEmpRole === 'ADMIN' || (storedRole === 'ADMIN' && role !== 'EMPLOYEE') || role === 'ADMIN';
 
   const effectiveRole = isAdminRole && pathname.startsWith('/admin')
     ? 'ADMIN'

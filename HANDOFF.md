@@ -7,6 +7,40 @@
 ---
 
 ## 2. Current Project Status
+- **Role-Based Header Suite Switcher & Save Database Security (2026-10-21)**:
+  - **Requirement Addressed**: Gated the header suite switcher (`[ HR Admin Suite ]`, `[ Manager Desk ]`, `[ Employee Portal ]`) and the `[ 💾 Save Database ]` button so they are strictly accessible only to HR and Super Admin. Regular employees (and managers) no longer see or have access to switch suites or perform database backups.
+  - **Strict Multi-Tier Authorization ([src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx))**:
+    - Eliminated loose substring email matching (`digitalsuncity`, `harshit`, `admin`) that previously caused employees with company emails (e.g. `@digitalsuncity.com` or `security@harshitbhootra.com`) to be erroneously flagged as admins.
+    - Defined authoritative `isSuperAdminUser` and `isHrUser` checks based on verified user roles (`SUPER_ADMIN`, `ADMIN`), department (`Human Resources` / `HR`), designation (`HR / COO`), and employee IDs (`RK001` / `emp-1`).
+    - Gated the Suite Switcher pill group strictly under `{isHrUser && ( ... )}`.
+    - Gated the `[ 💾 Save Database ]` button strictly under `{isHrUser && ( ... )}`.
+  - **Backend Save Database Endpoint Protection ([src/app/api/admin/save-db/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/admin/save-db/route.ts))**:
+    - Added server-side role validation checking cookie authentication for `SUPER_ADMIN` or `ADMIN`. Unauthorized requests from non-HR users return `403 Forbidden`.
+  - **Employee Portal View Isolation ([src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx))**:
+    - The "Active Employee View" switcher dropdown is strictly restricted to HR / Super Admin accounts. Regular employees now exclusively see their static account indicator without switching capabilities.
+  - **Clean Auth State Lifecycle ([src/app/login/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/login/page.tsx), [src/app/api/auth/login/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/auth/login/route.ts), [src/components/Sidebar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Sidebar.tsx))**:
+    - Preserved authentic user role across sessions using `hrm_auth_user_*` storage and cookies.
+    - Fixed sidebar SSR hydration fallback that previously leaked "Return to HR Admin Suite" to unauthenticated/employee states.
+
+- **HRM Pilot Commercial Marketing Website Mockup & Interactive Preview (2026-10-14)**:
+  - **Requirement Addressed**: Created a commercial SaaS marketing website mockup for **HRM Pilot** designed to sell the platform to enterprises, agencies, and conglomerates.
+  - **Standalone & Instant Preview Delivery ([hrm-pilot-preview.html](file:///d:/Ravina/Antigravity/crm-ds/hrm-pilot-preview.html), [public/hrm-pilot-preview.html](file:///d:/Ravina/Antigravity/crm-ds/public/hrm-pilot-preview.html))**:
+    - High-fidelity dark mode with luminous glassmorphism, glowing badges, and dynamic animations.
+    - Hero window canvas simulating the live HRM Pilot command center with running clock-in timer, daily progress bar, and live employee punch feed.
+    - Interactive 4-tab Feature Sandbox:
+      1. *Multi-Company Tenants*: Interactive workspace switcher between Digital Suncity, Apex Global Tech, and NextGen Retailers.
+      2. *Biometric Punch Engine*: Interactive punch simulation with real-time hardware status, break timer pause/resume.
+      3. *Branch Shift Matrix*: Side-by-side comparison of Main HQ (8h target, 1 off) vs SEO Digital Branch (9h target, 2 offs).
+      4. *Automated Leave Engine*: Casual, sick, and earned leave allowances with approval workflows.
+    - Interactive Financial & Time ROI Calculator with dynamic sliders calculating annual savings, hours saved per month, and payback period.
+    - Head-to-Head Comparison Table (HRM Pilot vs SAP/Workday vs Spreadsheets).
+    - Client Testimonials & Social Proof.
+    - **Modular Pricing & Custom Stack Builder**: Core Base ($3/mo), Time Tracker Add-on (+$1.50/mo), and Payroll Add-on (+$2.00/mo) with live dynamic checkbox calculations.
+    - Interactive VIP Demo Booking Modal with instant confirmation toast.
+  - **Developer Specification & Architecture PDF ([HRM_PILOT_WEBSITE_DEVELOPER_SPECIFICATION.pdf](file:///d:/Ravina/Antigravity/crm-ds/HRM_PILOT_WEBSITE_DEVELOPER_SPECIFICATION.pdf), [public/HRM_PILOT_WEBSITE_DEVELOPER_SPECIFICATION.pdf](file:///d:/Ravina/Antigravity/crm-ds/public/HRM_PILOT_WEBSITE_DEVELOPER_SPECIFICATION.pdf))**:
+    - Complete 5-page developer blueprint detailing modular packaging, ASCII data flow diagrams, section-by-section implementation requirements, design tokens, JavaScript logic, and acceptance checklists.
+  - **Direct Next.js Preview Route ([src/app/preview/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/preview/page.tsx))**:
+    - Redirects to `/hrm-pilot-preview.html` so developers and clients can preview the marketing website seamlessly.
 - **Super Admin & Multi-Company Tenant Architecture (Zero-Disruption Isolation)**:
   - **Requirement Addressed**: Implemented a multi-company (multi-tenant) architecture allowing Digital Suncity and other client/corporate entities to maintain completely separate workspaces, branding, staff rosters, shift targets, and branch allocations, with a master `SUPER_ADMIN` role for overall platform governance.
   - **Guaranteed Zero-Disruption Backwards Compatibility ([src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts), [src/lib/types.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/types.ts))**:

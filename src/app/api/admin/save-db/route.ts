@@ -3,8 +3,24 @@ import { getDbData, saveDbData, saveDbDataAsync } from '@/lib/store';
 import fs from 'fs';
 import path from 'path';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const cookieHeader = request.headers.get('cookie') || '';
+    const isSuperAdmin = cookieHeader.includes('hrm_user_role=SUPER_ADMIN') ||
+                         cookieHeader.includes('hrm_auth_role=SUPER_ADMIN') ||
+                         cookieHeader.includes('hrm_user_id=emp-1') ||
+                         cookieHeader.includes('hrm_auth_id=emp-1');
+    const isHr = isSuperAdmin ||
+                 cookieHeader.includes('hrm_user_role=ADMIN') ||
+                 cookieHeader.includes('hrm_auth_role=ADMIN');
+
+    if (!isHr) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Save Database is restricted strictly to HR and Super Admin.' },
+        { status: 403 }
+      );
+    }
+
     const db = getDbData();
     
     // Ensure backups directory exists

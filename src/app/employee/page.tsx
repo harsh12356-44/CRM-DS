@@ -807,46 +807,71 @@ function EmployeePortalContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 border-b border-slate-800 pb-3">
             <span>{now.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })} • Live HRM Portal</span>
             <div className="flex items-center space-x-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                {((typeof window !== 'undefined' && localStorage.getItem('hrm_active_employee_role') === 'ADMIN') || selectedEmployeeId === 'emp-1' || selectedEmployeeId === 'rk001' || (employee && (employee.role === 'ADMIN' || employee.employeeId === 'RK001')))
-                  ? 'Active Employee View:'
-                  : 'Active Account:'}
-              </span>
-              {((typeof window !== 'undefined' && localStorage.getItem('hrm_active_employee_role') === 'ADMIN') || selectedEmployeeId === 'emp-1' || selectedEmployeeId === 'rk001' || (employee && (employee.role === 'ADMIN' || employee.employeeId === 'RK001'))) ? (
-                <select
-                  value={employee?.id || selectedEmployeeId || 'emp-12'}
-                  onChange={(e) => {
-                    const newId = e.target.value;
-                    setSelectedEmployeeId(newId);
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem('hrm_active_employee_id', newId);
-                      const selectedEmp = safeAllEmployees.find(emp => emp.id === newId || emp.employeeId === newId);
-                      const isRavina = newId === 'emp-1' || (selectedEmp && selectedEmp.employeeId === 'RK001');
-                      if (isRavina) {
-                        localStorage.setItem('hrm_active_employee_role', 'ADMIN');
-                        document.cookie = `hrm_user_role=ADMIN; path=/; max-age=86400`;
-                      } else {
-                        const empRole = (selectedEmp && selectedEmp.role) || 'EMPLOYEE';
-                        localStorage.setItem('hrm_active_employee_role', empRole);
-                        document.cookie = `hrm_user_role=${empRole}; path=/; max-age=86400`;
-                      }
-                      window.dispatchEvent(new Event('employeeChanged'));
-                      window.dispatchEvent(new Event('roleChange'));
-                    }
-                  }}
-                  className="bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-blue-500"
-                >
-                  {allEmployees.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} ({emp.employeeId})
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <span className="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-xs">
-                  {employee ? `${employee.name} (${employee.employeeId})` : 'Employee Account'}
-                </span>
-              )}
+              {(() => {
+                const isHrOrSuper = Boolean(
+                  (typeof window !== 'undefined' && (
+                    localStorage.getItem('hrm_auth_user_role') === 'SUPER_ADMIN' ||
+                    localStorage.getItem('hrm_auth_user_role') === 'ADMIN' ||
+                    localStorage.getItem('hrm_auth_user_id') === 'emp-1' ||
+                    localStorage.getItem('hrm_auth_user_id') === 'rk001' ||
+                    localStorage.getItem('hrm_active_employee_role') === 'ADMIN' ||
+                    localStorage.getItem('hrm_active_employee_role') === 'SUPER_ADMIN'
+                  )) ||
+                  selectedEmployeeId === 'emp-1' ||
+                  selectedEmployeeId === 'rk001' ||
+                  (employee && (employee.role === 'ADMIN' || employee.role === 'SUPER_ADMIN' || employee.employeeId === 'RK001'))
+                );
+
+                if (isHrOrSuper) {
+                  return (
+                    <>
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Active Employee View:
+                      </span>
+                      <select
+                        value={employee?.id || selectedEmployeeId || 'emp-12'}
+                        onChange={(e) => {
+                          const newId = e.target.value;
+                          setSelectedEmployeeId(newId);
+                          if (typeof window !== 'undefined') {
+                            localStorage.setItem('hrm_active_employee_id', newId);
+                            const selectedEmp = safeAllEmployees.find(emp => emp.id === newId || emp.employeeId === newId);
+                            const isRavina = newId === 'emp-1' || (selectedEmp && selectedEmp.employeeId === 'RK001');
+                            if (isRavina) {
+                              localStorage.setItem('hrm_active_employee_role', 'ADMIN');
+                              document.cookie = `hrm_user_role=ADMIN; path=/; max-age=86400`;
+                            } else {
+                              const empRole = (selectedEmp && selectedEmp.role) || 'EMPLOYEE';
+                              localStorage.setItem('hrm_active_employee_role', empRole);
+                              document.cookie = `hrm_user_role=${empRole}; path=/; max-age=86400`;
+                            }
+                            window.dispatchEvent(new Event('employeeChanged'));
+                            window.dispatchEvent(new Event('roleChange'));
+                          }
+                        }}
+                        className="bg-slate-900 border border-slate-700 text-white rounded-lg px-2.5 py-1 text-xs font-semibold focus:outline-none focus:border-blue-500"
+                      >
+                        {allEmployees.map((emp) => (
+                          <option key={emp.id} value={emp.id}>
+                            {emp.name} ({emp.employeeId})
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  );
+                }
+
+                return (
+                  <>
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Active Account:
+                    </span>
+                    <span className="px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-white font-bold text-xs">
+                      {employee ? `${employee.name} (${employee.employeeId})` : 'Employee Account'}
+                    </span>
+                  </>
+                );
+              })()}
             </div>
           </div>
 

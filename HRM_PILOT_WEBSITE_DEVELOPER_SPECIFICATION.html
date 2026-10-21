@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HRM Pilot | Developer Specification & Website Blueprint</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    @page {
+      size: A4;
+      margin: 11mm 12mm 11mm 12mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1e293b;
+      background: #ffffff;
+      line-height: 1.5;
+      font-size: 9pt;
+    }
+
+    .header-banner {
+      border-bottom: 2px solid #6366f1;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+    .brand-subtitle {
+      font-size: 10pt;
+      color: #6366f1;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 2px;
+    }
+    .doc-meta {
+      text-align: right;
+      font-size: 8pt;
+      color: #64748b;
+      line-height: 1.4;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 7.5pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Outfit', sans-serif;
+      color: #0f172a;
+      page-break-after: avoid;
+    }
+    h2 {
+      font-size: 13pt;
+      font-weight: 700;
+      border-left: 4px solid #6366f1;
+      padding-left: 8px;
+      margin: 18px 0 10px;
+      background: #f8fafc;
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+    h3 {
+      font-size: 10.5pt;
+      font-weight: 700;
+      margin: 12px 0 6px;
+      color: #1e293b;
+    }
+    p {
+      margin-bottom: 8px;
+      color: #334155;
+    }
+    ul, ol {
+      margin-left: 18px;
+      margin-bottom: 10px;
+    }
+    li {
+      margin-bottom: 4px;
+      color: #334155;
+    }
+    strong {
+      color: #0f172a;
+    }
+
+    .callout {
+      background: #f1f5f9;
+      border-left: 4px solid #3b82f6;
+      border-radius: 0 6px 6px 0;
+      padding: 10px 14px;
+      margin: 12px 0;
+      font-size: 9pt;
+    }
+    .callout-success {
+      background: #ecfdf5;
+      border-left-color: #10b981;
+    }
+    .callout-warning {
+      background: #fffbeb;
+      border-left-color: #f59e0b;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 8.5pt;
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 6px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: #f1f5f9;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    .diagram-box {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 8pt;
+      line-height: 1.45;
+      margin: 14px 0;
+      white-space: pre;
+      page-break-inside: avoid;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin: 12px 0;
+      page-break-inside: avoid;
+    }
+    .card {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 10px 12px;
+      background: #ffffff;
+    }
+    .card.highlight {
+      border: 2px solid #6366f1;
+      background: #faf5ff;
+    }
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 10pt;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+    .card-price {
+      font-size: 12pt;
+      font-weight: 800;
+      color: #6366f1;
+      margin-bottom: 6px;
+    }
+    .card-tag {
+      font-size: 7pt;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 1px 6px;
+      border-radius: 3px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .footer-note {
+      margin-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 6px;
+      font-size: 7.5pt;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header-banner">
+    <div>
+      <div class="brand-title">HRM PILOT</div>
+      <div class="brand-subtitle">Commercial Website Specification & Architecture Blueprint</div>
+    </div>
+    <div class="doc-meta">
+      <div><strong>Document Version:</strong> 2.4.0 (Enterprise)</div>
+      <div><strong>Target Role:</strong> Web Developer / UI Designer</div>
+      <div><strong>Status:</strong> Approved Architecture</div>
+      <div style="margin-top: 2px;"><span class="badge">Modular Add-On Model</span></div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <h2>1. Executive Summary & Purpose</h2>
+  <p>
+    This document serves as the authoritative blueprint for the creation of the public-facing commercial marketing website for <strong>HRM Pilot</strong>. The primary objective of this website is to market and sell the HRM Pilot workforce management platform to external enterprise organizations, multi-branch corporations, and scaling agencies.
+  </p>
+  <div class="callout callout-success">
+    <strong>Strategic Objective:</strong> Deliver an interactive, animated, high-converting digital presence that positions HRM Pilot as an ultra-modern, zero-disruption workforce operating system with transparent, modular pricing.
+  </div>
+
+  <!-- SECTION 2 -->
+  <h2>2. Business Monetization Architecture (Modular Packaging)</h2>
+  <p>
+    To lower client acquisition friction and maximize recurring expansion revenue (LTV), HRM Pilot enforces a <strong>Modular Packaging Architecture</strong> rather than bundling every complex feature into an expensive, rigid base price:
+  </p>
+
+  <div class="card-grid">
+    <div class="card">
+      <span class="card-tag" style="background:#e0e7ff; color:#4338ca;">FOUNDATION TIER</span>
+      <div class="card-title">Core HRM Base</div>
+      <div class="card-price">$3.00 <span style="font-size:8pt; font-weight:normal; color:#64748b;">/ user / mo</span></div>
+      <p style="font-size:8pt; color:#475569;">The essential multi-company workforce platform. Included in the mandatory baseline subscription.</p>
+    </div>
+
+    <div class="card highlight">
+      <span class="card-tag" style="background:#cffafe; color:#0e7490;">OPTIONAL PAID ADD-ON 1</span>
+      <div class="card-title">Time Tracker & Biometrics</div>
+      <div class="card-price">+ $1.50 <span style="font-size:8pt; font-weight:normal; color:#64748b;">/ user / mo</span></div>
+      <p style="font-size:8pt; color:#475569;">Precision web/desktop timers, smart lunch/tea break tracking, and physical biometric device sync.</p>
+    </div>
+
+    <div class="card">
+      <span class="card-tag" style="background:#dcfce7; color:#15803d;">OPTIONAL PAID ADD-ON 2</span>
+      <div class="card-title">Payroll & Salary Engine</div>
+      <div class="card-price">+ $2.00 <span style="font-size:8pt; font-weight:normal; color:#64748b;">/ user / mo</span></div>
+      <p style="font-size:8pt; color:#475569;">CTC structures, attendance-linked Loss-of-Pay (LOP), 1-click payslips, and bank batch files.</p>
+    </div>
+  </div>
+
+  <p>
+    <strong>Why this model works:</strong> Clients who already use third-party accounting software or don't require intrusive hourly monitoring can adopt Core HRM immediately without overpaying. As their team grows, they can activate Time Tracking and Payroll with 1 click.
+  </p>
+
+  <!-- SECTION 3 -->
+  <h2>3. System & Data Flow Architecture</h2>
+  <div class="diagram-box">
++---------------------------------------------------------------------------------------+
+|                              ENTERPRISE CLIENT WORKSPACE                              |
+|   (Super Admins, HR Executives, Department Managers, Staff & Field Contractors)       |
++---------------------------------------------------------------------------------------+
+                                           |
+                                           v
++---------------------------------------------------------------------------------------+
+|                       CORE HRM BASE PLATFORM (Base Cost: $3/mo)                       |
+|  * Multi-Company Tenant Spaces (Zero-Disruption Isolation: Digital Suncity, Apex, etc)|
+|  * Employee Directory, Master Profiles, Dynamic RBAC (Super Admin, Admin, Mgr, Staff) |
+|  * Branch Shift Matrix (Main HQ 8h / 1 Off  vs  SEO Branch 9h / 2 Offs)               |
+|  * Leave Allowances (Casual, Sick, Earned Leave Quotas) & Holiday Calendars           |
+|  * Company Announcements, Notices, Policy Document Repository                         |
++---------------------------------------------------------------------------------------+
+            |                                                       |
+   (Optional Activation)                                   (Optional Activation)
+            v                                                       v
++--------------------------------------+      +-----------------------------------------+
+|    PAID ADD-ON 1: TIME TRACKER       |      |     PAID ADD-ON 2: PAYROLL & SALARY     |
+|   (Cost: +$1.50 / user / month)      |      |      (Cost: +$2.00 / user / month)      |
+|--------------------------------------|      |-----------------------------------------|
+| * Real-time Active Shift Timer       |      | * CTC Structures (Basic, HRA, Allowances)|
+| * Smart Break Tracking (Lunch/Tea)   |=====>| * Auto Attendance-Linked LOP Deductions |
+| * Net Work vs Overtime Calculation   |      | * 1-Click Automated Payslip PDFs        |
+| * Hardware Biometric Sync (eSSL / ZK)|      | * Bank NEFT/RTGS Batch Transfer Export  |
+| * IP & Device Stamped Punch Logs     |      | * Tax & Audit Compliance Reports        |
++--------------------------------------+      +-----------------------------------------+
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 4 -->
+  <h2>4. Detailed Module Specifications for Website Messaging</h2>
+
+  <h3>A. Core HRM Base Platform (Baseline Subscription)</h3>
+  <ul>
+    <li><strong>Multi-Company Tenant Workspaces:</strong> Allows holding companies and conglomerates to operate multiple distinct sister brands/subsidiaries within a single deployment with zero data leakage. Super Admins switch workspaces in 1 click.</li>
+    <li><strong>Granular Role-Based Access Control (RBAC):</strong> Strict 4-tier compartmentalization across Super Admin, Company Admin, Department Manager, and Employee.</li>
+    <li><strong>Branch-Specific Shift Schedules:</strong> Eliminates shift headaches by assigning customized daily targets per branch (e.g. Main HQ 8h shift with 1 Sunday off vs Marketing 9h shift with Saturday & Sunday off).</li>
+    <li><strong>Automated Leave Quotas:</strong> Configurable Casual Leave (CL), Sick Leave (SL), and Privilege Leave (PL) quotas with multi-tier manager approval workflows.</li>
+    <li><strong>Company Notices & Policy Repo:</strong> Centralized distribution of operational announcements and employee handbooks.</li>
+  </ul>
+
+  <h3>B. Paid Add-On 1: Autonomous Time Tracker & Biometrics</h3>
+  <ul>
+    <li><strong>Live Shift Timer:</strong> Precision desktop and web clock-in timer running real-time seconds counter with instant multi-device synchronization.</li>
+    <li><strong>Smart Break Engine:</strong> Explicit lunch and tea break modes that automatically pause the net working minutes counter to guarantee accurate target compliance.</li>
+    <li><strong>Hardware Biometric Integration:</strong> Sub-second API/socket sync with office fingerprint and facial recognition scanners (eSSL, ZKTeco, Matrix, Hikvision).</li>
+    <li><strong>Overtime & Idle Surveillance:</strong> Flags shift discrepancies and computes billable overtime hours past the daily shift target.</li>
+    <li><strong>Audit-Proof Punch Logs:</strong> Every punch is cryptographically stamped with employee ID, device ID, IP address, and exact timestamp.</li>
+  </ul>
+
+  <h3>C. Paid Add-On 2: Automated Payroll & Salary Processing</h3>
+  <ul>
+    <li><strong>Dynamic CTC Structures:</strong> Configurable earnings (Basic, HRA, Special Allowance) and statutory deductions (Provident Fund, ESI, Professional Tax, TDS).</li>
+    <li><strong>Attendance-Linked Loss-of-Pay (LOP):</strong> Directly ingests attendance logs from the Time Tracker to calculate unpaid absences and half-day penalties with zero human calculation error.</li>
+    <li><strong>1-Click Payslip Generation:</strong> Automatically produces password-protected PDF payslips and distributes them to staff employee portals.</li>
+    <li><strong>Bank Batch Dispatch:</strong> Generates ready-to-upload NEFT/RTGS CSV and Excel transfer files compatible with major enterprise banks (HDFC, ICICI, SBI, Chase).</li>
+  </ul>
+
+  <!-- SECTION 5 -->
+  <h2>5. Comprehensive Website Structure (Section-by-Section Blueprint)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 20%;">Section ID</th>
+        <th style="width: 25%;">Section Name</th>
+        <th style="width: 55%;">Developer Implementation Requirements</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>#header</code></td>
+        <td>Sticky Navigation Bar</td>
+        <td>Logo glyph + HRM Pilot branding + version badge (`v2.4 Enterprise`). Links to Features, Simulator, ROI Calculator, Comparison, Pricing, FAQ. Action buttons: `Client Portal Login` (`/login`) and glowing `Book Enterprise Demo` button.</td>
+      </tr>
+      <tr>
+        <td><code>#hero</code></td>
+        <td>High-Conversion Hero</td>
+        <td>Headline highlighting Autonomous Workforce OS. Value proposition. Primary CTA (opens VIP demo modal) and secondary CTA (smooth scrolls to simulator). Social proof badges (SOC-2, 0ms clock sync, 100% data isolation).</td>
+      </tr>
+      <tr>
+        <td><code>#mockup</code></td>
+        <td>Live Interactive App Canvas</td>
+        <td>macOS-styled window mockup with live running clock (`HH:MM:SS`), shift progress bar (420m net), active lunch tag, and live punch activity feed stream.</td>
+      </tr>
+      <tr>
+        <td><code>#logos</code></td>
+        <td>Trust & Client Strip</td>
+        <td>Corporate logos (Digital Suncity, Apex Global, Synapse, Nexus, Strata) with hover glow effects.</td>
+      </tr>
+      <tr>
+        <td><code>#simulator</code></td>
+        <td>Interactive Feature Sandbox</td>
+        <td>4 tab buttons (Multi-Company Tenants, Biometric Punch Engine, Branch Shifts, Leave Engine) with dynamic pane transitions, 1-click workspace switcher, and simulate punch buttons.</td>
+      </tr>
+      <tr>
+        <td><code>#calculator</code></td>
+        <td>Financial ROI Calculator</td>
+        <td>Dual range sliders: <em>Total Headcount</em> (20 - 1,500) and <em>Monthly HR Admin Hours</em> (10 - 160). Real-time JS calculation of monthly hours saved, annual cost savings ($), and payback days.</td>
+      </tr>
+      <tr>
+        <td><code>#pricing</code></td>
+        <td>Modular Pricing & Configurator</td>
+        <td>Monthly / Annual billing toggle (20% discount). Pricing cards for Core Base, Full Enterprise Bundle, and Super Tenant Suite. <strong>Interactive Custom Stack Configurator</strong> with live checkbox toggles for Time Tracker and Payroll add-ons.</td>
+      </tr>
+      <tr>
+        <td><code>#compare</code></td>
+        <td>Competitive Benchmark Matrix</td>
+        <td>Feature comparison table: HRM Pilot vs Legacy ERPs (SAP/Workday) vs Spreadsheets & WhatsApp across multi-tenancy, biometric sync, custom branch shifts, and pricing transparency.</td>
+      </tr>
+      <tr>
+        <td><code>#testimonials</code></td>
+        <td>Client Endorsements</td>
+        <td>Verified reviews with avatar badges, executive titles, and quotes praising multi-branch shifts, biometric sync, and payroll turnaround times.</td>
+      </tr>
+      <tr>
+        <td><code>#faq</code></td>
+        <td>Interactive FAQ Accordion</td>
+        <td>Accordion toggles answering questions regarding modular add-on activation, biometric scanner integration, data isolation, and CSV migration speed.</td>
+      </tr>
+      <tr>
+        <td><code>#modal-demo</code></td>
+        <td>VIP Demo Booking Modal</td>
+        <td>Interactive pop-up modal capturing Name, Work Email, Company, Team Headcount, and Primary Need. Submission replaces form with instant confirmation screen.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- SECTION 6 -->
+  <h2>6. Technical & Frontend Design Specifications</h2>
+  <ul>
+    <li><strong>Color Palette & Design Tokens:</strong>
+      <ul>
+        <li>Base Background: Obsidian Dark (<code>#06090f</code>, <code>#0c121e</code>)</li>
+        <li>Card Surface: Glassmorphic Frosted (<code>rgba(16, 24, 40, 0.65)</code> with <code>backdrop-filter: blur(14px)</code>)</li>
+        <li>Primary Accent: Royal Indigo (<code>#6366f1</code>) with glowing box-shadow (<code>rgba(99, 102, 241, 0.4)</code>)</li>
+        <li>Secondary Accent: Neon Cyan (<code>#06b6d4</code> / <code>#38bdf8</code>) and Emerald (<code>#10b981</code>)</li>
+        <li>Subtle Borders: <code>1px solid rgba(255, 255, 255, 0.08)</code></li>
+      </ul>
+    </li>
+    <li><strong>Typography Hierarchy:</strong>
+      <ul>
+        <li>Display / Headings: <code>Outfit</code> (weights: 700, 800)</li>
+        <li>Body / Interface: <code>Plus Jakarta Sans</code> or <code>Inter</code> (weights: 400, 500, 600)</li>
+        <li>Numbers & Digital Timers: <code>Outfit</code> with <code>letter-spacing: 0.05em</code> and neon text-shadow</li>
+      </ul>
+    </li>
+    <li><strong>Interactive JavaScript Logic Requirements:</strong>
+      <ul>
+        <li><code>updateLiveClocks()</code>: Updates all timers every 1,000ms with system zero-padded hours, minutes, and seconds.</li>
+        <li><code>switchSimTab(tabId)</code>: Toggles active CSS class between simulator panels with smooth opacity transitions.</li>
+        <li><code>updateCalculator()</code>: Reads headcount and hours sliders; computes savings using: <code>Savings = (Hours * 0.82 * $35) + (Headcount * $12)</code>.</li>
+        <li><code>updateCustomStack()</code>: Ingests base platform rate + checked add-on rates (Time Tracker $1.50, Payroll $2.00) adjusted for monthly vs annual billing.</li>
+        <li><code>handleDemoSubmit(e)</code>: Intercepts form submit, reads email, hides inputs, and displays confirmed VIP booking state.</li>
+      </ul>
+    </li>
+    <li><strong>Reference Codebase Assets:</strong>
+      <ul>
+        <li>Root Standalone Preview: <code>hrm-pilot-preview.html</code></li>
+        <li>Next.js Web Asset: <code>public/hrm-pilot-preview.html</code></li>
+        <li>Preview Route: <code>src/app/preview/page.tsx</code> (redirects to preview)</li>
+      </ul>
+    </li>
+  </ul>
+
+  <!-- SECTION 7 -->
+  <h2>7. Developer Deliverable Checklist</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 10%;">Status</th>
+        <th style="width: 40%;">Requirement</th>
+        <th style="width: 50%;">Acceptance Criteria</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>[ ]</td>
+        <td>Modular Pricing Representation</td>
+        <td>Clear separation showing Core Base ($3/mo), Time Tracker Add-on (+$1.50/mo), and Payroll Add-on (+$2.00/mo).</td>
+      </tr>
+      <tr>
+        <td>[ ]</td>
+        <td>Interactive Custom Stack Builder</td>
+        <td>Toggling checkboxes updates total per-user monthly/annual price dynamically in real time.</td>
+      </tr>
+      <tr>
+        <td>[ ]</td>
+        <td>Live Hardware Punch Simulation</td>
+        <td>Clicking 'Simulate Punch' outputs instant success notice and increments live counter without page reload.</td>
+      </tr>
+      <tr>
+        <td>[ ]</td>
+        <td>Multi-Company Workspace Switcher</td>
+        <td>Clicking 'Switch to Space' changes company card highlight and updates active workspace status badge.</td>
+      </tr>
+      <tr>
+        <td>[ ]</td>
+        <td>Fully Responsive Layout</td>
+        <td>Tested seamlessly across 1920x1080 desktop, 1024x768 tablet, and 375x667 mobile viewports.</td>
+      </tr>
+      <tr>
+        <td>[ ]</td>
+        <td>Demo Request Modal</td>
+        <td>Form validation on work email; smooth open/close modal interactions with ESC key support.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="footer-note">
+    <span>© 2026 HRM Pilot Technologies Inc. • Enterprise Workforce Operating System</span>
+    <span>Confidential Developer Specification • Page 3 of 3</span>
+  </div>
+
+</body>
+</html>

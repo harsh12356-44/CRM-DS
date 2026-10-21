@@ -132,6 +132,9 @@ export default function LoginPage() {
         localStorage.setItem('hrm_active_employee_id', employee.id);
         localStorage.setItem('hrm_active_employee_role', employee.role);
         localStorage.setItem('hrm_active_employee_email', employee.email);
+        localStorage.setItem('hrm_auth_user_id', employee.id);
+        localStorage.setItem('hrm_auth_user_role', employee.role);
+        localStorage.setItem('hrm_auth_user_email', employee.email);
         window.dispatchEvent(new Event('roleChange'));
         window.dispatchEvent(new Event('employeeChanged'));
       }

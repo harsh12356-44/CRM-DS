@@ -4,9 +4,37 @@
 **Project Name**: CRM-DS (HRM Pilot Web App)  
 **Description**: A modern Human Resource Management (HRM) and Customer Relationship / Workforce Pilot application built with Next.js 15, React 19, TypeScript, Tailwind CSS, and Prisma ORM backed by a PostgreSQL / Supabase database. The platform supports role-based management for Admins, Managers, and Employees, tracking attendance, leave allowances, password management, department allocation, holiday calendars, notifications, and audit logging.
 
+### 📚 Official Project Documentation Suite
+- **Interactive Documentation Web Portal (HTML Web App)**: [public/documentation.html](file:///d:/Ravina/Antigravity/crm-ds/public/documentation.html) (Single-page app matching `chat-pilot.edgeone.dev` with live search, copy buttons, dark/light toggle, and role guides)
+- **Master Documentation Hub**: [docs/README.md](file:///d:/Ravina/Antigravity/crm-ds/docs/README.md)
+- **Technical Architecture & API Reference**: [docs/TECHNICAL_DOCUMENTATION.md](file:///d:/Ravina/Antigravity/crm-ds/docs/TECHNICAL_DOCUMENTATION.md)
+- **Non-Technical User Manual & Operational Guide**: [docs/NON_TECHNICAL_USER_MANUAL.md](file:///d:/Ravina/Antigravity/crm-ds/docs/NON_TECHNICAL_USER_MANUAL.md)
+
 ---
 
 ## 2. Current Project Status
+- **Complete Technical & Non-Technical Documentation Suite (2026-10-26)**:
+  - **Requirement Addressed**: Provided comprehensive, up-to-date documentation for both technical (software engineers, architects, DevOps) and non-technical (employees, managers, HR admins, executive leadership) users.
+  - **Master Documentation Hub ([docs/README.md](file:///d:/Ravina/Antigravity/crm-ds/docs/README.md))**:
+    - Centralized entry point, rapid developer onboarding setup, role-based navigation flowcharts, and quick references.
+  - **Complete Technical Architecture ([docs/TECHNICAL_DOCUMENTATION.md](file:///d:/Ravina/Antigravity/crm-ds/docs/TECHNICAL_DOCUMENTATION.md))**:
+    - Complete ASCII and Mermaid architecture flowcharts (Client, Edge Middleware, Next.js App Router, In-Memory Store, Supabase PostgreSQL).
+    - Full technology stack matrix with version pins (Next.js 15.1.0, React 19.0.0, TypeScript 5.0, Tailwind CSS v4, Prisma 5.22.0).
+    - Line-by-line directory layout guide of all 17 admin sub-desks, 22 UI components, and 16 API route handler groups.
+    - Full Prisma schema documentation and ER diagram covering 15 models with relational keys, indexes, and JSON column structures.
+    - Exhaustive REST API Reference for all 16 endpoint groups with HTTP methods, request parameters, JSON payloads, response structures, and strict anti-caching headers (`no-store, no-cache, max-age=0`).
+    - Role-Based Access Control (RBAC) capability matrix (`SUPER_ADMIN`, `ADMIN`, `MANAGER`, `EMPLOYEE`), edge middleware route protection rules, and device-isolated password storage architecture.
+    - Real-Time 0ms State Sync engine: `BroadcastChannel('crm_time_tracker_sync')`, custom DOM events (`feedbackUpdated`, `leaveDataUpdated`), optimistic updates with rollback guards, and 2.5s/5s silent background polling.
+    - WFH Time Tracking & Screen Monitoring subsystem: Native `getDisplayMedia`, monitor surface policy enforcement, DOM-attached hidden `<video>` element preventing Chromium background tab decoding throttling, randomized interval capture, and 7-day retention cleanup cron.
+    - Biometric Attendance Ingestion engine: Strict full-name matching algorithm, phonetic/Levenshtein distance checks, multi-day weekly off recognition, and overtime/deficit hours formulas.
+    - Hostinger Phusion Passenger setup, `server.js` startup lifecycle, universal CSS fallback preventing 404 styling bugs, and GitHub Actions CI/CD `.github/workflows/deploy.yml`.
+  - **Complete Non-Technical User Manual ([docs/NON_TECHNICAL_USER_MANUAL.md](file:///d:/Ravina/Antigravity/crm-ds/docs/NON_TECHNICAL_USER_MANUAL.md))**:
+    - Step-by-step guides with role permissions and visual flowcharts.
+    - Employee Portal: 1-click personal device saved login, live digital punch cards, WFH Time Tracker (starting day, selecting Entire Screen, taking Tea 15m and Lunch 45m breaks, safely clicking Chrome's "Hide" button, clocking out), leave quotas (Casual, Planned, Sick), applying for leaves, Help & Support complaint desk with screenshot uploads, profile password changes, and mobile bottom thumb navigation bar.
+    - Manager Desk: Overseeing team attendance, reviewing and approving/rejecting subordinate leave requests in 1 tap, and team time tracking monitoring.
+    - HR Administrator Suite: Staff directory and onboarding, managing branches and shift targets (Main Branch 8h shift with 1 off vs SEO Branch 9h shift with 2 offs), importing monthly biometric Excel sheets with intelligent name matching, manual punch corrections, leave administration, WFH live board, inspecting employee screenshots in lightbox, timesheets and Summary/Detailed CSV exports, complaints/feedback desk responses, payroll preview, company logo uploading, and 1-click database save/backup (`💾 Save Database`).
+    - Super Admin Suite: Multi-company workspace management and 1-click top header company switching.
+    - FAQ & Troubleshooting: Screen sharing prompts, forgotten passwords, biometric attendance vs. time tracker hours separation, and mobile home screen app installation.
 - **Employee Account Isolation & Cross-Account Access Prevention (2026-10-21)**:
   - **Requirement Addressed**: "Each employee should be able to access their own account. for example if its an employee he or she should see their own account and not any other employee or managers account."
   - **Complete Elimination of View Switcher Dropdown ([src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx))**:
@@ -502,6 +530,11 @@ crm-ds/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yml    # Automated CI/CD deployment workflow for Hostinger
+├── conversations/        # Dedicated chronological conversation records
+├── docs/                 # Master documentation suite
+│   ├── README.md         # Documentation index & quick start
+│   ├── TECHNICAL_DOCUMENTATION.md # Architecture, API reference & database schemas
+│   └── NON_TECHNICAL_USER_MANUAL.md # Step-by-step role guides for employees & HR
 ├── postcss.config.mjs    # PostCSS configuration for Tailwind CSS
 ├── server.js             # Custom production server script
 ├── tsconfig.json         # TypeScript compiler configuration

@@ -54,9 +54,14 @@ export default function ManagersAdminPage() {
     loadManagersData();
   }, []);
 
-  // Filter managers: ONLY employees whose role is explicitly designated as MANAGER or ADMIN
+  // Filter managers: employees designated as MANAGER, ADMIN, SUPER_ADMIN, or HR
   const managers = employees.filter(
-    (e) => e.role === 'MANAGER' || e.role === 'ADMIN'
+    (e) =>
+      e.role === 'MANAGER' ||
+      e.role === 'ADMIN' ||
+      e.role === 'SUPER_ADMIN' ||
+      e.designation?.toLowerCase().includes('hr') ||
+      e.department?.toLowerCase().includes('human resources')
   );
 
   // Handle Assign Subordinate to Manager (Supports Dual Managers: Primary & Secondary)

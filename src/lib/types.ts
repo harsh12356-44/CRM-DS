@@ -160,6 +160,14 @@ export interface AttendanceLog {
   createdAt?: string;
 }
 
+export interface NotificationSettings {
+  enabled: boolean;
+  notifyAdminOnLeaveApply: boolean;
+  notifyManagerOnLeaveApply: boolean;
+  notifyEmployeeLeaveBalance: boolean;
+  notifyEmployeeOnStatusUpdate: boolean;
+}
+
 export interface CompanySettings {
   companyName: string;
   companyLogoUrl: string;
@@ -169,6 +177,7 @@ export interface CompanySettings {
   loginUrl: string;
   employeePortalUrl: string;
   managerPortalUrl: string;
+  notificationSettings?: NotificationSettings;
 }
 
 
@@ -246,6 +255,8 @@ export interface NotificationItem {
   message: string;
   isRead: boolean;
   createdAt: string;
+  link?: string;
+  meta?: Record<string, any>;
 }
 
 // WFH time tracking (Jibble-style clock in / break / clock out sessions)

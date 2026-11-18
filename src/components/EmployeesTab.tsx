@@ -303,8 +303,17 @@ export default function EmployeesTab() {
       (statusFilter === 'ALL' || e.status === statusFilter)
   );
 
-  // Dynamic Manager List for Primary & Secondary Manager dropdowns
-  const managerList = employees.filter(e => e.role === 'MANAGER' || e.role === 'ADMIN' || e.designation?.toLowerCase().includes('manager'));
+  // Dynamic Manager List for Primary & Secondary Manager dropdowns (includes Managers, Admins, Super Admins, and HR)
+  const managerList = employees.filter(
+    e =>
+      e.role === 'MANAGER' ||
+      e.role === 'ADMIN' ||
+      e.role === 'SUPER_ADMIN' ||
+      e.designation?.toLowerCase().includes('manager') ||
+      e.designation?.toLowerCase().includes('hr') ||
+      e.department?.toLowerCase().includes('human resources') ||
+      e.department?.toLowerCase() === 'hr'
+  );
 
   return (
     <div className="space-y-6 text-slate-100 pb-12">

@@ -39,7 +39,7 @@ import LeaveTrackerTab from '@/components/LeaveTrackerTab';
 import TimeTracker from '@/components/TimeTracker';
 import TimeTrackingAdmin from '@/components/TimeTrackingAdmin';
 import SupportFeedbackTab from '@/components/SupportFeedbackTab';
-import { Employee, AttendanceLog, LeaveRecord, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
+import { Employee, AttendanceLog, LeaveRecord, NotificationItem, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
 function getLiveStatusBadge(l: LeaveRecord) {
   if (!l) return null;
   const isShortHours = l.status === 'SHORT_HOURS' || l.isShortHours || l.leaveType === 'Short Hours' || l.note?.toLowerCase().includes('short hours') || (l as any).reason?.toLowerCase().includes('short hours');
@@ -127,6 +127,10 @@ function EmployeePortalContent() {
   const [toDate, setToDate] = useState('');
   const [reason, setReason] = useState('');
   const [formMsg, setFormMsg] = useState('');
+
+  // Notifications State
+  const [userNotifications, setUserNotifications] = useState<NotificationItem[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
 
   // Change Password State
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
@@ -344,6 +348,15 @@ function EmployeePortalContent() {
             localStorage.removeItem('hrm_leave_records_backup');
           } catch (e) {}
         }
+        // Fetch notifications for the authenticated user
+        if (currentEmp?.id) {
+          try {
+            fetch(`/api/notifications?userId=${encodeURIComponent(currentEmp.id)}&role=EMPLOYEE&t=${Date.now()}`)
+              .then(r => r.ok ? r.json() : [])
+              .then(list => setUserNotifications(Array.isArray(list) ? list : []))
+              .catch(() => {});
+          } catch (e) {}
+        }
       }
     } catch (err) {
       console.error(err);
@@ -351,6 +364,29 @@ function EmployeePortalContent() {
       if (!isSilent) setLoading(false);
     }
   }, [router]);
+
+  const handleMarkNotifRead = async (id: string) => {
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      setUserNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (e) {}
+  };
+
+  const handleMarkAllNotifsRead = async () => {
+    const targetId = employee?.id || selectedEmployeeId;
+    try {
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true, userId: targetId, role: 'EMPLOYEE' }),
+      });
+      setUserNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (e) {}
+  };
 
   useEffect(() => {
     fetchEmployeeDashboardData(false);
@@ -2331,33 +2367,104 @@ function EmployeePortalContent() {
 
           {/* TAB: NOTIFICATIONS */}
           {activeTab === 'notifications' && (
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-              <div className="border-b border-slate-800 pb-3">
-                <h2 className="text-lg font-extrabold text-white font-heading flex items-center space-x-2">
-                  <Bell className="w-5 h-5 text-indigo-400" />
-                  <span>Notifications & System Alerts</span>
-                </h2>
-                <p className="text-xs text-slate-400">Live alerts for leave approvals, attendance logs, and system announcements.</p>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-3 gap-2">
+                <div>
+                  <h2 className="text-lg font-extrabold text-white font-heading flex items-center space-x-2">
+                    <Bell className="w-5 h-5 text-indigo-400" />
+                    <span>Notifications & Leave Balance Alerts</span>
+                    {userNotifications.filter(n => !n.isRead).length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600 text-white shadow">
+                        {userNotifications.filter(n => !n.isRead).length} new
+                      </span>
+                    )}
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    Live alerts for leave applications, remaining quarterly leave quotas, and manager/HR approval decisions.
+                  </p>
+                </div>
+                {userNotifications.some(n => !n.isRead) && (
+                  <button
+                    onClick={handleMarkAllNotifsRead}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 hover:text-white transition border border-slate-700 self-start sm:self-auto flex items-center space-x-1.5"
+                  >
+                    <CheckCircle className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>Mark all as read</span>
+                  </button>
+                )}
               </div>
 
               <div className="space-y-3">
-                <div className="p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl flex items-start space-x-3">
-                  <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-white">Leave Status Update</p>
-                    <p className="text-xs text-slate-300 mt-0.5">Your submitted leave application status is updated live on the portal.</p>
-                    <p className="text-[10px] text-slate-500 font-mono mt-1">Today at 09:30 AM</p>
+                {userNotifications.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-800/30 rounded-2xl border border-slate-800 space-y-2">
+                    <Bell className="w-8 h-8 text-slate-600 mx-auto" />
+                    <p className="text-sm font-bold text-slate-300">No Notifications Yet</p>
+                    <p className="text-xs text-slate-500 max-w-md mx-auto">
+                      Whenever you submit a leave application or when your request status and leave balance are updated, live notifications will appear here.
+                    </p>
                   </div>
-                </div>
+                ) : (
+                  userNotifications.map(n => {
+                    const isApproved = n.title.includes('APPROVED') || n.message.includes('APPROVED');
+                    const isRejected = n.title.includes('REJECTED') || n.message.includes('REJECTED');
+                    const isSubmitted = n.type === 'leave_submitted';
 
-                <div className="p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl flex items-start space-x-3">
-                  <Calendar className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-bold text-white">Official Holiday Notice</p>
-                    <p className="text-xs text-slate-300 mt-0.5">Upcoming official holiday for Independence Day on 15 Aug 2026.</p>
-                    <p className="text-[10px] text-slate-500 font-mono mt-1">Yesterday</p>
-                  </div>
-                </div>
+                    const borderClass = !n.isRead
+                      ? isApproved
+                        ? 'border-emerald-500/40 bg-emerald-950/20'
+                        : isRejected
+                        ? 'border-rose-500/40 bg-rose-950/20'
+                        : 'border-indigo-500/50 bg-indigo-950/20'
+                      : 'border-slate-800 bg-slate-800/40';
+
+                    const Icon = isApproved ? CheckCircle : isRejected ? XCircle : Bell;
+                    const iconColor = isApproved ? 'text-emerald-400' : isRejected ? 'text-rose-400' : 'text-indigo-400';
+
+                    return (
+                      <div
+                        key={n.id}
+                        className={`p-4 rounded-xl border transition flex flex-col sm:flex-row items-start justify-between gap-3 ${borderClass}`}
+                      >
+                        <div className="flex items-start space-x-3 w-full">
+                          <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${iconColor}`} />
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-xs font-bold text-white">{n.title}</p>
+                              {!n.isRead && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                                  NEW
+                                </span>
+                              )}
+                              {n.createdAt && (
+                                <span className="text-[10px] text-slate-500 font-mono">
+                                  {new Date(n.createdAt).toLocaleString(undefined, {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-slate-300 whitespace-pre-line leading-relaxed font-sans">
+                              {n.message}
+                            </p>
+                          </div>
+                        </div>
+
+                        {!n.isRead && (
+                          <button
+                            onClick={() => handleMarkNotifRead(n.id)}
+                            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-semibold text-slate-300 hover:text-white transition shrink-0 self-end sm:self-start border border-slate-700"
+                            title="Mark as read"
+                          >
+                            Mark read
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}

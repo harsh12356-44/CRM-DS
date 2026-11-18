@@ -13,6 +13,30 @@
 ---
 
 ## 2. Current Project Status
+- **HR / Super Admin Visibility in Reporting Manager Dropdowns & Managers Desk (2026-11-18)**:
+  - **Root Cause**: Ravina Khimani (`RK001`, HR / COO) is promoted to `SUPER_ADMIN` at runtime in [`src/lib/store.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts), while the manager dropdown filter in [`src/components/EmployeesTab.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/components/EmployeesTab.tsx) and the list in [`src/app/admin/managers/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/managers/page.tsx) only checked `role === 'MANAGER' || role === 'ADMIN'` (excluding `SUPER_ADMIN` and HR designations).
+  - **Fix Applied**: Expanded both filters to include `SUPER_ADMIN`, HR designations (`hr`), and Human Resources department members so HR appears in Primary Reporting Manager (Manager 1), Secondary Reporting Manager (Manager 2), and the Managers Desk. Also aligned `SUPER_ADMIN` matching for `markAll` in [`src/app/api/notifications/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/notifications/route.ts).
+
+- **Automated Notification Settings & Real-Time Leave Balance Alerts (2026-11-05)**:
+  - **Requirement Addressed**: "I want to turn on notification settings. example Admin and managers should receive message when leave applied. employees should receive leave balance after applying leave or whenever there s an update."
+  - **Notification Settings Architecture ([src/lib/types.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/types.ts), [src/lib/store.ts](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts))**:
+    - Added `NotificationSettings` to `CompanySettings` and `DEFAULT_SETTINGS` with all default alert triggers turned ON.
+    - Master toggle `enabled` to enable/disable automated notification generation globally.
+    - Granular toggles: `notifyAdminOnLeaveApply`, `notifyManagerOnLeaveApply`, `notifyEmployeeLeaveBalance`, `notifyEmployeeOnStatusUpdate`.
+  - **Automated Multi-Recipient Notification Flow ([src/app/api/leaves/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/leaves/route.ts))**:
+    - **When Leave Applied (`POST /api/leaves`)**:
+      - Dispatches instant alerts to applicant's reporting managers (`leave_applied_manager`) with employee name, employee code, department, dates, days count, reason, and direct link to review in Manager Desk.
+      - Dispatches instant alerts to HR & Super Admins (`leave_applied_admin`) for administrative oversight.
+      - Calculates and dispatches employee confirmation alert (`leave_submitted`) containing their exact remaining quarterly leave balance (Casual, Planned/Sick, Total Remaining) and excess quota warnings.
+    - **When Leave Updated (`PUT /api/leaves`)**:
+      - Calculates and dispatches live updated leave balance to employee (`leave_status_updated`) upon Approval, Rejection, or Modification.
+      - Synchronizes decision alerts across roles: alerts Admins when a manager approves, and alerts reporting managers when HR approves.
+  - **Interactive Notification Settings UI ([src/components/SettingsTab.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/SettingsTab.tsx))**:
+    - Added a dedicated "Automated Notification Settings" section with modern switches, informative tooltips, and real-time state persistence to `/api/settings`.
+  - **Live Dynamic Employee Notifications Desk ([src/app/employee/page.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx), [src/components/Navbar.tsx](file:///d:/Ravina/Antigravity/crm-ds/src/components/Navbar.tsx), [src/app/api/notifications/route.ts](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/notifications/route.ts))**:
+    - Replaced hardcoded static entries in the Employee Portal notifications tab with live alerts from `/api/notifications?userId=...`.
+    - Added multiline message formatting (`whitespace-pre-line`), new status badges, individual "Mark Read", and "Mark all as read" buttons in both the portal tab and the Navbar notification center popover tray.
+
 - **Complete Technical & Non-Technical Documentation Suite (2026-10-26)**:
   - **Requirement Addressed**: Provided comprehensive, up-to-date documentation for both technical (software engineers, architects, DevOps) and non-technical (employees, managers, HR admins, executive leadership) users.
   - **Master Documentation Hub ([docs/README.md](file:///d:/Ravina/Antigravity/crm-ds/docs/README.md))**:

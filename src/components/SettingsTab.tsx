@@ -14,6 +14,10 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Loader2,
+  Bell,
+  UserCheck2,
+  Shield,
+  Check,
 } from 'lucide-react';
 import { CompanySettings } from '@/lib/types';
 
@@ -27,6 +31,13 @@ export default function SettingsTab() {
     loginUrl: '/login',
     employeePortalUrl: '/employee',
     managerPortalUrl: '/manager',
+    notificationSettings: {
+      enabled: true,
+      notifyAdminOnLeaveApply: true,
+      notifyManagerOnLeaveApply: true,
+      notifyEmployeeLeaveBalance: true,
+      notifyEmployeeOnStatusUpdate: true,
+    },
   });
 
   const [loading, setLoading] = useState(false);
@@ -474,7 +485,172 @@ export default function SettingsTab() {
           </div>
         </div>
 
-        {/* Section 3: Portal Pages Assignments */}
+        {/* Section 3: Notification Rules & Automated Alerts */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-2">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+                <Bell className="w-4 h-4 text-indigo-400" />
+                <span>Automated Notification Settings</span>
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Configure automated alerts for leave applications, manager approvals, and real-time employee leave balance updates.
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-semibold text-slate-300">Master Switch:</span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.notificationSettings?.enabled ?? true}
+                  onChange={e => {
+                    const current = settings.notificationSettings || {
+                      enabled: true,
+                      notifyAdminOnLeaveApply: true,
+                      notifyManagerOnLeaveApply: true,
+                      notifyEmployeeLeaveBalance: true,
+                      notifyEmployeeOnStatusUpdate: true,
+                    };
+                    setSettings({
+                      ...settings,
+                      notificationSettings: { ...current, enabled: e.target.checked },
+                    });
+                  }}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+              </label>
+            </div>
+          </div>
+
+          <div className={`space-y-3 transition-opacity ${settings.notificationSettings?.enabled ?? true ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+            {/* Rule 1: Admin Notification on Leave Apply */}
+            <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4 text-blue-400 shrink-0" />
+                  <span className="text-xs font-bold text-white">Notify Admins & HR on Leave Application</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Admins and Super Admins receive instant notification whenever an employee submits a leave request, including employee department, dates, and reason.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notificationSettings?.notifyAdminOnLeaveApply ?? true}
+                onChange={e => {
+                  const current = settings.notificationSettings || {
+                    enabled: true,
+                    notifyAdminOnLeaveApply: true,
+                    notifyManagerOnLeaveApply: true,
+                    notifyEmployeeLeaveBalance: true,
+                    notifyEmployeeOnStatusUpdate: true,
+                  };
+                  setSettings({
+                    ...settings,
+                    notificationSettings: { ...current, notifyAdminOnLeaveApply: e.target.checked },
+                  });
+                }}
+                className="w-4 h-4 mt-1 accent-indigo-600 rounded cursor-pointer"
+              />
+            </div>
+
+            {/* Rule 2: Manager Notification on Leave Apply */}
+            <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <UserCheck2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="text-xs font-bold text-white">Notify Reporting Managers on Leave Application</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  The applicant’s primary and secondary reporting managers receive immediate alerts with a direct review link in the Manager Desk.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notificationSettings?.notifyManagerOnLeaveApply ?? true}
+                onChange={e => {
+                  const current = settings.notificationSettings || {
+                    enabled: true,
+                    notifyAdminOnLeaveApply: true,
+                    notifyManagerOnLeaveApply: true,
+                    notifyEmployeeLeaveBalance: true,
+                    notifyEmployeeOnStatusUpdate: true,
+                  };
+                  setSettings({
+                    ...settings,
+                    notificationSettings: { ...current, notifyManagerOnLeaveApply: e.target.checked },
+                  });
+                }}
+                className="w-4 h-4 mt-1 accent-indigo-600 rounded cursor-pointer"
+              />
+            </div>
+
+            {/* Rule 3: Employee Leave Balance on Apply */}
+            <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span className="text-xs font-bold text-white">Send Leave Balance to Employees upon Application</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Employees immediately receive their current and projected quarterly leave balance (Casual, Planned/Sick, and total remaining) in their submission alert.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notificationSettings?.notifyEmployeeLeaveBalance ?? true}
+                onChange={e => {
+                  const current = settings.notificationSettings || {
+                    enabled: true,
+                    notifyAdminOnLeaveApply: true,
+                    notifyManagerOnLeaveApply: true,
+                    notifyEmployeeLeaveBalance: true,
+                    notifyEmployeeOnStatusUpdate: true,
+                  };
+                  setSettings({
+                    ...settings,
+                    notificationSettings: { ...current, notifyEmployeeLeaveBalance: e.target.checked },
+                  });
+                }}
+                className="w-4 h-4 mt-1 accent-indigo-600 rounded cursor-pointer"
+              />
+            </div>
+
+            {/* Rule 4: Employee Leave Balance on Status Update */}
+            <div className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
+                  <span className="text-xs font-bold text-white">Send Updated Leave Balance on Status Updates</span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  When a manager or HR updates a request (Approved, Rejected, or Modified), employees receive live recalculated leave balances and deduction warnings.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.notificationSettings?.notifyEmployeeOnStatusUpdate ?? true}
+                onChange={e => {
+                  const current = settings.notificationSettings || {
+                    enabled: true,
+                    notifyAdminOnLeaveApply: true,
+                    notifyManagerOnLeaveApply: true,
+                    notifyEmployeeLeaveBalance: true,
+                    notifyEmployeeOnStatusUpdate: true,
+                  };
+                  setSettings({
+                    ...settings,
+                    notificationSettings: { ...current, notifyEmployeeOnStatusUpdate: e.target.checked },
+                  });
+                }}
+                className="w-4 h-4 mt-1 accent-indigo-600 rounded cursor-pointer"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4: Portal Pages Assignments */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
           <h3 className="text-sm font-bold text-white flex items-center space-x-2 border-b border-slate-800 pb-2">
             <Link2 className="w-4 h-4 text-purple-400" />

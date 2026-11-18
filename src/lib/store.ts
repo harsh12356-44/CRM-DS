@@ -3,6 +3,7 @@ import {
   LeaveRecord,
   AttendanceLog,
   CompanySettings,
+  NotificationSettings,
   LeaveSummary,
   PayrollPreview,
   Holiday,
@@ -420,6 +421,14 @@ const DEFAULT_EMPLOYEES: Employee[] = [
   },
 ];
 
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
+  enabled: true,
+  notifyAdminOnLeaveApply: true,
+  notifyManagerOnLeaveApply: true,
+  notifyEmployeeLeaveBalance: true,
+  notifyEmployeeOnStatusUpdate: true,
+};
+
 const DEFAULT_SETTINGS: CompanySettings = {
   companyName: 'HRM Pilot',
   companyLogoUrl: '',
@@ -429,6 +438,7 @@ const DEFAULT_SETTINGS: CompanySettings = {
   loginUrl: '/login',
   employeePortalUrl: '/employee',
   managerPortalUrl: '/manager',
+  notificationSettings: DEFAULT_NOTIFICATION_SETTINGS,
 };
 
 const DEFAULT_LEAVES: LeaveRecord[] = [];
@@ -584,11 +594,22 @@ export function getDbData(): InitialState {
         const cleanedLeaves = rawLeaves.filter((l: any) => l.id !== 'l-1789898879360');
         if (cleanedLeaves.length !== rawLeaves.length) dirty = true;
 
+        const loadedSettings = data.settings || { ...DEFAULT_SETTINGS };
+        if (!loadedSettings.notificationSettings) {
+          loadedSettings.notificationSettings = { ...DEFAULT_NOTIFICATION_SETTINGS };
+          dirty = true;
+        } else {
+          loadedSettings.notificationSettings = {
+            ...DEFAULT_NOTIFICATION_SETTINGS,
+            ...loadedSettings.notificationSettings,
+          };
+        }
+
         memoryDb = {
           employees: employeesList,
           leaveRecords: cleanedLeaves,
           attendanceLogs: Array.isArray(data.attendanceLogs) ? data.attendanceLogs : DEFAULT_ATTENDANCE,
-          settings: data.settings || DEFAULT_SETTINGS,
+          settings: loadedSettings,
           payrollPreviews: data.payrollPreviews || [],
           holidays: data.holidays || DEFAULT_HOLIDAYS,
           auditLogs: data.auditLogs || DEFAULT_AUDIT_LOGS,
@@ -743,19 +764,37 @@ export function saveDbData(data: InitialState): void {
   saveDbDataAsync(data).catch(() => {});
 }
 
-export function addNotification(employeeId: string, type: string, title: string, message: string) {
+export function addNotification(
+  employeeId: string,
+  type: string,
+  title: string,
+  message: string,
+  link?: string,
+  meta?: Record<string, any>
+) {
   const db = getDbData();
+  const notifSettings = db.settings?.notificationSettings;
+  // If master notifications is explicitly disabled, suppress
+  if (notifSettings && notifSettings.enabled === false) {
+    return;
+  }
+
   const notif: NotificationItem = {
-    id: `notif-${Date.now()}`,
+    id: `notif-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
     employeeId,
     type,
     title,
     message,
     isRead: false,
     createdAt: new Date().toISOString(),
+    ...(link ? { link } : {}),
+    ...(meta ? { meta } : {}),
   };
   if (!db.notifications) db.notifications = [];
   db.notifications.unshift(notif);
+  if (db.notifications.length > 500) {
+    db.notifications = db.notifications.slice(0, 500);
+  }
   saveDbData(db);
 }
 
@@ -975,6 +1014,103 @@ export function getEmployeeAllQuarters(employeeId: string) {
   });
 
   return { employeeName: emp.name, employeeId: emp.employeeId || emp.id, department: emp.department, quarters: result };
+}
+
+export interface EmployeeLeaveBalanceDetails {
+  quarter: string;
+  casualAllowance: number;
+  plannedAllowance: number;
+  totalAllowance: number;
+  casualUsed: number;
+  plannedUsed: number;
+  totalUsed: number;
+  casualRemaining: number;
+  plannedRemaining: number;
+  totalRemaining: number;
+  extraDeduct: number;
+  summaryText: string;
+}
+
+export function getEmployeeLeaveBalanceDetails(
+  employeeId: string,
+  targetDateOrQuarter?: string
+): EmployeeLeaveBalanceDetails | null {
+  const db = getDbData();
+  const cleanSearch = String(employeeId || '').trim().toLowerCase();
+  const emp = db.employees.find(
+    e => (e.id && e.id.toLowerCase() === cleanSearch) || 
+         (e.employeeId && e.employeeId.toLowerCase() === cleanSearch) || 
+         (e.name && e.name.toLowerCase() === cleanSearch) ||
+         (e.name && e.name.toLowerCase().includes(cleanSearch))
+  );
+  if (!emp) return null;
+
+  let quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4' = getCurrentQuarter();
+  if (targetDateOrQuarter) {
+    const upper = targetDateOrQuarter.toUpperCase().trim();
+    if (['Q1', 'Q2', 'Q3', 'Q4'].includes(upper)) {
+      quarter = upper as any;
+    } else {
+      quarter = getQuarterFromDateStr(targetDateOrQuarter);
+    }
+  }
+
+  const empLeaves = db.leaveRecords.filter(l => {
+    const targetEmp = String(l.employeeId || '').toLowerCase().trim();
+    const empIdStr = String(emp.id || '').toLowerCase().trim();
+    const empCodeStr = String(emp.employeeId || '').toLowerCase().trim();
+    const empNameStr = String(emp.name || '').toLowerCase().trim();
+
+    const matchesEmp =
+      targetEmp === empIdStr ||
+      targetEmp === empCodeStr ||
+      targetEmp === empNameStr ||
+      (targetEmp.length >= 3 && empNameStr.includes(targetEmp)) ||
+      (empNameStr.length >= 3 && targetEmp.includes(empNameStr)) ||
+      (targetEmp.length >= 3 && empCodeStr.includes(targetEmp));
+
+    const recQuarter = l.quarter || getQuarterFromDateStr(l.startDate);
+    const matchesQuarter = recQuarter === quarter;
+    const isBothApproved = (l.managerStatus === 'Approved' || l.status === 'APPROVED') && (l.hrStatus === 'Approved' || l.status === 'APPROVED');
+    const matchesStatus = isBothApproved || l.status === 'APPROVED';
+
+    return matchesEmp && matchesQuarter && matchesStatus;
+  });
+
+  const casualUsed = empLeaves
+    .filter(l => l.leaveType === 'Casual Leave')
+    .reduce((sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (Number(l.daysCount) || 1)), 0);
+
+  const plannedUsed = empLeaves
+    .filter(l => l.leaveType === 'Planned Leave' || l.leaveType === 'Sick Leave')
+    .reduce((sum, l) => sum + (l.dayType === 'first_half' || l.dayType === 'second_half' ? 0.5 : (Number(l.daysCount) || 1)), 0);
+
+  const totalUsed = casualUsed + plannedUsed;
+  const casualAllowance = typeof emp.casualAllowance === 'number' ? emp.casualAllowance : 2;
+  const plannedAllowance = typeof emp.plannedAllowance === 'number' ? emp.plannedAllowance : 4;
+  const totalAllowance = casualAllowance + plannedAllowance;
+
+  const casualRemaining = Math.max(0, casualAllowance - casualUsed);
+  const plannedRemaining = Math.max(0, plannedAllowance - plannedUsed);
+  const totalRemaining = Math.max(0, totalAllowance - totalUsed);
+  const extraDeduct = Math.max(0, totalUsed - totalAllowance);
+
+  const summaryText = `Casual: ${casualRemaining}/${casualAllowance} left, Planned/Sick: ${plannedRemaining}/${plannedAllowance} left. Total Remaining: ${totalRemaining}/${totalAllowance} days${extraDeduct > 0 ? ` (⚠️ ${extraDeduct} day(s) excess/LOP)` : ''}`;
+
+  return {
+    quarter,
+    casualAllowance,
+    plannedAllowance,
+    totalAllowance,
+    casualUsed,
+    plannedUsed,
+    totalUsed,
+    casualRemaining,
+    plannedRemaining,
+    totalRemaining,
+    extraDeduct,
+    summaryText,
+  };
 }
 
 export function mergeLeavesNonRegressive(primaryList: LeaveRecord[], secondaryList: LeaveRecord[]): LeaveRecord[] {

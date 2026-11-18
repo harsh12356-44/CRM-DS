@@ -5,7 +5,17 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { NextResponse } from 'next/server';
-import { getDbData, saveDbData, getQuarterlyLeaveSummaries, getEmployeeAllQuarters, addNotification, logAudit, ensureCloudSync, getCurrentQuarter } from '@/lib/store';
+import {
+  getDbData,
+  saveDbData,
+  getQuarterlyLeaveSummaries,
+  getEmployeeAllQuarters,
+  getEmployeeLeaveBalanceDetails,
+  addNotification,
+  logAudit,
+  ensureCloudSync,
+  getCurrentQuarter,
+} from '@/lib/store';
 import { LeaveRecord, Employee, mergeLeavesNonRegressive, calculateWorkingDaysCount, getLeaveTimestamp } from '@/lib/types';
 
 export async function GET(request: Request) {
@@ -469,13 +479,98 @@ export async function POST(request: Request) {
     db.leaveRecords.unshift(newRecord);
     logAudit('Submit Leave Request', 'LeaveRecord', newRecord.id, undefined, JSON.stringify(newRecord));
 
-    if (emp) {
-      addNotification(
-        emp.id,
-        'leave_submitted',
-        'Leave Application Submitted',
-        `Your request for ${leaveType} (${startDate} to ${endDate || startDate}) has been submitted for approval.`
-      );
+    const notifSettings = db.settings?.notificationSettings || {
+      enabled: true,
+      notifyAdminOnLeaveApply: true,
+      notifyManagerOnLeaveApply: true,
+      notifyEmployeeLeaveBalance: true,
+      notifyEmployeeOnStatusUpdate: true,
+    };
+
+    if (emp && notifSettings.enabled) {
+      // 1. Employee Leave Balance Notification
+      if (notifSettings.notifyEmployeeLeaveBalance) {
+        const bal = getEmployeeLeaveBalanceDetails(emp.id, startDate);
+        let balanceMsg = '';
+        if (bal) {
+          balanceMsg = `\n📊 Current Balance (${bal.quarter}): Casual: ${bal.casualRemaining}/${bal.casualAllowance} remaining, Planned/Sick: ${bal.plannedRemaining}/${bal.plannedAllowance} remaining (Total Available: ${bal.totalRemaining}/${bal.totalAllowance} days).`;
+          if (daysCount > bal.totalRemaining) {
+            balanceMsg += `\n⚠️ Note: Requesting ${daysCount} day(s) exceeds remaining quota by ${daysCount - bal.totalRemaining} day(s) and may incur Loss of Pay (LOP) if approved.`;
+          }
+        }
+        addNotification(
+          emp.id,
+          'leave_submitted',
+          'Leave Application Submitted',
+          `Your request for ${leaveType} (${startDate} to ${endDate || startDate}, ${daysCount} day${daysCount > 1 ? 's' : ''}) has been submitted for approval.${balanceMsg}`,
+          '/employee?tab=leave-history',
+          { recordId: newRecord.id, daysCount, leaveType, startDate, endDate: endDate || startDate, balance: bal }
+        );
+      }
+
+      const notifiedMgrIds = new Set<string>();
+
+      // 2. Manager Notification
+      if (notifSettings.notifyManagerOnLeaveApply) {
+        const mgrNames = [
+          emp.primaryManager,
+          emp.secondaryManager,
+          emp.reportingManager,
+          emp.manager1,
+          emp.managerName,
+        ]
+          .filter(Boolean)
+          .map(m => String(m).trim().toLowerCase());
+
+        const targetManagers = db.employees.filter(e => {
+          if (e.id === emp.id) return false;
+          const isMgrRole = e.role === 'MANAGER' || e.role === 'ADMIN' || e.role === 'SUPER_ADMIN';
+          const nameMatch = mgrNames.some(m =>
+            e.name.toLowerCase() === m ||
+            e.name.toLowerCase().includes(m) ||
+            (e.id && e.id.toLowerCase() === m) ||
+            (e.employeeId && e.employeeId.toLowerCase() === m)
+          );
+          return isMgrRole && nameMatch;
+        });
+
+        // Fallback: If no direct manager matched by name, notify managers in the same department
+        if (targetManagers.length === 0 && emp.department) {
+          const deptMgrs = db.employees.filter(
+            e => e.role === 'MANAGER' && e.department === emp.department && e.id !== emp.id
+          );
+          targetManagers.push(...deptMgrs);
+        }
+
+        targetManagers.forEach(mgr => {
+          notifiedMgrIds.add(mgr.id);
+          addNotification(
+            mgr.id,
+            'leave_applied_manager',
+            `New Leave Request: ${emp.name}`,
+            `${emp.name} (${emp.employeeId || emp.id}, ${emp.department}) applied for ${daysCount} day(s) ${leaveType} from ${startDate} to ${endDate || startDate}. Reason: "${note || reason || 'No reason provided'}". Please review in Manager Desk.`,
+            '/manager',
+            { recordId: newRecord.id, employeeId: emp.id, employeeName: emp.name }
+          );
+        });
+      }
+
+      // 3. Admin / HR Notification
+      if (notifSettings.notifyAdminOnLeaveApply) {
+        const admins = db.employees.filter(
+          e => (e.role === 'ADMIN' || e.role === 'SUPER_ADMIN') && e.id !== emp.id && !notifiedMgrIds.has(e.id)
+        );
+        admins.forEach(admin => {
+          addNotification(
+            admin.id,
+            'leave_applied_admin',
+            `New Leave Request: ${emp.name}`,
+            `${emp.name} (${emp.employeeId || emp.id}, ${emp.department}) applied for ${daysCount} day(s) ${leaveType} from ${startDate} to ${endDate || startDate}. Reason: "${note || reason || 'No reason provided'}". Action required: Review and HR approval.`,
+            '/admin/leave-records',
+            { recordId: newRecord.id, employeeId: emp.id, employeeName: emp.name }
+          );
+        });
+      }
     }
 
     saveDbData(db);
@@ -582,14 +677,81 @@ export async function PUT(request: Request) {
 
       logAudit(`Leave Request ${current.status}`, 'LeaveRecord', current.id, oldVal, JSON.stringify(current));
 
+      const notifSettings = db.settings?.notificationSettings || {
+        enabled: true,
+        notifyAdminOnLeaveApply: true,
+        notifyManagerOnLeaveApply: true,
+        notifyEmployeeLeaveBalance: true,
+        notifyEmployeeOnStatusUpdate: true,
+      };
+
       const emp = db.employees.find(e => e.id === current.employeeId);
-      if (emp) {
-        addNotification(
-          emp.id,
-          'leave_status_updated',
-          `Leave Request ${current.status}`,
-          `Your leave request #${current.id} status is now ${current.status}. Manager: ${current.managerStatus || 'Pending'}, HR: ${current.hrStatus || 'Pending'}.`
-        );
+      if (emp && notifSettings.enabled) {
+        // 1. Employee notification with updated leave balance
+        if (notifSettings.notifyEmployeeOnStatusUpdate) {
+          const bal = getEmployeeLeaveBalanceDetails(emp.id, current.startDate || current.quarter);
+          let balanceMsg = '';
+          if (bal) {
+            balanceMsg = `\n📊 Updated Balance (${bal.quarter}): Casual: ${bal.casualRemaining}/${bal.casualAllowance} left (Used: ${bal.casualUsed}), Planned/Sick: ${bal.plannedRemaining}/${bal.plannedAllowance} left (Used: ${bal.plannedUsed}). Total Available: ${bal.totalRemaining}/${bal.totalAllowance} days.${bal.extraDeduct > 0 ? ` ⚠️ Excess/LOP: ${bal.extraDeduct} day(s).` : ''}`;
+          }
+          const statusIcon = current.status === 'APPROVED' ? '✅' : current.status === 'REJECTED' ? '❌' : 'ℹ️';
+          addNotification(
+            emp.id,
+            'leave_status_updated',
+            `${statusIcon} Leave Request ${current.status}: ${current.leaveType}`,
+            `Your leave request #${current.id} (${current.leaveType}, ${current.startDate} to ${current.endDate || current.startDate}, ${current.daysCount} day(s)) status is now ${current.status}. Manager: ${current.managerStatus || 'Pending'}, HR: ${current.hrStatus || 'Pending'}.${balanceMsg}`,
+            '/employee?tab=leave-history',
+            { recordId: current.id, status: current.status, balance: bal }
+          );
+        }
+
+        // 2. Cross-role notification on status change
+        if (approverRole === 'MANAGER') {
+          const admins = db.employees.filter(e => (e.role === 'ADMIN' || e.role === 'SUPER_ADMIN') && e.id !== emp.id);
+          admins.forEach(admin => {
+            addNotification(
+              admin.id,
+              'leave_status_updated_admin',
+              `Manager Decision: ${emp.name}'s Leave #${current.id}`,
+              `Manager marked ${emp.name}'s request for ${current.leaveType} (${current.daysCount}d) as ${current.managerStatus}. Pending final HR action.`,
+              '/admin/leave-records',
+              { recordId: current.id, employeeId: emp.id }
+            );
+          });
+        } else {
+          const mgrNames = [
+            emp.primaryManager,
+            emp.secondaryManager,
+            emp.reportingManager,
+            emp.manager1,
+            emp.managerName,
+          ]
+            .filter(Boolean)
+            .map(m => String(m).trim().toLowerCase());
+
+          const targetManagers = db.employees.filter(e => {
+            if (e.id === emp.id) return false;
+            const isMgr = e.role === 'MANAGER';
+            const nameMatch = mgrNames.some(m =>
+              e.name.toLowerCase() === m ||
+              e.name.toLowerCase().includes(m) ||
+              (e.id && e.id.toLowerCase() === m) ||
+              (e.employeeId && e.employeeId.toLowerCase() === m)
+            );
+            return isMgr && nameMatch;
+          });
+
+          targetManagers.forEach(mgr => {
+            addNotification(
+              mgr.id,
+              'leave_status_updated_manager',
+              `HR Decision: ${emp.name}'s Leave #${current.id}`,
+              `HR marked ${emp.name}'s request for ${current.leaveType} (${current.daysCount}d) as ${current.hrStatus}. Overall status: ${current.status}.`,
+              '/manager',
+              { recordId: current.id, employeeId: emp.id }
+            );
+          });
+        }
       }
       updatedRecord = current;
     });

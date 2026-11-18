@@ -52,11 +52,33 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
     }
   };
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (targetId?: string, targetRole?: string) => {
     try {
-      const res = await fetch('/api/notifications');
+      const storedId = targetId || (typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : '');
+      const storedRole = targetRole || (typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_role') || localStorage.getItem('hrm_active_employee_role')) : currentRole);
+
+      const query = new URLSearchParams();
+      if (storedId) query.set('userId', storedId);
+      if (storedRole) query.set('role', storedRole);
+
+      const res = await fetch(`/api/notifications?${query.toString()}&t=${Date.now()}`);
       const data = await res.json();
       setNotifications(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      const storedId = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_id') || localStorage.getItem('hrm_active_employee_id')) : '';
+      const storedRole = typeof window !== 'undefined' ? (localStorage.getItem('hrm_auth_user_role') || localStorage.getItem('hrm_active_employee_role')) : currentRole;
+      await fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true, userId: storedId, role: storedRole }),
+      });
+      fetchNotifications(storedId || undefined, storedRole || undefined);
     } catch (err) {
       console.error(err);
     }
@@ -534,15 +556,32 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
 
           {/* Popover Tray */}
           {showNotifPopover && (
-            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 p-4 space-y-3">
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 p-4 space-y-3">
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
-                <h4 className="text-xs font-bold text-slate-900 dark:text-white">Notifications Center</h4>
-                <button onClick={() => setShowNotifPopover(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-white">Notifications Center</h4>
+                  {unreadCount > 0 && (
+                    <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-blue-600 text-white">
+                      {unreadCount} new
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={handleMarkAllRead}
+                      className="text-[10px] text-blue-500 hover:text-blue-400 font-semibold"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  <button onClick={() => setShowNotifPopover(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+              <div className="space-y-2 max-h-72 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center py-4">No recent notifications</p>
                 ) : (
@@ -567,7 +606,7 @@ export default function Navbar({ currentRole = 'ADMIN' }: NavbarProps) {
                           </button>
                         )}
                       </div>
-                      <p className="text-[10px] leading-relaxed text-slate-600 dark:text-slate-300">{n.message}</p>
+                      <p className="text-[10px] leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line">{n.message}</p>
                     </div>
                   ))
                 )}

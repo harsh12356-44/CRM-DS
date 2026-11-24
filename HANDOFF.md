@@ -13,6 +13,17 @@
 ---
 
 ## 2. Current Project Status
+- **Interactive Single-Page Showcase Demo for LinkedIn & Portfolio ([public/portal-demo.html](file:///d:/Ravina/Antigravity/crm-ds/public/portal-demo.html)) (2026-11-24)**:
+  - **Requirement Addressed**: "I want to ask one thing that can you provide me working HTMl preview link of the portal so that i can show people on linkedin what i have made? without disturbing the actual portal. i need a demo kind of html preview to showcase my portal to them."
+  - **Deliverable**: Built a dedicated, client-side interactive sandbox preview (`portal-demo.html`) featuring:
+    - 1-click Suite Switcher between **HR Admin Suite**, **Manager Desk**, and **Employee Portal** with zero login required.
+    - Interactive WFH Digital Punch In/Out card with running timer and break buttons.
+    - Biometric Attendance Roster with live employee search and filter.
+    - Leave Application simulator with real-time remaining quota recalculation (Casual 2d, Planned 4d, Total 6d).
+    - Manager Desk approval/rejection queue with live state updates and toast alerts.
+    - Interactive Notification Center with balance change alerts.
+    - Completely isolated from production data (`db.json` & cloud DB untouched).
+
 - **HR / Super Admin Visibility in Reporting Manager Dropdowns & Managers Desk (2026-11-18)**:
   - **Root Cause**: Ravina Khimani (`RK001`, HR / COO) is promoted to `SUPER_ADMIN` at runtime in [`src/lib/store.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts), while the manager dropdown filter in [`src/components/EmployeesTab.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/components/EmployeesTab.tsx) and the list in [`src/app/admin/managers/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/managers/page.tsx) only checked `role === 'MANAGER' || role === 'ADMIN'` (excluding `SUPER_ADMIN` and HR designations).
   - **Fix Applied**: Expanded both filters to include `SUPER_ADMIN`, HR designations (`hr`), and Human Resources department members so HR appears in Primary Reporting Manager (Manager 1), Secondary Reporting Manager (Manager 2), and the Managers Desk. Also aligned `SUPER_ADMIN` matching for `markAll` in [`src/app/api/notifications/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/notifications/route.ts).

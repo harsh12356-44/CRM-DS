@@ -1,0 +1,1906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HRM Pilot | Enterprise Workforce & HRM Platform (Live Interactive Demo)</title>
+  <meta name="description" content="Exact interactive showcase demo of HRM Pilot - Next.js 15, TypeScript, Tailwind CSS, Biometric Attendance, WFH Time Tracker, and Automated Leave Quota Engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-base: #06090f;
+      --bg-surface: #0f172a;
+      --bg-surface-elevated: #1e293b;
+      --border-subtle: #1e293b;
+      --border-accent: rgba(99, 102, 241, 0.4);
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-display: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background-color: #020617;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Portfolio Showcase Bar */
+    .showcase-banner {
+      background: linear-gradient(90deg, #1e1b4b, #312e81, #0f172a);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.35);
+      padding: 9px 20px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .showcase-pill {
+      background: rgba(99, 102, 241, 0.25);
+      border: 1px solid rgba(99, 102, 241, 0.45);
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-weight: 800;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      color: #c7d2fe;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-link-action {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-link-action:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Primary Navigation Bar (Matching Navbar.tsx) */
+    .navbar {
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo-sq {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(79, 70, 229, 0.45);
+    }
+    .brand-heading h1 {
+      font-size: 1.05rem;
+      font-weight: 900;
+      font-family: var(--font-display);
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .brand-heading p {
+      font-size: 0.68rem;
+      color: #64748b;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Company Tenant Selector */
+    .company-badge-btn {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 5px 12px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .company-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+
+    /* Suite Switcher Pills (Matching Navbar.tsx exact HR suite switcher) */
+    .suite-switcher-box {
+      display: flex;
+      background: #020617;
+      padding: 4px;
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+      gap: 4px;
+    }
+    .suite-pill {
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .suite-pill:hover { color: #fff; }
+    .suite-pill.active {
+      background: #4f46e5;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.35);
+    }
+
+    .nav-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .icon-bell-btn {
+      position: relative;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #cbd5e1;
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .icon-bell-btn:hover { background: #334155; color: #fff; }
+    .badge-counter {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 900;
+      width: 19px;
+      height: 19px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #0f172a;
+    }
+
+    .user-profile-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 12px 4px 6px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 9999px;
+    }
+    .avatar-circle {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .avatar-info { text-align: left; }
+    .avatar-name { font-size: 0.78rem; font-weight: 800; color: #fff; }
+    .avatar-desig { font-size: 0.65rem; color: #94a3b8; }
+
+    /* App Layout */
+    .app-body {
+      display: flex;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* Sidebar (Matching Sidebar.tsx exact 4 sections) */
+    .sidebar-pane {
+      width: 250px;
+      background: #0f172a;
+      border-right: 1px solid #1e293b;
+      padding: 18px 12px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    @media (max-width: 960px) {
+      .sidebar-pane { display: none; }
+    }
+    .side-sec-title {
+      font-size: 0.66rem;
+      text-transform: uppercase;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      padding: 0 10px 8px;
+    }
+    .side-btn-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      border-radius: 12px;
+      color: #cbd5e1;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-bottom: 3px;
+      text-decoration: none;
+    }
+    .side-btn-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+    }
+    .side-btn-item.active {
+      background: #4f46e5;
+      color: #fff;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    }
+    .side-tag {
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 700;
+    }
+
+    /* Content Stage */
+    .content-stage {
+      flex: 1;
+      padding: 24px 30px;
+      overflow-y: auto;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    @media (max-width: 640px) {
+      .content-stage { padding: 14px; }
+    }
+
+    /* Top Welcome Banner (Matching Admin Dashboard) */
+    .welcome-hero-banner {
+      background: linear-gradient(135deg, #1d4ed8, #4338ca, #6b21a8);
+      border-radius: 20px;
+      padding: 24px 30px;
+      color: #fff;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      padding: 4px 12px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 10px;
+    }
+    .welcome-hero-banner h2 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+    .welcome-hero-banner p {
+      font-size: 0.85rem;
+      color: #e0e7ff;
+      max-width: 750px;
+    }
+    .hero-btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .hero-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .btn-hero-white { background: #fff; color: #1e3a8a; }
+    .btn-hero-white:hover { background: #f1f5f9; }
+    .btn-hero-trans { background: rgba(255, 255, 255, 0.16); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25); }
+    .btn-hero-trans:hover { background: rgba(255, 255, 255, 0.28); }
+
+    /* Dashboard Metrics Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #4f46e5, #06b6d4);
+    }
+    .metric-lbl {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .metric-num {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 900;
+      color: #fff;
+      margin: 4px 0 2px;
+    }
+    .metric-sub {
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .txt-green { color: #34d399; }
+    .txt-amber { color: #fbbf24; }
+    .txt-sky { color: #38bdf8; }
+
+    /* Cards */
+    .panel-card {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      margin-bottom: 18px;
+      border-bottom: 1px solid #1e293b;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-sub {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+
+    /* 31-Day Attendance Horizontal Matrix */
+    .matrix-scroll-wrapper {
+      overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid #1e293b;
+      max-height: 480px;
+    }
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      white-space: nowrap;
+    }
+    .matrix-table th {
+      background: #020617;
+      color: #94a3b8;
+      padding: 10px 8px;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      border-bottom: 1px solid #1e293b;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .matrix-table td {
+      padding: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      text-align: center;
+    }
+    .sticky-col {
+      position: sticky;
+      left: 0;
+      background: #0f172a;
+      z-index: 12;
+      text-align: left !important;
+      padding-left: 14px !important;
+      font-weight: 700;
+      color: #fff;
+      border-right: 1px solid #1e293b;
+      min-width: 190px;
+    }
+    .cell-p {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 0.68rem;
+      display: inline-block;
+    }
+    .cell-off {
+      background: rgba(148, 163, 184, 0.12);
+      color: #64748b;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 0.68rem;
+      display: inline-block;
+    }
+    .cell-h {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 0.68rem;
+      display: inline-block;
+    }
+    .cell-l {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      font-weight: 800;
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 0.68rem;
+      display: inline-block;
+    }
+
+    /* WFH Time Tracker Live Board */
+    .wfh-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .wfh-card {
+      background: #020617;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .wfh-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .wfh-thumb {
+      width: 100%;
+      height: 140px;
+      background: #0b1120;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .thumb-label {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      color: #cbd5e1;
+      font-family: var(--font-mono);
+    }
+
+    /* Digital Punch Card in Employee Portal */
+    .punch-box {
+      background: #020617;
+      border: 1px solid var(--border-accent);
+      border-radius: 20px;
+      padding: 32px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
+    }
+    .digital-timer {
+      font-family: var(--font-mono);
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: #38bdf8;
+      letter-spacing: 0.05em;
+      margin: 10px 0;
+      text-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+    }
+    .punch-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    .btn-act {
+      padding: 10px 24px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 0.82rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-green { background: #10b981; color: #022c22; box-shadow: 0 0 20px rgba(16, 185, 129, 0.35); }
+    .btn-green:hover { background: #059669; color: #fff; }
+    .btn-red { background: #ef4444; color: #fff; box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
+    .btn-dark { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+    .btn-dark:hover { background: #334155; color: #fff; }
+
+    /* Leave Tracker Register Table */
+    .leave-reg-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+    .leave-reg-table th {
+      background: #020617;
+      color: #94a3b8;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      border-bottom: 1px solid #1e293b;
+    }
+    .leave-reg-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+    }
+
+    /* Notification Tray Popover */
+    .notif-tray-popover {
+      position: absolute;
+      top: 65px;
+      right: 24px;
+      width: 380px;
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.85);
+      z-index: 200;
+      display: none;
+    }
+    .notif-tray-popover.open { display: block; }
+    .notif-card-row {
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+    }
+
+    /* Toast */
+    .toast-pill {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid #10b981;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toast-pill.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Interactive Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+      animation: modalSlideIn 0.22s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from { transform: scale(0.96) translateY(12px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Showcase Banner -->
+  <div class="showcase-banner">
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <span class="showcase-pill">⚡ Interactive Showcase Demo</span>
+      <span style="color: #cbd5e1;">Live Interactive Sandbox • Zero Login Required • Live Production Data Isolated</span>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a href="https://github.com/harsh12356-44/CRM-DS" target="_blank" class="btn-link-action">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        <span>GitHub Repository</span>
+      </a>
+      <a href="hrm-pilot-preview.html" target="_blank" class="btn-link-action" style="background: rgba(99, 102, 241, 0.25); border-color: rgba(99, 102, 241, 0.45); color: #c7d2fe;">
+        <span>🌐 Product Showcase Page</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Primary Header Navigation (Matching Navbar.tsx) -->
+  <header class="navbar">
+    <div class="brand-group">
+      <div class="brand-logo-sq">P</div>
+      <div class="brand-heading">
+        <h1>HRM Pilot</h1>
+        <p>PeopleFlow Enterprise Suite</p>
+      </div>
+
+      <!-- Company Tenant Pill -->
+      <button class="company-badge-btn" onclick="cycleCompanyTenant()">
+        <span class="company-dot"></span>
+        <span id="txtActiveCompany">Digital Suncity (HQ)</span>
+        <span style="font-size: 0.65rem; color: #64748b;">▼</span>
+      </button>
+    </div>
+
+    <!-- Suite Switcher Pills (Matching Navbar.tsx exact HR suite switcher) -->
+    <div class="suite-switcher-box">
+      <button class="suite-pill active" id="pillSuiteAdmin" onclick="setSuiteRole('ADMIN')">
+        🏢 HR Admin Suite
+      </button>
+      <button class="suite-pill" id="pillSuiteManager" onclick="setSuiteRole('MANAGER')">
+        👔 Manager Desk
+      </button>
+      <button class="suite-pill" id="pillSuiteEmployee" onclick="setSuiteRole('EMPLOYEE')">
+        👤 Employee Portal
+      </button>
+    </div>
+
+    <!-- User Profile & Notifications -->
+    <div class="nav-user-actions">
+      <div style="position: relative;">
+        <button class="icon-bell-btn" onclick="toggleNotifTray()" title="Notifications Center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span class="badge-counter" id="bellCounter">2</span>
+        </button>
+
+        <!-- Popover Tray -->
+        <div class="notif-tray-popover" id="notifTray">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e293b;">
+            <h4 style="font-size: 0.82rem; font-weight: 800; color: #fff;">Notifications Center</h4>
+            <span style="font-size: 0.72rem; color: #818cf8; cursor: pointer; font-weight: 700;" onclick="markAllTrayRead()">Mark all read</span>
+          </div>
+          <div id="trayNotifList">
+            <div class="notif-card-row">
+              <div style="font-weight: 800; color: #34d399; margin-bottom: 3px;">✅ Leave Request APPROVED</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; line-height: 1.4; white-space: pre-line;">Your Casual Leave (1 day) is approved.
+📊 Updated Balance: Casual: 1/2 left, Planned/Sick: 4/4 left. Total: 5/6 days remaining.</div>
+            </div>
+            <div class="notif-card-row">
+              <div style="font-weight: 800; color: #38bdf8; margin-bottom: 3px;">📢 Biometric Ingestion Synced</div>
+              <div style="color: #94a3b8; font-size: 0.72rem; line-height: 1.4;">November punch records synchronized across Main Branch (8h) and SEO Digital Branch (9h).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="user-profile-pill">
+        <div class="avatar-circle" id="userPillAvatar">RK</div>
+        <div class="avatar-info">
+          <div class="avatar-name" id="userPillName">Ravina Khimani</div>
+          <div class="avatar-desig" id="userPillDesig">HR / COO (Super Admin)</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- App Body Layout -->
+  <div class="app-body">
+    <!-- Sidebar (Matching Sidebar.tsx) -->
+    <aside class="sidebar-pane">
+      <div id="sideAdminGroup">
+        <div class="side-sec-title">Core Management</div>
+        <a class="side-btn-item active" id="menuAdminDash" onclick="switchAdminSubTab('dashboard')">
+          <span>📊 Dashboard</span>
+        </a>
+        <a class="side-btn-item" id="menuAdminAttendance" onclick="switchAdminSubTab('attendance')">
+          <span>⏱️ Attendance Grid (31d)</span>
+          <span class="side-tag">14</span>
+        </a>
+        <a class="side-btn-item" id="menuAdminEmployees" onclick="switchAdminSubTab('employees')">
+          <span>👥 Employees & Managers</span>
+          <span class="side-tag" style="background: rgba(99, 102, 241, 0.25); color: #818cf8;">14</span>
+        </a>
+        <a class="side-btn-item" id="menuAdminLeaves" onclick="switchAdminSubTab('leave-tracker')">
+          <span>✈️ Leave Tracker (Q1–Q4)</span>
+          <span class="side-tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">3</span>
+        </a>
+        <a class="side-btn-item" id="menuAdminTime" onclick="switchAdminSubTab('wfh-tracker')">
+          <span>💻 WFH Time Tracker</span>
+        </a>
+        <a class="side-btn-item" id="menuAdminSettings" onclick="switchAdminSubTab('settings')">
+          <span>⚙️ Notification Settings</span>
+        </a>
+      </div>
+
+      <div id="sideEmployeeGroup" style="display: none;">
+        <div class="side-sec-title">Employee Portal</div>
+        <a class="side-btn-item active" id="menuEmpPunch" onclick="switchEmpSubTab('punch')">
+          <span>⏱️ Digital Punch Clock</span>
+        </a>
+        <a class="side-btn-item" id="menuEmpApply" onclick="switchEmpSubTab('apply')">
+          <span>✈️ Apply for Leave</span>
+        </a>
+        <a class="side-btn-item" id="menuEmpHistory" onclick="switchEmpSubTab('history')">
+          <span>📄 Leave History</span>
+        </a>
+        <a class="side-btn-item" id="menuEmpNotifs" onclick="switchEmpSubTab('notifs')">
+          <span>🔔 Balance Alerts</span>
+        </a>
+      </div>
+
+      <div id="sideManagerGroup" style="display: none;">
+        <div class="side-sec-title">Manager Desk</div>
+        <a class="side-btn-item active" id="menuMgrApprovals" onclick="switchMgrSubTab('approvals')">
+          <span>✈️ Subordinate Approvals</span>
+          <span class="side-tag" id="mgrPendingSideCount" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">2</span>
+        </a>
+        <a class="side-btn-item" id="menuMgrAttendance" onclick="switchMgrSubTab('team-attendance')">
+          <span>👥 Team Attendance</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-stage">
+
+      <!-- ==============================================
+           SUITE 1: HR ADMIN SUITE
+           ============================================== -->
+      <div id="suiteAdminContainer">
+        <!-- Top Banner -->
+        <div class="welcome-hero-banner">
+          <div class="hero-badge-tag">
+            <span>🛡️ HRM Pilot Central Controller • Live Data Interconnected</span>
+          </div>
+          <h2>Welcome to HRM Pilot Central Controller</h2>
+          <p>
+            1:1 feature parity with enterprise attendance portals. Manage staff biometrics, dual-manager reporting, multi-day weekly offs, branch shift compliance, and automated quarterly leave allowances.
+          </p>
+          <div class="hero-btn-row">
+            <button class="hero-btn btn-hero-white" onclick="switchAdminSubTab('attendance')">Open Attendance Matrix</button>
+            <button class="hero-btn btn-hero-trans" onclick="switchAdminSubTab('employees')">Employees & Dual Managers</button>
+            <button class="hero-btn btn-hero-trans" onclick="switchAdminSubTab('leave-tracker')">Open Leave Quota Tracker</button>
+            <button class="hero-btn btn-hero-trans" onclick="switchAdminSubTab('settings')">Notification Settings</button>
+          </div>
+        </div>
+
+        <!-- 4 Metrics Row -->
+        <div class="metric-grid">
+          <div class="metric-card">
+            <div class="metric-lbl">Total Active Staff</div>
+            <div class="metric-num">14</div>
+            <div class="metric-sub txt-green">✓ 100% Onboarded Roster</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-lbl">Today's Attendance</div>
+            <div class="metric-num">13 Present</div>
+            <div class="metric-sub txt-green">98.6% Compliance Rate</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-lbl">Pending Leave Requests</div>
+            <div class="metric-num txt-amber" id="adminPendingNum">3</div>
+            <div class="metric-sub txt-amber">Action required in Leave Desk</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-lbl">Branch Shift Adherence</div>
+            <div class="metric-num txt-sky">99.2%</div>
+            <div class="metric-sub txt-sky">Main (8h) & SEO (9h)</div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB: DASHBOARD OVERVIEW -->
+        <div id="adminTabDashboard">
+          <!-- 31-Day Attendance Horizontal Matrix Preview -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Biometric Attendance Log (31-Day Master Grid)</h3>
+                <p class="panel-sub">Automatic monthly matching, Sunday weekly-off calculations, and overtime/deficit hours tracking.</p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="matrixSearch" onkeyup="filterMatrixRows()" placeholder="Filter employee name or code..." class="form-input" style="width: 220px; padding: 6px 12px; font-size: 0.75rem; background: #020617; border: 1px solid #334155; border-radius: 8px; color: #fff;">
+              </div>
+            </div>
+
+            <div class="matrix-scroll-wrapper">
+              <table class="matrix-table" id="matrixTable">
+                <thead>
+                  <tr>
+                    <th class="sticky-col">Employee Name</th>
+                    <th>Dept</th>
+                    <th>01</th><th>02</th><th>03</th><th>04</th><th>05</th><th>06</th><th>07</th><th>08</th><th>09</th><th>10</th>
+                    <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th>
+                    <th>21</th><th>22</th><th>23</th><th>24</th><th>25</th><th>26</th><th>27</th><th>28</th><th>29</th><th>30</th>
+                    <th>Total Hrs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="sticky-col"><strong>Ravina Khimani</strong> (RK001)</td>
+                    <td>HR</td>
+                    <td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:05</span></td><td><span class="cell-p">08:30</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:20</span></td><td><span class="cell-p">08:15</span></td><td><span class="cell-p">08:10</span></td><td><span class="cell-p">08:00</span></td><td><span class="cell-p">08:22</span></td>
+                    <td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:19</span></td><td><span class="cell-p">08:08</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:25</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:10</span></td><td><span class="cell-p">08:15</span></td>
+                    <td><span class="cell-p">08:04</span></td><td><span class="cell-p">08:16</span></td><td><span class="cell-p">08:11</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:08</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:20</span></td><td><span class="cell-p">08:18</span></td>
+                    <td><strong>212h 45m</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col"><strong>Naman Bangia</strong> (NB002)</td>
+                    <td>Dev</td>
+                    <td><span class="cell-p">08:15</span></td><td><span class="cell-p">08:18</span></td><td><span class="cell-p">08:22</span></td><td><span class="cell-p">08:10</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:20</span></td><td><span class="cell-p">08:11</span></td><td><span class="cell-p">08:05</span></td><td><span class="cell-p">08:16</span></td>
+                    <td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:18</span></td><td><span class="cell-p">08:25</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:08</span></td><td><span class="cell-p">08:21</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:16</span></td><td><span class="cell-p">08:12</span></td>
+                    <td><span class="cell-p">08:19</span></td><td><span class="cell-p">08:22</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:18</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:10</span></td><td><span class="cell-p">08:15</span></td><td><span class="cell-p">08:20</span></td><td><span class="cell-p">08:18</span></td><td><span class="cell-p">08:22</span></td>
+                    <td><strong>215h 10m</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col"><strong>Sonu Goswami</strong> (SG012)</td>
+                    <td>Dev</td>
+                    <td><span class="cell-p">07:58</span></td><td><span class="cell-p">08:05</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:02</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:10</span></td><td><span class="cell-p">08:15</span></td><td><span class="cell-p">08:08</span></td><td><span class="cell-p">08:18</span></td>
+                    <td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-l">LEAVE</span></td><td><span class="cell-p">08:19</span></td><td><span class="cell-p">08:08</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:10</span></td><td><span class="cell-p">08:15</span></td>
+                    <td><span class="cell-p">08:04</span></td><td><span class="cell-p">08:16</span></td><td><span class="cell-p">08:11</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">08:12</span></td><td><span class="cell-p">08:08</span></td><td><span class="cell-p">08:14</span></td><td><span class="cell-p">08:20</span></td><td><span class="cell-p">08:18</span></td>
+                    <td><strong>204h 25m</strong></td>
+                  </tr>
+                  <tr>
+                    <td class="sticky-col"><strong>Meenal Mundra</strong> (MN005)</td>
+                    <td>SEO</td>
+                    <td><span class="cell-p">09:05</span></td><td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:18</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:15</span></td><td><span class="cell-p">09:08</span></td><td><span class="cell-p">09:20</span></td><td><span class="cell-h">04:30</span></td>
+                    <td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:14</span></td><td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:16</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:22</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:18</span></td>
+                    <td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:15</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:14</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:18</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:16</span></td>
+                    <td><strong>210h 30m</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB: EMPLOYEES & DUAL MANAGERS -->
+        <div id="adminTabEmployees" style="display: none;">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Employee Directory & Dual-Manager Hierarchy</h3>
+                <p class="panel-sub">Manage workforce roster, multi-branch assignments, and Primary (Manager 1) / Secondary (Manager 2) reporting hierarchy.</p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-act btn-green" onclick="openEditEmpModal('EMP003')">
+                  ✏️ Edit Hierarchy (Sonu Goswami)
+                </button>
+                <button class="btn-act btn-dark" onclick="openEditEmpModal('NEW')">
+                  + Add Employee
+                </button>
+              </div>
+            </div>
+
+            <!-- Showcase callout box explaining the HR in Manager dropdown fix -->
+            <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: #4f46e5; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">👑</div>
+                <div>
+                  <strong style="color: #c7d2fe; font-size: 0.85rem;">HR Executive Management Included in Reporting Chains</strong>
+                  <p style="color: #94a3b8; font-size: 0.74rem; margin-top: 2px;">Ravina Khimani (<span style="color: #38bdf8; font-weight: 700;">HR / COO</span>) is automatically indexed in Primary &amp; Secondary Manager dropdowns alongside Department Managers.</p>
+                </div>
+              </div>
+              <button class="btn-act btn-indigo" onclick="openEditEmpModal('EMP003')" style="white-space: nowrap; font-size: 0.75rem;">
+                Open Manager Dropdown Demo
+              </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="leave-reg-table" id="employeesTable">
+                <thead>
+                  <tr>
+                    <th>Emp ID</th>
+                    <th>Name &amp; Role</th>
+                    <th>Department &amp; Branch</th>
+                    <th>Primary Reporting Manager (Manager 1)</th>
+                    <th>Secondary Reporting Manager (Manager 2)</th>
+                    <th>Work Mode</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">RK001</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #a855f7; font-weight: 700;">Super Admin • HR / COO</div>
+                    </td>
+                    <td>
+                      <div>Human Resources</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">HQ (8h req)</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- Executive Tier --</span></td>
+                    <td><span style="color: #64748b;">-- Executive Tier --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('RK001')">View</button></td>
+                  </tr>
+
+                  <tr id="empRowSonu">
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP003</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;" id="rowSonuName">Sonu Goswami</div>
+                      <div style="font-size: 0.7rem; color: #38bdf8; font-weight: 700;">Frontend Engineer</div>
+                    </td>
+                    <td>
+                      <div>Development</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">Main Branch (8h req)</div>
+                    </td>
+                    <td id="rowSonuMgr1">
+                      <div style="color: #38bdf8; font-weight: 700;">Naman Bangia</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">Senior Development Manager</div>
+                    </td>
+                    <td id="rowSonuMgr2">
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO (Executive HR)</div>
+                    </td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-indigo" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP003')">Edit Managers</button></td>
+                  </tr>
+
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP002</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Naman Bangia</div>
+                      <div style="font-size: 0.7rem; color: #34d399; font-weight: 700;">Senior Development Manager</div>
+                    </td>
+                    <td>
+                      <div>Development</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">Main Branch (8h req)</div>
+                    </td>
+                    <td>
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- None --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP002')">Edit</button></td>
+                  </tr>
+
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP004</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Jigyasa Sen</div>
+                      <div style="font-size: 0.7rem; color: #34d399; font-weight: 700;">Senior Development Manager</div>
+                    </td>
+                    <td>
+                      <div>Development</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">Main Branch (8h req)</div>
+                    </td>
+                    <td>
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- None --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP004')">Edit</button></td>
+                  </tr>
+
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP006</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Meenal</div>
+                      <div style="font-size: 0.7rem; color: #f59e0b; font-weight: 700;">SEO Manager</div>
+                    </td>
+                    <td>
+                      <div>SEO</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">SEO Digital Branch (9h req)</div>
+                    </td>
+                    <td>
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- None --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP006')">Edit</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB: LEAVE TRACKER (Q1–Q4) -->
+        <div id="adminTabLeaves" style="display: none;">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Employee Leave Register (Quarterly 6-Day Quota Tracker)</h3>
+                <p class="panel-sub">Casual (2d) + Planned/Sick (4d) = 6 Days per quarter. Excess leaves automatically flag LOP deduction.</p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <span class="showcase-pill">Q4 Oct–Dec 2026</span>
+              </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="leave-reg-table">
+                <thead>
+                  <tr>
+                    <th>Employee Name</th>
+                    <th>Casual Used (Max 2)</th>
+                    <th>Planned Used (Max 4)</th>
+                    <th>Total Taken</th>
+                    <th>Remaining Quota</th>
+                    <th>Excess / LOP</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Sonu Goswami</strong><br><span style="color: #64748b; font-size: 0.7rem;">SG012 • Development</span></td>
+                    <td>1.0 Day</td>
+                    <td>0.0 Day</td>
+                    <td>1.0 Day</td>
+                    <td><strong style="color: #34d399;">5.0 Days Left</strong></td>
+                    <td>0 Days</td>
+                    <td><span class="cell-p">Within Allowance</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Divyanshu</strong><br><span style="color: #64748b; font-size: 0.7rem;">DV004 • Development</span></td>
+                    <td>2.0 Days</td>
+                    <td>1.0 Day</td>
+                    <td>3.0 Days</td>
+                    <td><strong style="color: #38bdf8;">3.0 Days Left</strong></td>
+                    <td>0 Days</td>
+                    <td><span class="cell-p">Within Allowance</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Meenal Mundra</strong><br><span style="color: #64748b; font-size: 0.7rem;">MN005 • SEO</span></td>
+                    <td>2.0 Days</td>
+                    <td>4.0 Days</td>
+                    <td>6.0 Days</td>
+                    <td><strong style="color: #fbbf24;">0.0 Days Left</strong></td>
+                    <td>0 Days</td>
+                    <td><span class="cell-h">Quota Exhausted</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Rajesh Kumar</strong><br><span style="color: #64748b; font-size: 0.7rem;">RK009 • Operations</span></td>
+                    <td>2.0 Days</td>
+                    <td>5.0 Days</td>
+                    <td>7.0 Days</td>
+                    <td><strong style="color: #f87171;">0.0 Days Left</strong></td>
+                    <td><strong style="color: #f87171;">1.0 Day LOP</strong></td>
+                    <td><span class="cell-l">1 Day Salary Cut</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB: WFH TIME TRACKER -->
+        <div id="adminTabWfh" style="display: none;">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">WFH Live Command Board & Random Screenshot Capture</h3>
+                <p class="panel-sub">Real-time working sessions, randomized interval screen captures, and monitor surface policy enforcement.</p>
+              </div>
+              <span class="showcase-pill">● 4 Sessions Active</span>
+            </div>
+
+            <div class="wfh-grid">
+              <div class="wfh-card">
+                <div class="wfh-top">
+                  <div>
+                    <strong style="color: #fff; font-size: 0.85rem;">Sonu Goswami</strong>
+                    <div style="color: #64748b; font-size: 0.7rem;">Frontend Engineer • Development</div>
+                  </div>
+                  <span class="cell-p">Active (Working)</span>
+                </div>
+                <div class="wfh-thumb">
+                  <span style="color: #38bdf8; font-weight: 800; font-size: 0.8rem;">VS Code • CRM-DS Components</span>
+                  <span class="thumb-label">Captured 3m ago</span>
+                </div>
+                <div style="font-size: 0.72rem; color: #94a3b8; display: flex; justify-content: space-between;">
+                  <span>Started: 09:00 AM</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">8h 14m</span>
+                </div>
+              </div>
+
+              <div class="wfh-card">
+                <div class="wfh-top">
+                  <div>
+                    <strong style="color: #fff; font-size: 0.85rem;">Anup Sen</strong>
+                    <div style="color: #64748b; font-size: 0.7rem;">Full Stack Developer • Development</div>
+                  </div>
+                  <span class="cell-p">Active (Working)</span>
+                </div>
+                <div class="wfh-thumb">
+                  <span style="color: #38bdf8; font-weight: 800; font-size: 0.8rem;">GitHub PR Review & Terminal</span>
+                  <span class="thumb-label">Captured 6m ago</span>
+                </div>
+                <div style="font-size: 0.72rem; color: #94a3b8; display: flex; justify-content: space-between;">
+                  <span>Started: 09:15 AM</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">7h 59m</span>
+                </div>
+              </div>
+
+              <div class="wfh-card">
+                <div class="wfh-top">
+                  <div>
+                    <strong style="color: #fff; font-size: 0.85rem;">Meenal Mundra</strong>
+                    <div style="color: #64748b; font-size: 0.7rem;">SEO Manager • SEO Branch</div>
+                  </div>
+                  <span class="cell-h">☕ Tea Break</span>
+                </div>
+                <div class="wfh-thumb" style="background: rgba(245, 158, 11, 0.05);">
+                  <span style="color: #fbbf24; font-weight: 800; font-size: 0.8rem;">Break Mode (Screen Paused)</span>
+                  <span class="thumb-label">15m duration</span>
+                </div>
+                <div style="font-size: 0.72rem; color: #94a3b8; display: flex; justify-content: space-between;">
+                  <span>Started: 09:45 AM</span>
+                  <span style="font-family: var(--font-mono); font-weight: 700; color: #fbbf24;">4h 30m</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB: NOTIFICATION SETTINGS -->
+        <div id="adminTabSettings" style="display: none;">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Automated Notification Rules & Quota Dispatch</h3>
+                <p class="panel-sub">Configure triggers for leave submission alerts, manager routing, and employee live leave balance delivery.</p>
+              </div>
+              <span class="showcase-pill" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3);">✓ All Toggles Active</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="color: #fff; font-size: 0.85rem;">1. Notify Admins & HR on Leave Application</strong>
+                  <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">Dispatches instant alerts to HR and Super Admins when any employee submits a leave request.</p>
+                </div>
+                <span class="cell-p">ENABLED</span>
+              </div>
+              <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="color: #fff; font-size: 0.85rem;">2. Notify Reporting Managers on Subordinate Leave</strong>
+                  <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">Directs alerts to primary & secondary managers with 1-click review action in Manager Desk.</p>
+                </div>
+                <span class="cell-p">ENABLED</span>
+              </div>
+              <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="color: #fff; font-size: 0.85rem;">3. Send Remaining Leave Balance to Employee on Application</strong>
+                  <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">Calculates and embeds quarterly leave balance (Casual, Planned/Sick, Total) upon submission.</p>
+                </div>
+                <span class="cell-p">ENABLED</span>
+              </div>
+              <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <strong style="color: #fff; font-size: 0.85rem;">4. Recalculate & Send Updated Balance on Status Updates</strong>
+                  <p style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">Recalculates available quota and alerts employee when request is Approved or Rejected.</p>
+                </div>
+                <span class="cell-p">ENABLED</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================
+           SUITE 2: MANAGER DESK
+           ============================================== -->
+      <div id="suiteManagerContainer" style="display: none;">
+        <div class="panel-card">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Manager Desk: Subordinate Leave Approvals</h3>
+              <p class="panel-sub">Review subordinate leave applications. 1-click approve or reject with instant synchronization to HR.</p>
+            </div>
+            <span class="showcase-pill" id="mgrPendingHeaderPill">2 Pending Submissions</span>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table class="leave-reg-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Leave Type</th>
+                  <th>Dates & Duration</th>
+                  <th>Reason</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="mgrLeavesTableBody">
+                <tr id="mgrRow1">
+                  <td><strong>Sonu Goswami</strong><br><span style="color: #64748b; font-size: 0.7rem;">SG012 • Development</span></td>
+                  <td><span class="cell-l">Casual Leave</span></td>
+                  <td>26 Nov 2026 (1 Full Day)</td>
+                  <td>Family function out of station. PRs handed to Naman.</td>
+                  <td>
+                    <button class="btn-act btn-green" style="padding: 6px 14px; font-size: 0.75rem;" onclick="actionManagerLeave('mgrRow1', 'APPROVED', 'Sonu Goswami', 'Casual Leave')">✓ Approve</button>
+                    <button class="btn-act btn-red" style="padding: 6px 14px; font-size: 0.75rem; margin-left: 6px;" onclick="actionManagerLeave('mgrRow1', 'REJECTED', 'Sonu Goswami', 'Casual Leave')">✗ Reject</button>
+                  </td>
+                </tr>
+                <tr id="mgrRow2">
+                  <td><strong>Divyanshu</strong><br><span style="color: #64748b; font-size: 0.7rem;">DV004 • Development</span></td>
+                  <td><span class="cell-l">Planned Leave</span></td>
+                  <td>28 Nov – 29 Nov (2 Full Days)</td>
+                  <td>Attending technical architecture symposium.</td>
+                  <td>
+                    <button class="btn-act btn-green" style="padding: 6px 14px; font-size: 0.75rem;" onclick="actionManagerLeave('mgrRow2', 'APPROVED', 'Divyanshu', 'Planned Leave')">✓ Approve</button>
+                    <button class="btn-act btn-red" style="padding: 6px 14px; font-size: 0.75rem; margin-left: 6px;" onclick="actionManagerLeave('mgrRow2', 'REJECTED', 'Divyanshu', 'Planned Leave')">✗ Reject</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================
+           SUITE 3: EMPLOYEE PORTAL
+           ============================================== -->
+      <div id="suiteEmployeeContainer" style="display: none;">
+        <!-- Digital Punch Clock Card -->
+        <div class="panel-card" id="empCardPunch">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">WFH Digital Punch Clock & Time Tracker</h3>
+              <p class="panel-sub">Clock in to start tracking your daily shift requirement (8h Main / 9h SEO).</p>
+            </div>
+            <span class="cell-p" id="empPunchPillStatus">● Clocked In (Running)</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
+            <div class="punch-box">
+              <div style="font-size: 0.75rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Active Shift Time</div>
+              <div class="digital-timer" id="empLiveTimer">08:14:26</div>
+              <div style="font-size: 0.78rem; color: #34d399;" id="empTimerSubtext">Started today at 09:00 AM • Target: 8h 00m</div>
+
+              <div class="punch-controls">
+                <button class="btn-act btn-dark" id="btnTeaBreak" onclick="triggerEmpBreak('tea')">☕ Tea Break (15m)</button>
+                <button class="btn-act btn-dark" id="btnLunchBreak" onclick="triggerEmpBreak('lunch')">🍽️ Lunch Break (45m)</button>
+                <button class="btn-act btn-red" id="btnClockInOut" onclick="triggerClockToggle()">Clock Out</button>
+              </div>
+            </div>
+
+            <!-- Leave Quota Overview -->
+            <div>
+              <div style="font-size: 0.9rem; font-weight: 800; color: #fff; margin-bottom: 14px;">Your Quarterly Leave Quota (Q4 Oct–Dec)</div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px;">
+                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Casual Leave</div>
+                  <div style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: #38bdf8;" id="empCasualVal">1.0</div>
+                  <div style="font-size: 0.7rem; color: #94a3b8;">1 used / 2 allowance</div>
+                </div>
+                <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px;">
+                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Planned/Sick</div>
+                  <div style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: #a855f7;" id="empPlannedVal">4.0</div>
+                  <div style="font-size: 0.7rem; color: #94a3b8;">0 used / 4 allowance</div>
+                </div>
+                <div style="background: #020617; border: 1px solid #1e293b; padding: 16px; border-radius: 14px;">
+                  <div style="font-size: 0.7rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Total Available</div>
+                  <div style="font-family: var(--font-display); font-size: 1.8rem; font-weight: 900; color: #34d399;" id="empTotalVal">5.0</div>
+                  <div style="font-size: 0.7rem; color: #94a3b8;">Remaining Quota</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Apply Leave Form -->
+        <div class="panel-card" id="empCardApply">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Apply for Leave (Real-Time Balance Recalculation Engine)</h3>
+              <p class="panel-sub">Select dates and reason. The engine instantly computes working days count and projected remaining quota.</p>
+            </div>
+          </div>
+
+          <form onsubmit="handleDemoApplyLeave(event)" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+            <div>
+              <label style="display:block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Leave Type</label>
+              <select id="leaveTypeInput" onchange="calcProjectedLeave()" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+                <option value="Casual Leave">Casual Leave (1.0d available)</option>
+                <option value="Planned Leave">Planned Leave (4.0d available)</option>
+                <option value="Sick Leave">Sick Leave (4.0d available)</option>
+              </select>
+            </div>
+            <div>
+              <label style="display:block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Start Date</label>
+              <input type="date" id="leaveStartDate" value="2026-11-26" onchange="calcProjectedLeave()" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+            </div>
+            <div>
+              <label style="display:block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">End Date</label>
+              <input type="date" id="leaveEndDate" value="2026-11-26" onchange="calcProjectedLeave()" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <label style="display:block; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin-bottom: 6px;">Reason for Absence</label>
+              <input type="text" id="leaveReasonInput" placeholder="e.g. Personal travel and urgent family commitment" required style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+            </div>
+
+            <!-- Real-time calculation pill -->
+            <div style="grid-column: 1 / -1; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); padding: 14px 18px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <span id="projCalcNotice" style="font-size: 0.8rem; color: #c7d2fe; font-weight: 600;">
+                📊 Projected balance upon approval: 4.0 of 6.0 total quarterly days left.
+              </span>
+              <button type="submit" class="btn-act btn-green">Submit Leave Application</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Real-Time Notifications Center Tab (Matching Employee Portal) -->
+        <div class="panel-card" id="empCardNotifs">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-title">Notifications & Leave Balance Alerts</h3>
+              <p class="panel-sub">Live alerts for leave applications, remaining quarterly leave quotas, and manager/HR approval decisions.</p>
+            </div>
+          </div>
+
+          <div id="empLiveNotifContainer" style="display: flex; flex-direction: column; gap: 10px;">
+            <div class="notif-card-row" style="border-left: 4px solid #10b981;">
+              <div style="font-weight: 800; color: #34d399; margin-bottom: 2px;">✅ Leave Request APPROVED: Casual Leave</div>
+              <div style="color: #cbd5e1; font-size: 0.78rem; line-height: 1.5; white-space: pre-line;">Your leave request #l-104 (Casual Leave, 1 day) is APPROVED by Manager and HR.
+📊 Updated Balance (Q4): Casual: 1/2 left, Planned/Sick: 4/4 left. Total Available: 5/6 days.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Employee Modal (Showcasing Reporting Manager Dropdown with HR) -->
+  <div class="modal-backdrop" id="empModalBackdrop">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="empModalTitle">Edit Employee Profile &amp; Reporting Managers</h3>
+          <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Configure dual-manager assignment and branch shift compliance.</p>
+        </div>
+        <button onclick="closeEditEmpModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveEmpHierarchy(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Employee Code</label>
+            <input type="text" id="modalEmpCode" value="EMP003" readonly style="width: 100%; background: #020617; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; color: #94a3b8; font-size: 0.82rem; font-family: var(--font-mono);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Full Name</label>
+            <input type="text" id="modalEmpName" value="Sonu Goswami" required style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Department</label>
+            <input type="text" id="modalEmpDept" value="Development" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Designation</label>
+            <input type="text" id="modalEmpDesig" value="Frontend Engineer" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+          </div>
+        </div>
+
+        <!-- PRIMARY REPORTING MANAGER DROPDOWN (MANAGER 1) -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); padding: 14px; border-radius: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="font-size: 0.8rem; font-weight: 800; color: #c7d2fe;">Primary Reporting Manager (Manager 1)</label>
+            <span class="showcase-pill" style="font-size: 0.65rem;">Includes HR &amp; Super Admin</span>
+          </div>
+          <select id="modalPrimaryManager" style="width: 100%; background: #020617; border: 1px solid #6366f1; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.84rem; font-weight: 600;">
+            <option value="-- None --">-- None --</option>
+            <option value="Ravina Khimani">⭐ Ravina Khimani (Human Resources • HR / COO)</option>
+            <option value="Naman Bangia" selected>Naman Bangia (Development • Senior Development Manager)</option>
+            <option value="Jigyasa Sen">Jigyasa Sen (Development • Senior Development Manager)</option>
+            <option value="Divyanshu">Divyanshu (Development • Senior Development Manager)</option>
+            <option value="Meenal">Meenal (SEO • SEO Manager)</option>
+            <option value="Vipul">Vipul (Digital Marketing - 2 • Digital Marketing Manager)</option>
+          </select>
+          <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 5px;">First-line approval routing for leave requests and shift logs.</p>
+        </div>
+
+        <!-- SECONDARY REPORTING MANAGER DROPDOWN (MANAGER 2) -->
+        <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.3); padding: 14px; border-radius: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="font-size: 0.8rem; font-weight: 800; color: #7dd3fc;">Secondary Reporting Manager (Manager 2)</label>
+            <span class="showcase-pill" style="font-size: 0.65rem; background: rgba(14, 165, 233, 0.2); border-color: rgba(14, 165, 233, 0.4); color: #7dd3fc;">Dual Hierarchy</span>
+          </div>
+          <select id="modalSecondaryManager" style="width: 100%; background: #020617; border: 1px solid #0284c7; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.84rem; font-weight: 600;">
+            <option value="-- None --">-- None --</option>
+            <option value="Ravina Khimani" selected>⭐ Ravina Khimani (Human Resources • HR / COO)</option>
+            <option value="Naman Bangia">Naman Bangia (Development • Senior Development Manager)</option>
+            <option value="Jigyasa Sen">Jigyasa Sen (Development • Senior Development Manager)</option>
+            <option value="Divyanshu">Divyanshu (Development • Senior Development Manager)</option>
+            <option value="Meenal">Meenal (SEO • SEO Manager)</option>
+            <option value="Vipul">Vipul (Digital Marketing - 2 • Digital Marketing Manager)</option>
+          </select>
+          <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 5px;">Parallel review &amp; executive escalation rights.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Work Mode</label>
+            <select id="modalEmpWorkMode" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+              <option value="OFFICE" selected>OFFICE (Biometric &amp; Desk)</option>
+              <option value="REMOTE">REMOTE (Time Tracker Active)</option>
+              <option value="HYBRID">HYBRID</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Employment Status</label>
+            <select id="modalEmpStatus" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+              <option value="Active" selected>Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #1e293b; padding-top: 16px;">
+          <button type="button" class="btn-act btn-dark" onclick="closeEditEmpModal()">Cancel</button>
+          <button type="submit" class="btn-act btn-indigo" style="padding: 10px 22px;">Save Reporting Hierarchy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div class="toast-pill" id="globalToast">
+    <span>✓ Notification message</span>
+  </div>
+
+  <script>
+    // 1. Role / Suite Switching Engine
+    let currentSuite = 'ADMIN';
+
+    function setSuiteRole(role) {
+      currentSuite = role;
+      document.querySelectorAll('.suite-pill').forEach(p => p.classList.remove('active'));
+      document.getElementById('suiteAdminContainer').style.display = 'none';
+      document.getElementById('suiteManagerContainer').style.display = 'none';
+      document.getElementById('suiteEmployeeContainer').style.display = 'none';
+
+      document.getElementById('sideAdminGroup').style.display = 'none';
+      document.getElementById('sideManagerGroup').style.display = 'none';
+      document.getElementById('sideEmployeeGroup').style.display = 'none';
+
+      if (role === 'ADMIN') {
+        document.getElementById('pillSuiteAdmin').classList.add('active');
+        document.getElementById('suiteAdminContainer').style.display = 'block';
+        document.getElementById('sideAdminGroup').style.display = 'block';
+        document.getElementById('userPillAvatar').textContent = 'RK';
+        document.getElementById('userPillName').textContent = 'Ravina Khimani';
+        document.getElementById('userPillDesig').textContent = 'HR / COO (Super Admin)';
+        showToast('Switched to HR Admin Suite');
+      } else if (role === 'MANAGER') {
+        document.getElementById('pillSuiteManager').classList.add('active');
+        document.getElementById('suiteManagerContainer').style.display = 'block';
+        document.getElementById('sideManagerGroup').style.display = 'block';
+        document.getElementById('userPillAvatar').textContent = 'NB';
+        document.getElementById('userPillName').textContent = 'Naman Bangia';
+        document.getElementById('userPillDesig').textContent = 'Senior Development Manager';
+        showToast('Switched to Manager Desk');
+      } else if (role === 'EMPLOYEE') {
+        document.getElementById('pillSuiteEmployee').classList.add('active');
+        document.getElementById('suiteEmployeeContainer').style.display = 'block';
+        document.getElementById('sideEmployeeGroup').style.display = 'block';
+        document.getElementById('userPillAvatar').textContent = 'SG';
+        document.getElementById('userPillName').textContent = 'Sonu Goswami';
+        document.getElementById('userPillDesig').textContent = 'Frontend Engineer';
+        showToast('Switched to Employee Portal');
+      }
+    }
+
+    // 2. Admin Sub-tabs
+    function switchAdminSubTab(subTab) {
+      document.querySelectorAll('#sideAdminGroup .side-btn-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('adminTabDashboard').style.display = 'none';
+      const empTab = document.getElementById('adminTabEmployees');
+      if (empTab) empTab.style.display = 'none';
+      document.getElementById('adminTabLeaves').style.display = 'none';
+      document.getElementById('adminTabWfh').style.display = 'none';
+      document.getElementById('adminTabSettings').style.display = 'none';
+
+      if (subTab === 'dashboard' || subTab === 'attendance') {
+        document.getElementById('adminTabDashboard').style.display = 'block';
+        if (subTab === 'dashboard') document.getElementById('menuAdminDash').classList.add('active');
+        if (subTab === 'attendance') document.getElementById('menuAdminAttendance').classList.add('active');
+      } else if (subTab === 'employees') {
+        if (empTab) empTab.style.display = 'block';
+        const empMenu = document.getElementById('menuAdminEmployees');
+        if (empMenu) empMenu.classList.add('active');
+      } else if (subTab === 'leave-tracker') {
+        document.getElementById('adminTabLeaves').style.display = 'block';
+        document.getElementById('menuAdminLeaves').classList.add('active');
+      } else if (subTab === 'wfh-tracker') {
+        document.getElementById('adminTabWfh').style.display = 'block';
+        document.getElementById('menuAdminTime').classList.add('active');
+      } else if (subTab === 'settings') {
+        document.getElementById('adminTabSettings').style.display = 'block';
+        document.getElementById('menuAdminSettings').classList.add('active');
+      }
+    }
+
+    // Modal & Employee Hierarchy Engine
+    function openEditEmpModal(code) {
+      document.getElementById('empModalBackdrop').classList.add('open');
+      if (code === 'EMP003') {
+        document.getElementById('modalEmpCode').value = 'EMP003';
+        document.getElementById('modalEmpName').value = 'Sonu Goswami';
+        document.getElementById('modalEmpDept').value = 'Development';
+        document.getElementById('modalEmpDesig').value = 'Frontend Engineer';
+        document.getElementById('modalPrimaryManager').value = 'Naman Bangia';
+        document.getElementById('modalSecondaryManager').value = 'Ravina Khimani';
+      } else if (code === 'EMP002') {
+        document.getElementById('modalEmpCode').value = 'EMP002';
+        document.getElementById('modalEmpName').value = 'Naman Bangia';
+        document.getElementById('modalEmpDept').value = 'Development';
+        document.getElementById('modalEmpDesig').value = 'Senior Development Manager';
+        document.getElementById('modalPrimaryManager').value = 'Ravina Khimani';
+        document.getElementById('modalSecondaryManager').value = '-- None --';
+      }
+    }
+
+    function closeEditEmpModal() {
+      document.getElementById('empModalBackdrop').classList.remove('open');
+    }
+
+    function handleSaveEmpHierarchy(e) {
+      e.preventDefault();
+      const code = document.getElementById('modalEmpCode').value;
+      const name = document.getElementById('modalEmpName').value;
+      const m1 = document.getElementById('modalPrimaryManager').value;
+      const m2 = document.getElementById('modalSecondaryManager').value;
+
+      if (code === 'EMP003') {
+        const mgr1Cell = document.getElementById('rowSonuMgr1');
+        const mgr2Cell = document.getElementById('rowSonuMgr2');
+        if (mgr1Cell) {
+          mgr1Cell.innerHTML = `<div style="color: ${m1.includes('Ravina') ? '#ec4899' : '#38bdf8'}; font-weight: 700;">${m1}</div><div style="font-size: 0.7rem; color: #94a3b8;">${m1.includes('Ravina') ? 'HR / COO (Executive HR)' : 'Senior Development Manager'}</div>`;
+        }
+        if (mgr2Cell) {
+          mgr2Cell.innerHTML = `<div style="color: ${m2.includes('Ravina') ? '#ec4899' : '#38bdf8'}; font-weight: 700;">${m2}</div><div style="font-size: 0.7rem; color: #94a3b8;">${m2.includes('Ravina') ? 'HR / COO (Executive HR)' : 'Reporting Head'}</div>`;
+        }
+      }
+
+      closeEditEmpModal();
+      showToast(`Saved reporting hierarchy for ${name}! Primary: ${m1}`);
+    }
+
+    // 3. Employee Sub-tabs
+    function switchEmpSubTab(tab) {
+      document.querySelectorAll('#sideEmployeeGroup .side-btn-item').forEach(b => b.classList.remove('active'));
+      if (tab === 'punch') {
+        document.getElementById('menuEmpPunch').classList.add('active');
+        document.getElementById('empCardPunch').scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'apply') {
+        document.getElementById('menuEmpApply').classList.add('active');
+        document.getElementById('empCardApply').scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'history' || tab === 'notifs') {
+        if (tab === 'history') document.getElementById('menuEmpHistory').classList.add('active');
+        if (tab === 'notifs') document.getElementById('menuEmpNotifs').classList.add('active');
+        document.getElementById('empCardNotifs').scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // 4. Manager Sub-tabs
+    function switchMgrSubTab(tab) {
+      document.querySelectorAll('#sideManagerGroup .side-btn-item').forEach(b => b.classList.remove('active'));
+      if (tab === 'approvals') document.getElementById('menuMgrApprovals').classList.add('active');
+      if (tab === 'team-attendance') {
+        document.getElementById('menuMgrAttendance').classList.add('active');
+        setSuiteRole('ADMIN');
+        switchAdminSubTab('attendance');
+      }
+    }
+
+    // 5. Digital Punch Timer
+    let punchActive = true;
+    let punchSeconds = 8 * 3600 + 14 * 60 + 26;
+    let breakRunning = false;
+
+    setInterval(() => {
+      if (punchActive && !breakRunning) {
+        punchSeconds++;
+        const h = String(Math.floor(punchSeconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((punchSeconds % 3600) / 60)).padStart(2, '0');
+        const s = String(punchSeconds % 60).padStart(2, '0');
+        document.getElementById('empLiveTimer').textContent = `${h}:${m}:${s}`;
+      }
+    }, 1000);
+
+    function triggerClockToggle() {
+      const btn = document.getElementById('btnClockInOut');
+      const pill = document.getElementById('empPunchPillStatus');
+      if (punchActive) {
+        punchActive = false;
+        btn.textContent = 'Clock In';
+        btn.className = 'btn-act btn-green';
+        pill.textContent = '○ Clocked Out';
+        pill.className = 'cell-off';
+        showToast('Clocked out successfully at ' + new Date().toLocaleTimeString());
+      } else {
+        punchActive = true;
+        btn.textContent = 'Clock Out';
+        btn.className = 'btn-act btn-red';
+        pill.textContent = '● Clocked In (Running)';
+        pill.className = 'cell-p';
+        showToast('Clocked in successfully');
+      }
+    }
+
+    function triggerEmpBreak(type) {
+      if (!punchActive) {
+        alert('Please clock in before starting a break!');
+        return;
+      }
+      breakRunning = !breakRunning;
+      const pill = document.getElementById('empPunchPillStatus');
+      if (breakRunning) {
+        pill.textContent = `☕ On ${type === 'tea' ? 'Tea' : 'Lunch'} Break`;
+        pill.className = 'cell-h';
+        showToast(`Timer paused: ${type === 'tea' ? 'Tea (15m)' : 'Lunch (45m)'} break active`);
+      } else {
+        pill.textContent = '● Clocked In (Running)';
+        pill.className = 'cell-p';
+        showToast('Resumed active working timer');
+      }
+    }
+
+    // 6. Interactive Leave Application
+    function calcProjectedLeave() {
+      const type = document.getElementById('leaveTypeInput').value;
+      const notice = document.getElementById('projCalcNotice');
+      if (type === 'Casual Leave') {
+        notice.textContent = '📊 Projected balance upon approval: Casual: 0.0/2.0 left. Total Remaining: 4.0 of 6.0 days.';
+      } else {
+        notice.textContent = '📊 Projected balance upon approval: Planned: 3.0/4.0 left. Total Remaining: 4.0 of 6.0 days.';
+      }
+    }
+
+    function handleDemoApplyLeave(e) {
+      e.preventDefault();
+      const type = document.getElementById('leaveTypeInput').value;
+      const reason = document.getElementById('leaveReasonInput').value;
+
+      // Update quota numbers
+      if (type === 'Casual Leave') {
+        document.getElementById('empCasualVal').textContent = '0.0';
+        document.getElementById('empTotalVal').textContent = '4.0';
+      } else {
+        document.getElementById('empPlannedVal').textContent = '3.0';
+        document.getElementById('empTotalVal').textContent = '4.0';
+      }
+
+      // Add to notifications
+      const notifArea = document.getElementById('empLiveNotifContainer');
+      const trayList = document.getElementById('trayNotifList');
+
+      const cardHtml = `
+        <div class="notif-card-row" style="border-left: 4px solid #6366f1;">
+          <div style="font-weight: 800; color: #818cf8; margin-bottom: 2px;">✈️ Leave Application Submitted: ${type}</div>
+          <div style="color: #cbd5e1; font-size: 0.78rem; line-height: 1.5; white-space: pre-line;">Your request for ${type} (1 day) is submitted for approval.
+📊 Current Balance: Casual: 0/2 left, Planned/Sick: 4/4 left. Total Remaining: 4/6 days.
+🔔 Reporting manager Naman Bangia & HR have been alerted.</div>
+        </div>
+      `;
+      notifArea.insertAdjacentHTML('afterbegin', cardHtml);
+      trayList.insertAdjacentHTML('afterbegin', cardHtml);
+
+      const bell = document.getElementById('bellCounter');
+      bell.textContent = parseInt(bell.textContent) + 1;
+      bell.style.display = 'flex';
+
+      showToast('Leave request submitted! Quota updated to 4.0 days remaining.');
+      document.getElementById('leaveReasonInput').value = '';
+    }
+
+    // 7. Manager Approval Actions
+    function actionManagerLeave(rowId, action, empName, leaveType) {
+      const row = document.getElementById(rowId);
+      if (row) {
+        row.style.opacity = '0.5';
+        row.innerHTML = `<td colspan="5" style="text-align: center; color: ${action === 'APPROVED' ? '#34d399' : '#f87171'}; font-weight: 800; padding: 14px;">
+          ✓ Decision Recorded: Request ${action} for ${empName} (${leaveType})
+        </td>`;
+      }
+
+      // Update counters
+      const mgrPill = document.getElementById('mgrPendingHeaderPill');
+      const sidePill = document.getElementById('mgrPendingSideCount');
+      const adminNum = document.getElementById('adminPendingNum');
+
+      mgrPill.textContent = '1 Pending Submission';
+      sidePill.textContent = '1';
+      adminNum.textContent = '2';
+
+      // Push notification
+      const trayList = document.getElementById('trayNotifList');
+      const notifCard = `
+        <div class="notif-card-row" style="border-left: 4px solid ${action === 'APPROVED' ? '#10b981' : '#ef4444'};">
+          <div style="font-weight: 800; color: ${action === 'APPROVED' ? '#34d399' : '#f87171'}; margin-bottom: 2px;">${action === 'APPROVED' ? '✅' : '❌'} Manager Decision: ${empName}</div>
+          <div style="color: #cbd5e1; font-size: 0.75rem;">${empName}'s request for ${leaveType} was ${action.toLowerCase()} by manager Naman Bangia. HR Admin Suite updated.</div>
+        </div>
+      `;
+      trayList.insertAdjacentHTML('afterbegin', notifCard);
+
+      showToast(`Leave request ${action.toLowerCase()} for ${empName}`);
+    }
+
+    // 8. Company Switcher
+    const companies = ['Digital Suncity (HQ)', 'Apex Global Tech', 'NextGen Retailers'];
+    let compIdx = 0;
+    function cycleCompanyTenant() {
+      compIdx = (compIdx + 1) % companies.length;
+      document.getElementById('txtActiveCompany').textContent = companies[compIdx];
+      showToast(`Switched Company Workspace: ${companies[compIdx]}`);
+    }
+
+    // 9. Popover & Notifications
+    function toggleNotifTray() {
+      document.getElementById('notifTray').classList.toggle('open');
+    }
+    function markAllTrayRead() {
+      document.getElementById('bellCounter').textContent = '0';
+      document.getElementById('bellCounter').style.display = 'none';
+      showToast('All notifications marked as read');
+    }
+
+    // 10. Table Filter
+    function filterMatrixRows() {
+      const q = document.getElementById('matrixSearch').value.toLowerCase();
+      const rows = document.querySelectorAll('#matrixTable tbody tr');
+      rows.forEach(r => {
+        const text = r.textContent.toLowerCase();
+        r.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    // 11. Toast System
+    function showToast(msg) {
+      const t = document.getElementById('globalToast');
+      t.querySelector('span').textContent = '✓ ' + msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+</html>

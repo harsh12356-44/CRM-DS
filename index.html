@@ -697,6 +697,36 @@
       transform: translateY(0);
       opacity: 1;
     }
+
+    /* Interactive Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95);
+      animation: modalSlideIn 0.22s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from { transform: scale(0.96) translateY(12px); opacity: 0; }
+      to { transform: scale(1) translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -712,7 +742,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
         <span>GitHub Repository</span>
       </a>
-      <a href="/hrm-pilot-preview.html" target="_blank" class="btn-link-action" style="background: rgba(99, 102, 241, 0.25); border-color: rgba(99, 102, 241, 0.45); color: #c7d2fe;">
+      <a href="hrm-pilot-preview.html" target="_blank" class="btn-link-action" style="background: rgba(99, 102, 241, 0.25); border-color: rgba(99, 102, 241, 0.45); color: #c7d2fe;">
         <span>🌐 Product Showcase Page</span>
       </a>
     </div>
@@ -799,6 +829,10 @@
           <span>⏱️ Attendance Grid (31d)</span>
           <span class="side-tag">14</span>
         </a>
+        <a class="side-btn-item" id="menuAdminEmployees" onclick="switchAdminSubTab('employees')">
+          <span>👥 Employees & Managers</span>
+          <span class="side-tag" style="background: rgba(99, 102, 241, 0.25); color: #818cf8;">14</span>
+        </a>
         <a class="side-btn-item" id="menuAdminLeaves" onclick="switchAdminSubTab('leave-tracker')">
           <span>✈️ Leave Tracker (Q1–Q4)</span>
           <span class="side-tag" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">3</span>
@@ -857,6 +891,7 @@
           </p>
           <div class="hero-btn-row">
             <button class="hero-btn btn-hero-white" onclick="switchAdminSubTab('attendance')">Open Attendance Matrix</button>
+            <button class="hero-btn btn-hero-trans" onclick="switchAdminSubTab('employees')">Employees & Dual Managers</button>
             <button class="hero-btn btn-hero-trans" onclick="switchAdminSubTab('leave-tracker')">Open Leave Quota Tracker</button>
             <button class="hero-btn btn-hero-trans" onclick="switchAdminSubTab('settings')">Notification Settings</button>
           </div>
@@ -944,6 +979,158 @@
                     <td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:14</span></td><td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:16</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:22</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:18</span></td>
                     <td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:15</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:14</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-off">OFF</span></td><td><span class="cell-p">09:12</span></td><td><span class="cell-p">09:18</span></td><td><span class="cell-p">09:10</span></td><td><span class="cell-p">09:16</span></td>
                     <td><strong>210h 30m</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUB-TAB: EMPLOYEES & DUAL MANAGERS -->
+        <div id="adminTabEmployees" style="display: none;">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div>
+                <h3 class="panel-title">Employee Directory & Dual-Manager Hierarchy</h3>
+                <p class="panel-sub">Manage workforce roster, multi-branch assignments, and Primary (Manager 1) / Secondary (Manager 2) reporting hierarchy.</p>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-act btn-green" onclick="openEditEmpModal('EMP003')">
+                  ✏️ Edit Hierarchy (Sonu Goswami)
+                </button>
+                <button class="btn-act btn-dark" onclick="openEditEmpModal('NEW')">
+                  + Add Employee
+                </button>
+              </div>
+            </div>
+
+            <!-- Showcase callout box explaining the HR in Manager dropdown fix -->
+            <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: #4f46e5; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">👑</div>
+                <div>
+                  <strong style="color: #c7d2fe; font-size: 0.85rem;">HR Executive Management Included in Reporting Chains</strong>
+                  <p style="color: #94a3b8; font-size: 0.74rem; margin-top: 2px;">Ravina Khimani (<span style="color: #38bdf8; font-weight: 700;">HR / COO</span>) is automatically indexed in Primary &amp; Secondary Manager dropdowns alongside Department Managers.</p>
+                </div>
+              </div>
+              <button class="btn-act btn-indigo" onclick="openEditEmpModal('EMP003')" style="white-space: nowrap; font-size: 0.75rem;">
+                Open Manager Dropdown Demo
+              </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="leave-reg-table" id="employeesTable">
+                <thead>
+                  <tr>
+                    <th>Emp ID</th>
+                    <th>Name &amp; Role</th>
+                    <th>Department &amp; Branch</th>
+                    <th>Primary Reporting Manager (Manager 1)</th>
+                    <th>Secondary Reporting Manager (Manager 2)</th>
+                    <th>Work Mode</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">RK001</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #a855f7; font-weight: 700;">Super Admin • HR / COO</div>
+                    </td>
+                    <td>
+                      <div>Human Resources</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">HQ (8h req)</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- Executive Tier --</span></td>
+                    <td><span style="color: #64748b;">-- Executive Tier --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('RK001')">View</button></td>
+                  </tr>
+
+                  <tr id="empRowSonu">
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP003</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;" id="rowSonuName">Sonu Goswami</div>
+                      <div style="font-size: 0.7rem; color: #38bdf8; font-weight: 700;">Frontend Engineer</div>
+                    </td>
+                    <td>
+                      <div>Development</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">Main Branch (8h req)</div>
+                    </td>
+                    <td id="rowSonuMgr1">
+                      <div style="color: #38bdf8; font-weight: 700;">Naman Bangia</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">Senior Development Manager</div>
+                    </td>
+                    <td id="rowSonuMgr2">
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO (Executive HR)</div>
+                    </td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-indigo" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP003')">Edit Managers</button></td>
+                  </tr>
+
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP002</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Naman Bangia</div>
+                      <div style="font-size: 0.7rem; color: #34d399; font-weight: 700;">Senior Development Manager</div>
+                    </td>
+                    <td>
+                      <div>Development</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">Main Branch (8h req)</div>
+                    </td>
+                    <td>
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- None --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP002')">Edit</button></td>
+                  </tr>
+
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP004</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Jigyasa Sen</div>
+                      <div style="font-size: 0.7rem; color: #34d399; font-weight: 700;">Senior Development Manager</div>
+                    </td>
+                    <td>
+                      <div>Development</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">Main Branch (8h req)</div>
+                    </td>
+                    <td>
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- None --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP004')">Edit</button></td>
+                  </tr>
+
+                  <tr>
+                    <td><span class="cell-p" style="font-family: var(--font-mono); font-size: 0.75rem;">EMP006</span></td>
+                    <td>
+                      <div style="font-weight: 800; color: #fff;">Meenal</div>
+                      <div style="font-size: 0.7rem; color: #f59e0b; font-weight: 700;">SEO Manager</div>
+                    </td>
+                    <td>
+                      <div>SEO</div>
+                      <div style="font-size: 0.7rem; color: #64748b;">SEO Digital Branch (9h req)</div>
+                    </td>
+                    <td>
+                      <div style="color: #ec4899; font-weight: 700;">Ravina Khimani</div>
+                      <div style="font-size: 0.7rem; color: #94a3b8;">HR / COO</div>
+                    </td>
+                    <td><span style="color: #64748b;">-- None --</span></td>
+                    <td><span class="cell-p">OFFICE</span></td>
+                    <td><span class="cell-p">Active</span></td>
+                    <td><button class="btn-act btn-dark" style="padding: 4px 10px; font-size: 0.72rem;" onclick="openEditEmpModal('EMP006')">Edit</button></td>
                   </tr>
                 </tbody>
               </table>
@@ -1299,6 +1486,102 @@
     </main>
   </div>
 
+  <!-- Employee Modal (Showcasing Reporting Manager Dropdown with HR) -->
+  <div class="modal-backdrop" id="empModalBackdrop">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 900; color: #fff;" id="empModalTitle">Edit Employee Profile &amp; Reporting Managers</h3>
+          <p style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Configure dual-manager assignment and branch shift compliance.</p>
+        </div>
+        <button onclick="closeEditEmpModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.4rem; cursor: pointer;">✕</button>
+      </div>
+
+      <form onsubmit="handleSaveEmpHierarchy(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Employee Code</label>
+            <input type="text" id="modalEmpCode" value="EMP003" readonly style="width: 100%; background: #020617; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px; color: #94a3b8; font-size: 0.82rem; font-family: var(--font-mono);">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Full Name</label>
+            <input type="text" id="modalEmpName" value="Sonu Goswami" required style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Department</label>
+            <input type="text" id="modalEmpDept" value="Development" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Designation</label>
+            <input type="text" id="modalEmpDesig" value="Frontend Engineer" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+          </div>
+        </div>
+
+        <!-- PRIMARY REPORTING MANAGER DROPDOWN (MANAGER 1) -->
+        <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.35); padding: 14px; border-radius: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="font-size: 0.8rem; font-weight: 800; color: #c7d2fe;">Primary Reporting Manager (Manager 1)</label>
+            <span class="showcase-pill" style="font-size: 0.65rem;">Includes HR &amp; Super Admin</span>
+          </div>
+          <select id="modalPrimaryManager" style="width: 100%; background: #020617; border: 1px solid #6366f1; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.84rem; font-weight: 600;">
+            <option value="-- None --">-- None --</option>
+            <option value="Ravina Khimani">⭐ Ravina Khimani (Human Resources • HR / COO)</option>
+            <option value="Naman Bangia" selected>Naman Bangia (Development • Senior Development Manager)</option>
+            <option value="Jigyasa Sen">Jigyasa Sen (Development • Senior Development Manager)</option>
+            <option value="Divyanshu">Divyanshu (Development • Senior Development Manager)</option>
+            <option value="Meenal">Meenal (SEO • SEO Manager)</option>
+            <option value="Vipul">Vipul (Digital Marketing - 2 • Digital Marketing Manager)</option>
+          </select>
+          <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 5px;">First-line approval routing for leave requests and shift logs.</p>
+        </div>
+
+        <!-- SECONDARY REPORTING MANAGER DROPDOWN (MANAGER 2) -->
+        <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.3); padding: 14px; border-radius: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="font-size: 0.8rem; font-weight: 800; color: #7dd3fc;">Secondary Reporting Manager (Manager 2)</label>
+            <span class="showcase-pill" style="font-size: 0.65rem; background: rgba(14, 165, 233, 0.2); border-color: rgba(14, 165, 233, 0.4); color: #7dd3fc;">Dual Hierarchy</span>
+          </div>
+          <select id="modalSecondaryManager" style="width: 100%; background: #020617; border: 1px solid #0284c7; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.84rem; font-weight: 600;">
+            <option value="-- None --">-- None --</option>
+            <option value="Ravina Khimani" selected>⭐ Ravina Khimani (Human Resources • HR / COO)</option>
+            <option value="Naman Bangia">Naman Bangia (Development • Senior Development Manager)</option>
+            <option value="Jigyasa Sen">Jigyasa Sen (Development • Senior Development Manager)</option>
+            <option value="Divyanshu">Divyanshu (Development • Senior Development Manager)</option>
+            <option value="Meenal">Meenal (SEO • SEO Manager)</option>
+            <option value="Vipul">Vipul (Digital Marketing - 2 • Digital Marketing Manager)</option>
+          </select>
+          <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 5px;">Parallel review &amp; executive escalation rights.</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Work Mode</label>
+            <select id="modalEmpWorkMode" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+              <option value="OFFICE" selected>OFFICE (Biometric &amp; Desk)</option>
+              <option value="REMOTE">REMOTE (Time Tracker Active)</option>
+              <option value="HYBRID">HYBRID</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">Employment Status</label>
+            <select id="modalEmpStatus" style="width: 100%; background: #020617; border: 1px solid #334155; border-radius: 10px; padding: 10px 14px; color: #fff; font-size: 0.82rem;">
+              <option value="Active" selected>Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; border-top: 1px solid #1e293b; padding-top: 16px;">
+          <button type="button" class="btn-act btn-dark" onclick="closeEditEmpModal()">Cancel</button>
+          <button type="submit" class="btn-act btn-indigo" style="padding: 10px 22px;">Save Reporting Hierarchy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification Box -->
   <div class="toast-pill" id="globalToast">
     <span>✓ Notification message</span>
@@ -1350,6 +1633,8 @@
     function switchAdminSubTab(subTab) {
       document.querySelectorAll('#sideAdminGroup .side-btn-item').forEach(b => b.classList.remove('active'));
       document.getElementById('adminTabDashboard').style.display = 'none';
+      const empTab = document.getElementById('adminTabEmployees');
+      if (empTab) empTab.style.display = 'none';
       document.getElementById('adminTabLeaves').style.display = 'none';
       document.getElementById('adminTabWfh').style.display = 'none';
       document.getElementById('adminTabSettings').style.display = 'none';
@@ -1358,6 +1643,10 @@
         document.getElementById('adminTabDashboard').style.display = 'block';
         if (subTab === 'dashboard') document.getElementById('menuAdminDash').classList.add('active');
         if (subTab === 'attendance') document.getElementById('menuAdminAttendance').classList.add('active');
+      } else if (subTab === 'employees') {
+        if (empTab) empTab.style.display = 'block';
+        const empMenu = document.getElementById('menuAdminEmployees');
+        if (empMenu) empMenu.classList.add('active');
       } else if (subTab === 'leave-tracker') {
         document.getElementById('adminTabLeaves').style.display = 'block';
         document.getElementById('menuAdminLeaves').classList.add('active');
@@ -1368,6 +1657,52 @@
         document.getElementById('adminTabSettings').style.display = 'block';
         document.getElementById('menuAdminSettings').classList.add('active');
       }
+    }
+
+    // Modal & Employee Hierarchy Engine
+    function openEditEmpModal(code) {
+      document.getElementById('empModalBackdrop').classList.add('open');
+      if (code === 'EMP003') {
+        document.getElementById('modalEmpCode').value = 'EMP003';
+        document.getElementById('modalEmpName').value = 'Sonu Goswami';
+        document.getElementById('modalEmpDept').value = 'Development';
+        document.getElementById('modalEmpDesig').value = 'Frontend Engineer';
+        document.getElementById('modalPrimaryManager').value = 'Naman Bangia';
+        document.getElementById('modalSecondaryManager').value = 'Ravina Khimani';
+      } else if (code === 'EMP002') {
+        document.getElementById('modalEmpCode').value = 'EMP002';
+        document.getElementById('modalEmpName').value = 'Naman Bangia';
+        document.getElementById('modalEmpDept').value = 'Development';
+        document.getElementById('modalEmpDesig').value = 'Senior Development Manager';
+        document.getElementById('modalPrimaryManager').value = 'Ravina Khimani';
+        document.getElementById('modalSecondaryManager').value = '-- None --';
+      }
+    }
+
+    function closeEditEmpModal() {
+      document.getElementById('empModalBackdrop').classList.remove('open');
+    }
+
+    function handleSaveEmpHierarchy(e) {
+      e.preventDefault();
+      const code = document.getElementById('modalEmpCode').value;
+      const name = document.getElementById('modalEmpName').value;
+      const m1 = document.getElementById('modalPrimaryManager').value;
+      const m2 = document.getElementById('modalSecondaryManager').value;
+
+      if (code === 'EMP003') {
+        const mgr1Cell = document.getElementById('rowSonuMgr1');
+        const mgr2Cell = document.getElementById('rowSonuMgr2');
+        if (mgr1Cell) {
+          mgr1Cell.innerHTML = `<div style="color: ${m1.includes('Ravina') ? '#ec4899' : '#38bdf8'}; font-weight: 700;">${m1}</div><div style="font-size: 0.7rem; color: #94a3b8;">${m1.includes('Ravina') ? 'HR / COO (Executive HR)' : 'Senior Development Manager'}</div>`;
+        }
+        if (mgr2Cell) {
+          mgr2Cell.innerHTML = `<div style="color: ${m2.includes('Ravina') ? '#ec4899' : '#38bdf8'}; font-weight: 700;">${m2}</div><div style="font-size: 0.7rem; color: #94a3b8;">${m2.includes('Ravina') ? 'HR / COO (Executive HR)' : 'Reporting Head'}</div>`;
+        }
+      }
+
+      closeEditEmpModal();
+      showToast(`Saved reporting hierarchy for ${name}! Primary: ${m1}`);
     }
 
     // 3. Employee Sub-tabs

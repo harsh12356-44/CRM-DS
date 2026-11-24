@@ -16,6 +16,9 @@
 - **Interactive Single-Page Showcase Demo for LinkedIn & Portfolio ([public/portal-demo.html](file:///d:/Ravina/Antigravity/crm-ds/public/portal-demo.html)) (2026-11-24)**:
   - **Requirement Addressed**: "I want to ask one thing that can you provide me working HTMl preview link of the portal so that i can show people on linkedin what i have made? without disturbing the actual portal. i need a demo kind of html preview to showcase my portal to them."
   - **Deliverable**: Built a dedicated, client-side interactive sandbox preview (`portal-demo.html`) featuring:
+    - **Live Permanent URL (GitHub Pages)**: `https://harsh12356-44.github.io/CRM-DS/`
+    - **Marketing Showcase URL**: `https://harsh12356-44.github.io/CRM-DS/hrm-pilot-preview.html`
+    - **Interactive Documentation URL**: `https://harsh12356-44.github.io/CRM-DS/documentation.html`
     - 1-click Suite Switcher between **HR Admin Suite**, **Manager Desk**, and **Employee Portal** with zero login required.
     - Interactive WFH Digital Punch In/Out card with running timer and break buttons.
     - Biometric Attendance Roster with live employee search and filter.

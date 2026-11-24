@@ -33,6 +33,7 @@ pnpm-debug.log*
 hostinger_deployment.zip
 crm-ds-hostinger-deployment.zip
 crm-ds-source-code.zip
+/videos/
 *.tsbuildinfo
 
 # Time tracker screenshot gallery (images live on the server only)

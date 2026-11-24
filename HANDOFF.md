@@ -13,6 +13,23 @@
 ---
 
 ## 2. Current Project Status
+- **Portal Video Walkthrough & Tab Showcase ([videos/crm-ds-portal-showcase-walkthrough.webm](file:///d:/Ravina/Antigravity/crm-ds/videos/crm-ds-portal-showcase-walkthrough.webm)) (2026-11-24)**:
+  - **Requirement Addressed**: "Can you login to the portal and make a video of each and every tab to showcase? the video should not exceed 3 minutes"
+  - **Deliverable**: Generated an automated 720p HD video walkthrough (`crm-ds-portal-showcase-walkthrough.webm`, 24.01 MB) with an exact duration of **2 minutes 44 seconds** (strictly under the 3-minute limit).
+  - **Showcase Progression**:
+    1. **Login Sequence**: Full visual sign-in workflow entering HR Super Admin credentials (`digitalsuncityoffice@gmail.com`).
+    2. **Central Controller / Admin Dashboard**: Overview metrics (staff roster, present, leave, late punches).
+    3. **Biometric Attendance Master Grid**: 31-day horizontal attendance view with shift compliance.
+    4. **Employees & Dual Reporting Hierarchy**: Staff directory and Employee Profile modal showcasing **Ravina Khimani (HR / COO)** in Manager 1 and Manager 2 dropdowns.
+    5. **Quarterly Leave Tracker**: 6-day quota breakdown (Casual 2d, Planned 4d) with approval action controls.
+    6. **WFH Live Command Board**: Real-time working sessions, screenshot monitors, and break logs.
+    7. **Managers Desk**: Dual-reporting hierarchy roster.
+    8. **Branches & Shift Configurations**: Multi-branch shift requirements (Main Branch 8h, SEO Branch 9h).
+    9. **Multi-Company Spaces**: Multi-tenant workspace environments.
+    10. **Automated Notification Settings**: 4 automated alert rules with live toggle switches.
+    11. **Manager Desk Approvals**: Subordinate leave request approval/rejection queue.
+    12. **Employee Portal**: Live digital punch clock timer, break controls, leave application simulator, and notification balance alerts.
+
 - **Complete Source Code ZIP Package ([crm-ds-source-code.zip](file:///d:/Ravina/Antigravity/crm-ds/crm-ds-source-code.zip)) (2026-11-24)**:
   - **Requirement Addressed**: "A ZIP of the portal's source code provide"
   - **Deliverable**: Generated a clean, standalone source code archive (`crm-ds-source-code.zip`, ~1.29 MB) containing all application source files, components, API routes, database schemas, and documentation.

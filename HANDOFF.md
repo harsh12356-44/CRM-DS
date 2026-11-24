@@ -19,13 +19,14 @@
     - **Live Permanent URL (GitHub Pages)**: `https://harsh12356-44.github.io/CRM-DS/`
     - **Marketing Showcase URL**: `https://harsh12356-44.github.io/CRM-DS/hrm-pilot-preview.html`
     - **Interactive Documentation URL**: `https://harsh12356-44.github.io/CRM-DS/documentation.html`
-    - 1-click Suite Switcher between **HR Admin Suite**, **Manager Desk**, and **Employee Portal** with zero login required.
-    - Interactive WFH Digital Punch In/Out card with running timer and break buttons.
-    - Biometric Attendance Roster with live employee search and filter.
-    - Leave Application simulator with real-time remaining quota recalculation (Casual 2d, Planned 4d, Total 6d).
-    - Manager Desk approval/rejection queue with live state updates and toast alerts.
-    - Interactive Notification Center with balance change alerts.
-    - Completely isolated from production data (`db.json` & cloud DB untouched).
+    - **1-Click Suite Switcher**: Seamless toggling between **HR Admin Suite**, **Manager Desk**, and **Employee Portal** (zero login credentials needed).
+    - **Employee Directory & Dual Manager Hierarchy Tab**: Showcases the complete employee directory with an interactive modal demonstrating **Ravina Khimani (HR / COO)** prominently selectable in **Primary Reporting Manager (Manager 1)** and **Secondary Reporting Manager (Manager 2)** dropdowns.
+    - **Interactive WFH Digital Punch In/Out**: Live clock timer, ☕ Tea Break (15m), and 🍽️ Lunch Break (45m).
+    - **Biometric Attendance Matrix**: 31-day master grid with live search and filter across departments.
+    - **Leave Application Simulator**: Real-time remaining quota recalculation (Casual 2d, Planned 4d, Total 6d) and instant toast notification delivery.
+    - **Manager Desk Queue**: Instant 1-click Approve / Reject actions with live table state updates.
+    - **Interactive Notification Center**: Real-time unread badges, popover tray, and quota change alerts.
+    - **Completely Isolated**: Production database (`db.json` and Supabase) remains completely untouched.
 
 - **HR / Super Admin Visibility in Reporting Manager Dropdowns & Managers Desk (2026-11-18)**:
   - **Root Cause**: Ravina Khimani (`RK001`, HR / COO) is promoted to `SUPER_ADMIN` at runtime in [`src/lib/store.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/lib/store.ts), while the manager dropdown filter in [`src/components/EmployeesTab.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/components/EmployeesTab.tsx) and the list in [`src/app/admin/managers/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/admin/managers/page.tsx) only checked `role === 'MANAGER' || role === 'ADMIN'` (excluding `SUPER_ADMIN` and HR designations).

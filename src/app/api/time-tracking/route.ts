@@ -120,6 +120,9 @@ export async function POST(request: Request) {
     if (!emp) {
       return NextResponse.json({ error: 'Employee not found.' }, { status: 404 });
     }
+    if (String(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+      return NextResponse.json({ error: 'Your account is marked as Inactive. Time tracking is disabled.' }, { status: 403 });
+    }
     if (!isSameEmployee(user, emp)) {
       return NextResponse.json({ error: 'You can only clock in / out for your own account.' }, { status: 403 });
     }

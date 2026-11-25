@@ -49,6 +49,13 @@ export default function LoginPage() {
     }
 
     try {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('error') === 'inactive') {
+        setError('Your account is marked as Inactive. Access to the HRM portal has been suspended. Please contact HR / Administrator.');
+      }
+    } catch (e) {}
+
+    try {
       const cachedLogo = localStorage.getItem('hrm_company_logo');
       const cachedName = localStorage.getItem('hrm_company_name');
       if (cachedLogo) setCompanyLogoUrl(cachedLogo);

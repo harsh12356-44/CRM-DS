@@ -13,6 +13,26 @@
 ---
 
 ## 2. Current Project Status
+- **Inactive Employee Portal Access Restriction & Login Guard (2026-11-25)**:
+  - **Requirement Addressed**: "the employee which is marked inactive should not be able to login to HRM portal."
+  - **Issue Identified**:
+    - On the live portal, employee Bulbul (`BB011`, `emp-11`) was marked `status: "INACTIVE"`.
+    - However, [`src/app/api/auth/login/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/auth/login/route.ts) only checked whether the account and password matched, allowing inactive employees to authenticate and obtain session cookies with `200 OK`.
+  - **Enforcement & Security Guards Implemented**:
+    1. **Login Endpoint ([`src/app/api/auth/login/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/auth/login/route.ts))**:
+       - Added immediate status verification before password validation: if `(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE'`, login is rejected with `HTTP 403 Forbidden` and message: *"Your account (Employee Name) is marked as Inactive. Access to the HRM portal has been suspended. Please contact HR / Administrator."*
+       - Added security audit log recording every blocked inactive login attempt with employee ID, name, and timestamp.
+    2. **Active Session Invalidation ([`src/app/employee/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/employee/page.tsx), [`src/app/manager/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/manager/page.tsx))**:
+       - If an employee or manager has an existing active session cookie and their account is marked `INACTIVE` by HR, the portal clears all authentication cookies and `localStorage` keys, and redirects to `/login?error=inactive`.
+    3. **Login Screen Alert ([`src/app/login/page.tsx`](file:///d:/Ravina/Antigravity/crm-ds/src/app/login/page.tsx))**:
+       - Checks `?error=inactive` in the query string and displays an alert banner explaining that access is disabled due to inactive account status.
+    4. **Action Restrictions**:
+       - **Attendance Punch ([`src/app/api/attendance/punch/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/attendance/punch/route.ts))**: Blocks inactive employees from punching in or out (`403 Forbidden`).
+       - **Time Tracking ([`src/app/api/time-tracking/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/time-tracking/route.ts))**: Blocks inactive employees from clocking in or recording time (`403 Forbidden`).
+       - **Leave Applications ([`src/app/api/leaves/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/leaves/route.ts))**: Blocks inactive employees from submitting leave requests (`403 Forbidden`).
+       - **Complaints & Feedback ([`src/app/api/feedback/route.ts`](file:///d:/Ravina/Antigravity/crm-ds/src/app/api/feedback/route.ts))**: Blocks inactive employees from submitting tickets (`403 Forbidden`).
+  - **Verification**: Tested locally with `bulbulmaheshwari64@gmail.com` (inactive): login returned `403 Forbidden`, while active admin login succeeded with `200 OK`. Full production build verified (`npm run build`).
+
 - **Complaints & Feedback Module Permission Fix & Live Portal Resolution (2026-11-25)**:
   - **Issue Reported**: "I am not able to delete a complaint or do anything else on it. i cant even update the status why" -> "check on live portal".
   - **Root Cause Identified**:

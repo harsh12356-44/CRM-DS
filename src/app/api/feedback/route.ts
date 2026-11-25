@@ -68,6 +68,10 @@ export async function POST(request: Request) {
     const db = getDbData();
     const emp = findRequestEmployee(user, db.employees);
 
+    if (emp && String(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+      return NextResponse.json({ error: 'Your account is marked as Inactive. Submissions are disabled.' }, { status: 403, headers: NO_CACHE_HEADERS });
+    }
+
     const body = await request.json();
     const { category, subject, description, imageBase64, imageName } = body;
 
@@ -170,6 +174,10 @@ export async function PUT(request: Request) {
     const db = getDbData();
     const emp = findRequestEmployee(user, db.employees);
 
+    if (emp && String(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+      return NextResponse.json({ error: 'Your account is marked as Inactive. Submissions are disabled.' }, { status: 403, headers: NO_CACHE_HEADERS });
+    }
+
     if (!isAdmin(user, emp)) {
       return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
@@ -237,6 +245,10 @@ export async function DELETE(request: Request) {
     const user = getRequestUser(request);
     const db = getDbData();
     const emp = findRequestEmployee(user, db.employees);
+
+    if (emp && String(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+      return NextResponse.json({ error: 'Your account is marked as Inactive. Submissions are disabled.' }, { status: 403, headers: NO_CACHE_HEADERS });
+    }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

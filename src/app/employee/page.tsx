@@ -287,6 +287,23 @@ function EmployeePortalContent() {
         return;
       }
 
+      if (String(currentEmp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+        document.cookie = 'hrm_user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'hrm_user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'hrm_user_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'hrm_auth_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'hrm_auth_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        document.cookie = 'hrm_auth_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('hrm_user');
+          localStorage.removeItem('hrm_active_employee_id');
+          localStorage.removeItem('hrm_active_employee_email');
+          localStorage.removeItem('hrm_active_employee_role');
+        }
+        router.push('/login?error=inactive');
+        return;
+      }
+
       setEmployee(currentEmp);
       setSelectedEmployeeId(currentEmp.id);
 

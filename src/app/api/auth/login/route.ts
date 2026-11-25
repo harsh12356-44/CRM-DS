@@ -42,6 +42,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Account not found. Please check your email or employee ID.' }, { status: 404 });
     }
 
+    // Block inactive employees from accessing the portal
+    const empStatus = String(emp.status || 'ACTIVE').toUpperCase().trim();
+    if (empStatus === 'INACTIVE') {
+      logAudit('Blocked Inactive Login', 'Auth', emp.id, undefined, `Inactive employee ${emp.name} (${emp.email || emp.employeeId}) attempted to sign in`);
+      return NextResponse.json({ 
+        success: false, 
+        error: `Your account (${emp.name}) is marked as Inactive. Access to the HRM portal has been suspended. Please contact HR / Administrator.` 
+      }, { status: 403 });
+    }
+
     // Determine expected password
     const expectedPassword = emp.password || (emp.role === 'SUPER_ADMIN' || emp.role === 'ADMIN' ? 'Admin@123' : emp.role === 'MANAGER' ? 'Manager@123' : 'Employee@123');
 

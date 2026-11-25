@@ -10,6 +10,11 @@ export async function POST(request: Request) {
     const today = new Date().toISOString().split('T')[0];
     const nowTime = new Date().toLocaleTimeString('en-US', { hour12: false });
 
+    const emp = db.employees.find(e => e.id === employeeId || e.employeeId === employeeId);
+    if (emp && String(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+      return NextResponse.json({ error: 'Your account is marked as Inactive. Attendance punching is disabled.' }, { status: 403 });
+    }
+
     let existingLog = db.attendanceLogs.find(
       log => log.employeeId === employeeId && log.date === today
     );

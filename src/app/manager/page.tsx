@@ -41,6 +41,25 @@ export default function ManagerPortalPage() {
           (cleanId && ((e.id && e.id.toLowerCase() === cleanId) || (e.employeeId && e.employeeId.toLowerCase() === cleanId))) ||
           (cleanEmail && e.email && e.email.toLowerCase() === cleanEmail)
         );
+
+        if (mgr && String(mgr.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+          document.cookie = 'hrm_user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'hrm_user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'hrm_user_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'hrm_auth_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'hrm_auth_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          document.cookie = 'hrm_auth_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('hrm_user');
+            localStorage.removeItem('hrm_auth_user_id');
+            localStorage.removeItem('hrm_auth_user_email');
+            localStorage.removeItem('hrm_active_employee_id');
+            localStorage.removeItem('hrm_active_employee_email');
+          }
+          window.location.href = '/login?error=inactive';
+          return;
+        }
+
         setActiveManager(mgr || null);
       }
     } catch (err) {

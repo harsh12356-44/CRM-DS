@@ -412,6 +412,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Employee account not found.' }, { status: 404 });
     }
 
+    if (String(emp.status || 'ACTIVE').toUpperCase().trim() === 'INACTIVE') {
+      return NextResponse.json({ error: 'Your account is marked as Inactive. Leave applications are disabled.' }, { status: 403 });
+    }
+
     const start = new Date(startDate);
     const end = endDate ? new Date(endDate) : start;
 

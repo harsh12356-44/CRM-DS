@@ -272,7 +272,7 @@
       "department": "Development",
       "designation": "Web Designer",
       "role": "EMPLOYEE",
-      "status": "ACTIVE",
+      "status": "INACTIVE",
       "primaryManager": "Naman Bangia",
       "secondaryManager": "Ravina Khimani",
       "employeeType": "Full Time",
@@ -26952,6 +26952,26 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "aud-1795607505352",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "User Login",
+      "objectType": "Auth",
+      "objectId": "emp-1",
+      "newValue": "User Ravina Khimani (digitalsuncityoffice@gmail.com) signed in successfully",
+      "timestamp": "2026-11-25T11:51:45.352Z"
+    },
+    {
+      "id": "aud-1795607505266",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "Blocked Inactive Login",
+      "objectType": "Auth",
+      "objectId": "emp-11",
+      "newValue": "Inactive employee Bulbul (bulbulmaheshwari64@gmail.com) attempted to sign in",
+      "timestamp": "2026-11-25T11:51:45.266Z"
+    },
     {
       "id": "aud-1795524546947",
       "userId": "emp-1",

@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { getDbData, saveDbDataAsync, ensureCloudSync } from '@/lib/store';
-import { getRequestUser, findRequestEmployee } from '@/lib/requestUser';
+import { getRequestUser, findRequestEmployee, isAdmin } from '@/lib/requestUser';
 import { FeedbackCategory, FeedbackItem, FeedbackStatus } from '@/lib/types';
 import { deleteFeedbackFromPrisma } from '@/lib/dbSync';
 
@@ -35,14 +35,14 @@ export async function GET(request: Request) {
     const user = getRequestUser(request);
     const db = getDbData();
     const all = db.feedbackItems || [];
+    const emp = findRequestEmployee(user, db.employees);
 
-    if (user.role === 'ADMIN') {
+    if (isAdmin(user, emp)) {
       const sorted = [...all].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       return NextResponse.json({ success: true, items: sorted }, { headers: NO_CACHE_HEADERS });
     }
 
     // Identify employee
-    const emp = findRequestEmployee(user, db.employees);
     const myId = emp?.id || user.id;
     const myEmail = emp?.email || user.email;
 
@@ -167,7 +167,10 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const user = getRequestUser(request);
-    if (user.role !== 'ADMIN') {
+    const db = getDbData();
+    const emp = findRequestEmployee(user, db.employees);
+
+    if (!isAdmin(user, emp)) {
       return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403, headers: NO_CACHE_HEADERS });
     }
 
@@ -178,7 +181,6 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Feedback ID is required.' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const db = getDbData();
     const items = db.feedbackItems || [];
     const index = items.findIndex(f => f.id === id);
 
@@ -229,13 +231,12 @@ export async function PUT(request: Request) {
   }
 }
 
-// DELETE: Delete a feedback ticket (Admin only)
+// DELETE: Delete a feedback ticket (Admin or author)
 export async function DELETE(request: Request) {
   try {
     const user = getRequestUser(request);
-    if (user.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 403, headers: NO_CACHE_HEADERS });
-    }
+    const db = getDbData();
+    const emp = findRequestEmployee(user, db.employees);
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
@@ -244,8 +245,24 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Feedback ID is required.' }, { status: 400, headers: NO_CACHE_HEADERS });
     }
 
-    const db = getDbData();
-    db.feedbackItems = (db.feedbackItems || []).filter(f => f.id !== id);
+    const items = db.feedbackItems || [];
+    const targetItem = items.find(f => f.id === id);
+
+    if (!targetItem) {
+      return NextResponse.json({ error: 'Feedback item not found.' }, { status: 404, headers: NO_CACHE_HEADERS });
+    }
+
+    const isAuthor = Boolean(
+      (user.id && targetItem.employeeId === user.id) ||
+      (user.email && targetItem.employeeEmail?.toLowerCase() === user.email.toLowerCase()) ||
+      (emp && targetItem.employeeId === emp.id)
+    );
+
+    if (!isAdmin(user, emp) && !isAuthor) {
+      return NextResponse.json({ error: 'Unauthorized. Admin access required to delete this ticket.' }, { status: 403, headers: NO_CACHE_HEADERS });
+    }
+
+    db.feedbackItems = items.filter(f => f.id !== id);
 
     // Delete attachment if present
     try {

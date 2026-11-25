@@ -12,19 +12,27 @@ function readCookie(cookieHeader: string, name: string): string {
   return match ? decodeURIComponent(match[1]) : '';
 }
 
-// Identity comes from the cookies set by /api/auth/login.
+// Identity comes from cookies or custom headers set by client
 export function getRequestUser(request: Request): RequestUser {
   const cookieHeader = request.headers.get('cookie') || '';
+  const role = (readCookie(cookieHeader, 'hrm_user_role') || request.headers.get('x-user-role') || '').trim();
+  const id = (readCookie(cookieHeader, 'hrm_user_id') || request.headers.get('x-user-id') || '').trim();
+  const email = (readCookie(cookieHeader, 'hrm_user_email') || request.headers.get('x-user-email') || '').toLowerCase().trim();
+  const companyId = (readCookie(cookieHeader, 'hrm_user_company') || request.headers.get('x-user-company') || 'company-main').trim();
+
   return {
-    role: readCookie(cookieHeader, 'hrm_user_role'),
-    id: readCookie(cookieHeader, 'hrm_user_id'),
-    email: readCookie(cookieHeader, 'hrm_user_email').toLowerCase(),
-    companyId: readCookie(cookieHeader, 'hrm_user_company') || 'company-main',
+    role,
+    id,
+    email,
+    companyId,
   };
 }
 
-export function isAdmin(user: RequestUser): boolean {
-  return user.role === 'SUPER_ADMIN' || user.role === 'ADMIN';
+export function isAdmin(user: RequestUser, emp?: Employee): boolean {
+  if (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN') return true;
+  if (emp && (emp.role === 'SUPER_ADMIN' || emp.role === 'ADMIN')) return true;
+  if (emp && (emp.department?.toLowerCase() === 'human resources' || emp.designation?.toLowerCase().includes('hr'))) return true;
+  return false;
 }
 
 export function isSuperAdmin(user: RequestUser): boolean {

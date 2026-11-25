@@ -95,10 +95,22 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const getAuthHeaders = (extra: Record<string, string> = {}) => {
+    return {
+      'x-user-role': employee?.role || 'EMPLOYEE',
+      'x-user-id': employee?.id || '',
+      'x-user-email': employee?.email || '',
+      ...extra,
+    };
+  };
+
   const fetchMyHistory = async (isSilent = false) => {
     try {
       if (!isSilent) setLoadingHistory(true);
-      const res = await fetch(`/api/feedback?_t=${Date.now()}`, { cache: 'no-store' });
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setMyItems(data.items);
@@ -189,7 +201,7 @@ export default function SupportFeedbackTab({ employee }: SupportFeedbackTabProps
 
       const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           category,
           subject: subject.trim(),

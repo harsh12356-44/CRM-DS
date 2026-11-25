@@ -49,10 +49,31 @@ export default function FeedbackAdminTab() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
+  const getAuthHeaders = (extra: Record<string, string> = {}) => {
+    const role = typeof window !== 'undefined'
+      ? (localStorage.getItem('hrm_active_employee_role') || localStorage.getItem('hrm_auth_user_role') || 'SUPER_ADMIN')
+      : 'SUPER_ADMIN';
+    const id = typeof window !== 'undefined'
+      ? (localStorage.getItem('hrm_active_employee_id') || localStorage.getItem('hrm_auth_user_id') || '')
+      : '';
+    const email = typeof window !== 'undefined'
+      ? (localStorage.getItem('hrm_active_employee_email') || localStorage.getItem('hrm_auth_user_email') || '')
+      : '';
+    return {
+      'x-user-role': role,
+      'x-user-id': id,
+      'x-user-email': email,
+      ...extra,
+    };
+  };
+
   const fetchItems = async (isSilent = false) => {
     try {
       if (!isSilent) setLoading(true);
-      const res = await fetch(`/api/feedback?_t=${Date.now()}`, { cache: 'no-store' });
+      const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
       if (data.success && Array.isArray(data.items)) {
         setItems(data.items);
@@ -117,7 +138,7 @@ export default function FeedbackAdminTab() {
     try {
       const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           id: item.id,
           status: newStatus,
@@ -180,7 +201,7 @@ export default function FeedbackAdminTab() {
     try {
       const res = await fetch(`/api/feedback?_t=${Date.now()}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           id: currentItem.id,
           status: replyStatus,
@@ -231,6 +252,7 @@ export default function FeedbackAdminTab() {
     try {
       const res = await fetch(`/api/feedback?id=${id}&_t=${Date.now()}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {

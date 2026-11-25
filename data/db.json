@@ -8,7 +8,7 @@
       "phone": "+91 98765 00001",
       "department": "Human Resources",
       "designation": "HR / COO",
-      "role": "ADMIN",
+      "role": "SUPER_ADMIN",
       "status": "ACTIVE",
       "employeeType": "Full Time",
       "monthlySalary": 95000,
@@ -20,7 +20,11 @@
       "dateOfJoining": "2024-01-01",
       "password": "Ravina@1996#",
       "primaryManager": "",
-      "secondaryManager": ""
+      "secondaryManager": "",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-2",
@@ -40,7 +44,11 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "dateOfJoining": "2024-01-15"
+      "dateOfJoining": "2024-01-15",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-3",
@@ -62,7 +70,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-02-01",
       "password": "Jigyasa@JS003",
-      "secondaryManager": ""
+      "secondaryManager": "",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-4",
@@ -85,7 +97,11 @@
       "dateOfJoining": "2024-02-15",
       "password": "Divyanshu@DV004",
       "secondaryManager": "",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-5",
@@ -106,7 +122,11 @@
       "plannedAllowance": 4,
       "sickAllowance": 4,
       "dateOfJoining": "2024-03-01",
-      "password": "Meenal@MN005"
+      "password": "Meenal@MN005",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-6",
@@ -129,7 +149,11 @@
       "dateOfJoining": "2024-03-15",
       "password": "Nandini@NG006",
       "secondaryManager": "",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-7",
@@ -152,7 +176,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-04-01",
       "password": "Anup@#AS007",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-8",
@@ -175,7 +203,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-04-10",
       "password": "Lochita@LG008",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-9",
@@ -198,7 +230,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-04-15",
       "password": "Raj@RV009",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-10",
@@ -221,7 +257,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-05-01",
       "password": "Mudita@MD010",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-11",
@@ -244,7 +284,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-05-10",
       "password": "Bulbul@BB011",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-12",
@@ -267,7 +311,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-05-15",
       "password": "Sonu@SG012",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-13",
@@ -289,7 +337,11 @@
       "plannedAllowance": 4,
       "sickAllowance": 4,
       "dateOfJoining": "2024-06-01",
-      "password": "Shweta@SD013"
+      "password": "Shweta@SD013",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-14",
@@ -312,7 +364,11 @@
       "sickAllowance": 4,
       "dateOfJoining": "2024-06-10",
       "password": "Charu@CB014",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-15",
@@ -335,7 +391,11 @@
       "dateOfJoining": "2024-07-01",
       "password": "Employee@123",
       "secondaryManager": "",
-      "workMode": "WFH"
+      "workMode": "WFH",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-16",
@@ -358,7 +418,11 @@
       "dateOfJoining": "2024-07-05",
       "password": "Garv@GV016",
       "secondaryManager": "",
-      "workMode": "WFH"
+      "workMode": "WFH",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-17",
@@ -381,7 +445,11 @@
       "dateOfJoining": "2024-07-10",
       "password": "Charu@CS017",
       "secondaryManager": "",
-      "workMode": "OFFICE"
+      "workMode": "OFFICE",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-18",
@@ -404,7 +472,11 @@
       "plannedAllowance": 4,
       "sickAllowance": 4,
       "secondaryManager": "",
-      "employeeType": "Full Time"
+      "employeeType": "Full Time",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-1788172913000",
@@ -427,7 +499,11 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "employeeType": "Full Time"
+      "employeeType": "Full Time",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-1788174181606",
@@ -450,7 +526,11 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "employeeType": "Full Time"
+      "employeeType": "Full Time",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     },
     {
       "id": "emp-1788174675636",
@@ -473,7 +553,11 @@
       "casualAllowance": 2,
       "plannedAllowance": 4,
       "sickAllowance": 4,
-      "employeeType": "Full Time"
+      "employeeType": "Full Time",
+      "companyId": "company-main",
+      "companyName": "Digital Suncity",
+      "branchId": "branch-main",
+      "branch": "Main Branch"
     }
   ],
   "leaveRecords": [
@@ -26801,7 +26885,14 @@
     "halfDayThresholdMinutes": 240,
     "loginUrl": "/login",
     "employeePortalUrl": "/employee",
-    "managerPortalUrl": "/manager"
+    "managerPortalUrl": "/manager",
+    "notificationSettings": {
+      "enabled": true,
+      "notifyAdminOnLeaveApply": true,
+      "notifyManagerOnLeaveApply": true,
+      "notifyEmployeeLeaveBalance": true,
+      "notifyEmployeeOnStatusUpdate": true
+    }
   },
   "payrollPreviews": [],
   "holidays": [
@@ -26861,6 +26952,26 @@
     }
   ],
   "auditLogs": [
+    {
+      "id": "aud-1795524546947",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "User Login",
+      "objectType": "Auth",
+      "objectId": "emp-1",
+      "newValue": "User Ravina Khimani (digitalsuncityoffice@gmail.com) signed in successfully",
+      "timestamp": "2026-11-24T12:49:06.947Z"
+    },
+    {
+      "id": "aud-1795524275678",
+      "userId": "emp-1",
+      "userName": "Harshit Bhootra",
+      "action": "User Login",
+      "objectType": "Auth",
+      "objectId": "emp-1",
+      "newValue": "User Ravina Khimani (digitalsuncityoffice@gmail.com) signed in successfully",
+      "timestamp": "2026-11-24T12:44:35.678Z"
+    },
     {
       "id": "aud-1791022600256",
       "userId": "emp-1",
@@ -27668,5 +27779,46 @@
       "description": "Core Digital Marketing - 2 Department operations and personnel management.",
       "employeeCount": 3
     }
-  ]
+  ],
+  "branches": [
+    {
+      "id": "branch-main",
+      "name": "Main Branch",
+      "code": "MAIN",
+      "dailyWorkingRequirementMinutes": 420,
+      "weeklyOff": "Sunday",
+      "address": "Digital Suncity Head Office",
+      "companyId": "company-main",
+      "isDefault": true
+    },
+    {
+      "id": "branch-seo",
+      "name": "SEO Branch",
+      "code": "SEO",
+      "dailyWorkingRequirementMinutes": 480,
+      "weeklyOff": "Saturday & Sunday",
+      "address": "Digital Suncity SEO & Digital Wing",
+      "companyId": "company-main",
+      "isDefault": false
+    }
+  ],
+  "companies": [
+    {
+      "id": "company-main",
+      "name": "Digital Suncity",
+      "code": "DS",
+      "slug": "digital-suncity",
+      "logoUrl": "",
+      "status": "ACTIVE",
+      "contactEmail": "ravina@hrmpilot.com",
+      "shiftStartTime": "09:00",
+      "lunchBreakMinutes": 60,
+      "dailyWorkingRequirementMinutes": 480,
+      "weeklyOff": "Sunday",
+      "isDefault": true,
+      "createdAt": "2024-01-01"
+    }
+  ],
+  "timeEntries": [],
+  "feedbackItems": []
 }

@@ -64,6 +64,23 @@
 
 ---
 
-## 4. Next Steps for Live Portal Sync
-1. **Option A (Quick Upload)**: Upload `crm-ds-hostinger-deployment.zip` via Hostinger File Manager, extract in public_html, and click Restart Application.
-2. **Option B (Fix GitHub Actions)**: Update `HOSTINGER_PASSWORD` in GitHub Secrets so auto-deployments resume on git push.
+## 4. Live Deployment & Final Verification
+1. **GitHub Secrets Updated**:
+   - `HOSTINGER_HOST`: `88.222.247.3`
+   - `HOSTINGER_PORT`: `65002`
+   - `HOSTINGER_USERNAME`: `u127898937`
+   - `HOSTINGER_PASSWORD`: Configured via stdin in GitHub repository secrets.
+
+2. **Automated CI/CD Execution**:
+   - Triggered workflow `deploy.yml` ([Run #45606397849](https://github.com/harsh12356-44/CRM-DS/actions/runs/45606397849)).
+   - All stages completed successfully in 3m 29s:
+     - Next.js 15 production build packaged.
+     - SSH connection to Hostinger authenticated and updated code.
+     - Pre-built archive uploaded via SCP.
+     - Production build extracted and application restarted on Hostinger.
+
+3. **Live Testing Results**:
+   - `GET /api/feedback`: Returns all staff tickets with `HTTP 200 OK`.
+   - `PUT /api/feedback`: Status updates and responses succeed with `HTTP 200 OK`.
+   - `DELETE /api/feedback`: Verified ticket deletion with `HTTP 200 OK`.
+
